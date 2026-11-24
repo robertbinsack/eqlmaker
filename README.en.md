@@ -2,7 +2,7 @@
 
 <h1 align="center">EQLMaker</h1>
 
-<p align="center"><b>Understand legacy software and rebuild it as a modern web application. Without source code.</b></p>
+<p align="center"><b>Understand legacy software and let AI rebuild it automatically as a modern web application. Without source code.</b></p>
 
 <p align="center">
   <img alt="Status: in development" src="https://img.shields.io/badge/Status-in%20development-orange">
