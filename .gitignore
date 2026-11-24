@@ -1,0 +1,6 @@
+/bin/
+/work/
+/out/
+node_modules/
+*.user
+test-results.json

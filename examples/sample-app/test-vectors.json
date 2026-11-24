@@ -1,0 +1,371 @@
+{
+  "description": "Test vectors of the invoice calculation of the sample application. Amounts are decimal texts; both variants of the sample must return exactly the expected values.",
+  "vectors": [
+    {
+      "name": "group A below its threshold: no discount",
+      "group": "A",
+      "lines": [
+        {
+          "quantity": 10,
+          "unit_price": "49.99",
+          "tax_class": "S"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "499.90"
+        ],
+        "net": "499.90",
+        "discount_percent": "0.00",
+        "discount": "0.00",
+        "tax": "94.98",
+        "gross": "594.88"
+      }
+    },
+    {
+      "name": "group A exactly at its threshold: 5 percent",
+      "group": "A",
+      "lines": [
+        {
+          "quantity": 4,
+          "unit_price": "125.00",
+          "tax_class": "S"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "500.00"
+        ],
+        "net": "500.00",
+        "discount_percent": "5.00",
+        "discount": "25.00",
+        "tax": "90.25",
+        "gross": "565.25"
+      }
+    },
+    {
+      "name": "group A, discount ends in half a cent (25.005)",
+      "group": "A",
+      "lines": [
+        {
+          "quantity": 1,
+          "unit_price": "500.10",
+          "tax_class": "S"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "500.10"
+        ],
+        "net": "500.10",
+        "discount_percent": "5.00",
+        "discount": "25.01",
+        "tax": "90.27",
+        "gross": "565.36"
+      }
+    },
+    {
+      "name": "group B below its threshold, reduced tax class",
+      "group": "B",
+      "lines": [
+        {
+          "quantity": 1,
+          "unit_price": "999.99",
+          "tax_class": "R"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "999.99"
+        ],
+        "net": "999.99",
+        "discount_percent": "0.00",
+        "discount": "0.00",
+        "tax": "70.00",
+        "gross": "1069.99"
+      }
+    },
+    {
+      "name": "group B exactly at its threshold: 3 percent",
+      "group": "B",
+      "lines": [
+        {
+          "quantity": 8,
+          "unit_price": "125.00",
+          "tax_class": "S"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "1000.00"
+        ],
+        "net": "1000.00",
+        "discount_percent": "3.00",
+        "discount": "30.00",
+        "tax": "184.30",
+        "gross": "1154.30"
+      }
+    },
+    {
+      "name": "group B, discount ends in half a cent (30.015)",
+      "group": "B",
+      "lines": [
+        {
+          "quantity": 1,
+          "unit_price": "1000.50",
+          "tax_class": "S"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "1000.50"
+        ],
+        "net": "1000.50",
+        "discount_percent": "3.00",
+        "discount": "30.02",
+        "tax": "184.39",
+        "gross": "1154.87"
+      }
+    },
+    {
+      "name": "group C never gets a discount",
+      "group": "C",
+      "lines": [
+        {
+          "quantity": 100,
+          "unit_price": "25.00",
+          "tax_class": "S"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "2500.00"
+        ],
+        "net": "2500.00",
+        "discount_percent": "0.00",
+        "discount": "0.00",
+        "tax": "475.00",
+        "gross": "2975.00"
+      }
+    },
+    {
+      "name": "standard tax ends in half a cent (0.095)",
+      "group": "C",
+      "lines": [
+        {
+          "quantity": 1,
+          "unit_price": "0.50",
+          "tax_class": "S"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "0.50"
+        ],
+        "net": "0.50",
+        "discount_percent": "0.00",
+        "discount": "0.00",
+        "tax": "0.10",
+        "gross": "0.60"
+      }
+    },
+    {
+      "name": "reduced tax ends in half a cent (0.035)",
+      "group": "C",
+      "lines": [
+        {
+          "quantity": 1,
+          "unit_price": "0.50",
+          "tax_class": "R"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "0.50"
+        ],
+        "net": "0.50",
+        "discount_percent": "0.00",
+        "discount": "0.00",
+        "tax": "0.04",
+        "gross": "0.54"
+      }
+    },
+    {
+      "name": "tax is rounded once per class, not per line",
+      "group": "C",
+      "lines": [
+        {
+          "quantity": 1,
+          "unit_price": "0.50",
+          "tax_class": "S"
+        },
+        {
+          "quantity": 1,
+          "unit_price": "0.50",
+          "tax_class": "S"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "0.50",
+          "0.50"
+        ],
+        "net": "1.00",
+        "discount_percent": "0.00",
+        "discount": "0.00",
+        "tax": "0.19",
+        "gross": "1.19"
+      }
+    },
+    {
+      "name": "mixed tax classes with discount; class discounts are rounded per class",
+      "group": "A",
+      "lines": [
+        {
+          "quantity": 30,
+          "unit_price": "11.11",
+          "tax_class": "S"
+        },
+        {
+          "quantity": 30,
+          "unit_price": "7.41",
+          "tax_class": "R"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "333.30",
+          "222.30"
+        ],
+        "net": "555.60",
+        "discount_percent": "5.00",
+        "discount": "27.78",
+        "tax": "74.94",
+        "gross": "602.76"
+      }
+    },
+    {
+      "name": "mixed tax classes, several lines, group B below its threshold",
+      "group": "B",
+      "lines": [
+        {
+          "quantity": 3,
+          "unit_price": "0.35",
+          "tax_class": "S"
+        },
+        {
+          "quantity": 7,
+          "unit_price": "1.85",
+          "tax_class": "R"
+        },
+        {
+          "quantity": 2,
+          "unit_price": "12.50",
+          "tax_class": "S"
+        },
+        {
+          "quantity": 3,
+          "unit_price": "3.95",
+          "tax_class": "R"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "1.05",
+          "12.95",
+          "25.00",
+          "11.85"
+        ],
+        "net": "50.85",
+        "discount_percent": "0.00",
+        "discount": "0.00",
+        "tax": "6.69",
+        "gross": "57.54"
+      }
+    },
+    {
+      "name": "same article on two lines, group A above its threshold",
+      "group": "A",
+      "lines": [
+        {
+          "quantity": 20,
+          "unit_price": "24.90",
+          "tax_class": "S"
+        },
+        {
+          "quantity": 1,
+          "unit_price": "24.90",
+          "tax_class": "S"
+        },
+        {
+          "quantity": 10,
+          "unit_price": "6.49",
+          "tax_class": "R"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "498.00",
+          "24.90",
+          "64.90"
+        ],
+        "net": "587.80",
+        "discount_percent": "5.00",
+        "discount": "29.39",
+        "tax": "98.70",
+        "gross": "657.11"
+      }
+    },
+    {
+      "name": "many small lines of both classes",
+      "group": "C",
+      "lines": [
+        {
+          "quantity": 1,
+          "unit_price": "0.05",
+          "tax_class": "S"
+        },
+        {
+          "quantity": 1,
+          "unit_price": "0.05",
+          "tax_class": "S"
+        },
+        {
+          "quantity": 1,
+          "unit_price": "0.05",
+          "tax_class": "S"
+        },
+        {
+          "quantity": 1,
+          "unit_price": "0.07",
+          "tax_class": "R"
+        },
+        {
+          "quantity": 1,
+          "unit_price": "0.07",
+          "tax_class": "R"
+        },
+        {
+          "quantity": 1,
+          "unit_price": "0.07",
+          "tax_class": "R"
+        }
+      ],
+      "expected": {
+        "line_net": [
+          "0.05",
+          "0.05",
+          "0.05",
+          "0.07",
+          "0.07",
+          "0.07"
+        ],
+        "net": "0.36",
+        "discount_percent": "0.00",
+        "discount": "0.00",
+        "tax": "0.04",
+        "gross": "0.40"
+      }
+    }
+  ]
+}

@@ -1,0 +1,530 @@
+{
+  "version": "0.1.0",
+  "release": null,
+  "note": "Single source of the status tables in README*.md and ROADMAP*.md (scripts/update-status.ps1). A feature is 'available' only with at least one named test that exists. 'release' is null until the first release package exists; then { \"version\": \"0.1.0\", \"date\": \"YYYY-MM-DD\" }.",
+  "features": [
+    {
+      "id": "record",
+      "name": {
+        "en": "Record usage",
+        "de": "Bedienung aufzeichnen"
+      },
+      "description": {
+        "en": "Windows programs and browser applications: screen video, and every user action with time, window and control when EQLMaker operates the program (scenario file or MCP client); video and database events also while a person works by hand",
+        "de": "Windows-Programme und Browser-Anwendungen: Bildschirmvideo, dazu jede Bedienhandlung mit Zeit, Fenster und Steuerelement, wenn EQLMaker das Programm bedient (Szenariodatei oder MCP-Client); Video und Datenbankereignisse auch, während ein Mensch von Hand arbeitet"
+      },
+      "status": "available",
+      "tests": [
+        "PipelineTests.SampleEndToEndOnPlainPostgres",
+        "RecordCliTests.StartAndStopWhileSomeoneElseWorks"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "database-changes",
+      "name": {
+        "en": "Measured database changes",
+        "de": "Gemessene Datenbankänderungen"
+      },
+      "description": {
+        "en": "Statements, parameters, transactions and changed rows using PostgreSQL's built-in means – no server-wide changes, no restart",
+        "de": "Anweisungen, Parameter, Transaktionen und geänderte Zeilen mit Bordmitteln von PostgreSQL – nichts wird serverweit umgestellt, kein Neustart"
+      },
+      "status": "available",
+      "tests": [
+        "PostgresSourceTests.CapturesStatementsParametersErrorsAndChangedRows",
+        "PostgresSourceTests.RoleCaptureAndResetOfAnAbortedCapture",
+        "LogParserTests.DefaultPrefixStatementsParametersErrors",
+        "TestDecodingTests.InsertUpdateDeleteWithQuotingAndTypes"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "event-format",
+      "name": {
+        "en": "Open event format",
+        "de": "Offenes Ereignisformat"
+      },
+      "description": {
+        "en": "Database accesses as JSON Lines, documented, version 0.1",
+        "de": "Datenbankzugriffe als JSON Lines, dokumentiert, Version 0.1"
+      },
+      "status": "available",
+      "tests": [
+        "EventFormatTests.FileRoundTripWithAllFields",
+        "EventFormatTests.NewerMajorVersionIsRefused",
+        "EventFormatTests.SortIsStable"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "manual",
+      "name": {
+        "en": "Read the manual",
+        "de": "Handbuch einlesen"
+      },
+      "description": {
+        "en": "PDF, HTML, DOCX, text or Markdown; chapters are linked to screens",
+        "de": "PDF, HTML, DOCX, Text oder Markdown; Kapitel werden mit Masken verknüpft"
+      },
+      "status": "available",
+      "tests": [
+        "ManualTests.PdfCompressedWithCharacterMapAndObjectStream",
+        "ManualTests.PdfPrintedByABrowser",
+        "ManualTests.Docx",
+        "ManualTests.Html",
+        "ManualTests.MarkdownAndTheSampleHandbook",
+        "ManualTests.PlainText",
+        "ManualTests.RunWritesIntoTheProjectAndSpecLinksIt"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "timestamp-overlay",
+      "name": {
+        "en": "Timestamp overlay",
+        "de": "Zeitstempel-Leiste"
+      },
+      "description": {
+        "en": "Small program showing date and time with milliseconds on top of all windows",
+        "de": "Kleines Programm, das Datum und Uhrzeit mit Millisekunden über allen Fenstern zeigt"
+      },
+      "status": "available",
+      "tests": [
+        "TimecodeTests.OverlayProgramRendersTheSameStrip",
+        "TimecodeTests.ScaledAndCompressedFramesAreRead",
+        "TimecodeTests.DamagedPatternFallsBackToTheDigits"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "video-import",
+      "name": {
+        "en": "Add video with audio later",
+        "de": "Video mit Ton nachreichen"
+      },
+      "description": {
+        "en": "The timestamp is read from the image and matched with the database changes",
+        "de": "Zeitstempel wird aus dem Bild gelesen und mit den Datenbankänderungen abgeglichen"
+      },
+      "status": "available",
+      "tests": [
+        "VideoImportTests.ImportAt15FramesPerSecond",
+        "VideoImportTests.ImportAt30FramesPerSecond",
+        "VideoImportTests.ImportAt60FramesPerSecond",
+        "ClockMapTests.CutsAreFoundAndMappedOnBothSides",
+        "ClockMapTests.OffsetOfAWrongClockIsEstimated"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "transcript",
+      "name": {
+        "en": "Transcript with Whisper",
+        "de": "Transkript mit Whisper"
+      },
+      "description": {
+        "en": "Speech recognition via whisper.cpp, fully offline. The recogniser is part of the release package; from source, name your own `whisper-cli.exe` in the configuration. The speech test runs where a recogniser is present",
+        "de": "Spracherkennung über whisper.cpp, vollständig offline. Das Erkennungsprogramm gehört zum Release-Paket; aus dem Quellcode nennt man ein eigenes `whisper-cli.exe` in der Konfiguration. Der Sprachtest läuft dort, wo ein Erkennungsprogramm vorhanden ist"
+      },
+      "status": "available",
+      "tests": [
+        "SpeechTests.SpokenSentenceIsTranscribed",
+        "VideoImportTests.TranscriptFormatsAreRead"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "timeline-spec",
+      "name": {
+        "en": "Timeline and specification",
+        "de": "Zeitachse und Spezifikation"
+      },
+      "description": {
+        "en": "Click, screen, statement and transaction on one timeline; screens, queries and tables derived from it by fixed rules",
+        "de": "Klick, Maske, Anweisung und Transaktion auf einer Zeitachse; daraus Masken, Abfragen und Tabellen nach festen Regeln"
+      },
+      "status": "available",
+      "tests": [
+        "TimelineTests.EventsGoToTheActionBeforeThem",
+        "TimelineTests.TransactionIdsGiveExactTies",
+        "TimelineTests.TransactionsAreTiedByTimeAndTableWithoutIds",
+        "TimelineTests.SameInputGivesSameOutput",
+        "SpecTests.StepsMasksQueriesTablesAndManualLinks"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "generate",
+      "name": {
+        "en": "Rebuild as web app",
+        "de": "Nachbau als Webanwendung"
+      },
+      "description": {
+        "en": "Guided step with web template and instructions for a connected AI assistant",
+        "de": "Geführter Schritt mit Web-Vorlage und Anleitung für einen angeschlossenen KI-Assistenten"
+      },
+      "status": "available",
+      "tests": [
+        "GuidedTests.GenerateIsAWorkspaceAndInstructionsNotAnApplication",
+        "src/templates/web/test/template.test.js: server: API and files through HTTP with a stand-in pool"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "clone",
+      "name": {
+        "en": "Read-only archive clone",
+        "de": "Archiv-Klon, nur lesend"
+      },
+      "description": {
+        "en": "Guided step with reference images per screen",
+        "de": "Geführter Schritt mit Referenzbildern je Maske"
+      },
+      "status": "available",
+      "tests": [
+        "GuidedTests.CloneScaffoldShowsTheReferenceAndGreysOutWritingControls"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "enrich",
+      "name": {
+        "en": "Take over findings from the video",
+        "de": "Befunde aus dem Video übernehmen"
+      },
+      "description": {
+        "en": "Guided step: every finding is decided as adopted, rejected or open, with a report",
+        "de": "Geführter Schritt: Jeder Befund wird als übernommen, abgelehnt oder offen entschieden, mit Bericht"
+      },
+      "status": "available",
+      "tests": [
+        "GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "verify",
+      "name": {
+        "en": "Comparison tests",
+        "de": "Vergleichstests"
+      },
+      "description": {
+        "en": "Visual comparison and comparison of measured database changes between two recordings",
+        "de": "Bildvergleich und Vergleich der gemessenen Datenbankänderungen zweier Aufnahmen"
+      },
+      "status": "available",
+      "tests": [
+        "VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize",
+        "VerifyScreensTests.FoldersArePairedByName",
+        "VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual",
+        "VerifyDbTests.DeliberateDifferencesAreFound",
+        "VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual",
+        "VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "video",
+      "name": {
+        "en": "Comparison video with player",
+        "de": "Vergleichsvideo mit Player"
+      },
+      "description": {
+        "en": "Original and rebuild on one timeline",
+        "de": "Original und Nachbau auf einer Zeitachse"
+      },
+      "status": "available",
+      "tests": [
+        "PluginTests.VideoLayoutPluginIsUsedByVideo",
+        "PipelineTests.SampleEndToEndOnPlainPostgres"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "mcp-cli",
+      "name": {
+        "en": "MCP server and CLI",
+        "de": "MCP-Server und Kommandozeile"
+      },
+      "description": {
+        "en": "The same steps as tools for any MCP client and as commands",
+        "de": "Dieselben Schritte als Werkzeuge für jeden MCP-Client und als Befehle"
+      },
+      "status": "available",
+      "tests": [
+        "McpTests.ProtocolToolsAndPrompts",
+        "PipelineTests.CommandLineReportsUnknownCommandsAndMissingArguments"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "plugins",
+      "name": {
+        "en": "Plugin interfaces",
+        "de": "Plugin-Schnittstellen"
+      },
+      "description": {
+        "en": "For event sources, web templates, clone renderers and video layouts, documented",
+        "de": "Für Ereignisquellen, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert"
+      },
+      "status": "available",
+      "tests": [
+        "PluginTests.ExamplesAreValidAndOfEveryType",
+        "PluginTests.SourcePluginDeliversEventsThroughTheSameInterface",
+        "PluginTests.WebTemplatePluginIsUsedByGenerate",
+        "PluginTests.CloneRendererPluginIsUsedByClone",
+        "PluginTests.VideoLayoutPluginIsUsedByVideo",
+        "PluginTests.BrokenManifestsAreRefusedWithTheReason"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "sample",
+      "name": {
+        "en": "Sample application with end-to-end run",
+        "de": "Beispielanwendung mit Ende-zu-Ende-Lauf"
+      },
+      "description": {
+        "en": "An own sample application as Windows program and in the browser; `eqlmaker sample` runs the whole pipeline on plain PostgreSQL and finds the deliberate defects",
+        "de": "Eine eigene Beispielanwendung als Windows-Programm und im Browser; `eqlmaker sample` durchläuft den ganzen Ablauf auf reinem PostgreSQL und findet die absichtlichen Fehler"
+      },
+      "status": "available",
+      "tests": [
+        "PipelineTests.SampleEndToEndOnPlainPostgres",
+        "examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter",
+        "examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "languages",
+      "name": {
+        "en": "German and English",
+        "de": "Deutsch und Englisch"
+      },
+      "description": {
+        "en": "Programs, documentation and web template in both languages",
+        "de": "Programme, Dokumentation und Web-Vorlage in beiden Sprachen"
+      },
+      "status": "available",
+      "tests": [
+        "I18nTests.TranslationsHaveTheSameKeysAndPlaceholders",
+        "I18nTests.GermanIsUsedWhenAskedFor",
+        "I18nTests.EnglishFileIsTheExportOfTheCode",
+        "src/templates/web/test/template.test.js: languages: English and German resources have the same keys"
+      ],
+      "since": "0.1.0",
+      "date": "2026-11-24"
+    },
+    {
+      "id": "setup",
+      "name": {
+        "en": "Setup without admin rights",
+        "de": "Einrichtung ohne Adminrechte"
+      },
+      "description": {
+        "en": "One batch file sets everything up in its own folder: no installer, no registry, no service. The setup script is in the repository; the release package it belongs to is in preparation",
+        "de": "Eine Batchdatei richtet alles im eigenen Ordner ein: kein Installer, keine Registry, kein Dienst. Das Einrichtungsskript liegt im Repository; das Release-Paket, zu dem es gehört, ist in Vorbereitung"
+      },
+      "status": "in development",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "screen-elements",
+      "name": {
+        "en": "Recognize screen elements and link them to data changes",
+        "de": "Bildschirmelemente erkennen und mit Datenänderungen verknüpfen"
+      },
+      "description": {
+        "en": "From June 2027 · planned",
+        "de": "Ab Juni 2027 · geplant"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "live-dialogue",
+      "name": {
+        "en": "Live dialogue via text, later via voice",
+        "de": "Live-Dialog per Text, später per Sprache"
+      },
+      "description": {
+        "en": "From June 2027 · planned",
+        "de": "Ab Juni 2027 · geplant"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "personal-data",
+      "name": {
+        "en": "Detect and replace personal data",
+        "de": "Personenbezogene Daten erkennen und ersetzen"
+      },
+      "description": {
+        "en": "From June 2027 · planned",
+        "de": "Ab Juni 2027 · geplant"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "rules",
+      "name": {
+        "en": "Derive rules from answers and check them against existing data",
+        "de": "Regeln aus Antworten ableiten und an vorhandenen Daten prüfen"
+      },
+      "description": {
+        "en": "From June 2027 · planned",
+        "de": "Ab Juni 2027 · geplant"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "illustrated-manual",
+      "name": {
+        "en": "Illustrated manual, German and English",
+        "de": "Anleitung mit Bildern, Deutsch und Englisch"
+      },
+      "description": {
+        "en": "From June 2027 · planned",
+        "de": "Ab Juni 2027 · geplant"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "case-study",
+      "name": {
+        "en": "Tests with users, case study on a free application",
+        "de": "Tests mit Anwenderinnen und Anwendern, Fallstudie an einer freien Anwendung"
+      },
+      "description": {
+        "en": "From June 2027 · planned",
+        "de": "Ab Juni 2027 · geplant"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "event-format-1.0",
+      "name": {
+        "en": "Event format as a standalone specification 1.0 for other tools",
+        "de": "Ereignisformat als eigenständige Spezifikation 1.0 für andere Werkzeuge"
+      },
+      "description": {
+        "en": "Later · no date",
+        "de": "Später · ohne Termin"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "more-sources",
+      "name": {
+        "en": "More open sources: MySQL/MariaDB and SQL Server",
+        "de": "Weitere offene Quellen: MySQL/MariaDB und SQL Server"
+      },
+      "description": {
+        "en": "Later · no date",
+        "de": "Später · ohne Termin"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "accessibility",
+      "name": {
+        "en": "Accessibility of generated web apps (WCAG 2.1 AA)",
+        "de": "Barrierefreiheit der erzeugten Webanwendungen (WCAG 2.1 AA)"
+      },
+      "description": {
+        "en": "Later · no date",
+        "de": "Später · ohne Termin"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "template-gallery",
+      "name": {
+        "en": "Template gallery for contributors",
+        "de": "Vorlagen-Galerie für Beitragende"
+      },
+      "description": {
+        "en": "Later · no date",
+        "de": "Später · ohne Termin"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    }
+  ],
+  "labels": {
+    "en": {
+      "feature": "Feature",
+      "description": "Description",
+      "status": "Status",
+      "tests": "Test",
+      "since": "Since",
+      "available": "available · tested",
+      "in development": "in development",
+      "planned": "planned",
+      "summary": "{0} of {1} features of version {2} are available and tested, {3} in development. The test column names the tests of the repository that prove each feature.",
+      "release_none": "**Status:** The source code of version {0} is published in this repository and is tested; the table under [Features]({2}#features) names the tests. There is no release package yet: the first release is in preparation. Until then, build from source, see [Quick start]({2}#quick-start).",
+      "release_done": "**Status:** Version {0} was released on {1}. The Windows package is on the [release page](https://github.com/robertbinsack/eqlmaker/releases/latest); the table under [Features]({2}#features) names the tests behind it. See [Quick start]({2}#quick-start)."
+    },
+    "de": {
+      "feature": "Funktion",
+      "description": "Beschreibung",
+      "status": "Stand",
+      "tests": "Test",
+      "since": "Seit",
+      "available": "verfügbar · getestet",
+      "in development": "in Entwicklung",
+      "planned": "geplant",
+      "summary": "{0} von {1} Funktionen der Version {2} sind verfügbar und getestet, {3} in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.",
+      "release_none": "**Stand:** Der Quellcode der Version {0} ist in diesem Repository veröffentlicht und getestet; die Tabelle unter [Funktionen]({2}#funktionen) nennt die Tests. Ein Release-Paket gibt es noch nicht: Die erste Veröffentlichung ist in Vorbereitung. Bis dahin wird aus dem Quellcode gebaut, siehe [Schnellstart]({2}#schnellstart).",
+      "release_done": "**Stand:** Version {0} wurde am {1} veröffentlicht. Das Windows-Paket liegt auf der [Release-Seite](https://github.com/robertbinsack/eqlmaker/releases/latest); die Tabelle unter [Funktionen]({2}#funktionen) nennt die Tests dahinter. Siehe [Schnellstart]({2}#schnellstart)."
+    }
+  }
+}

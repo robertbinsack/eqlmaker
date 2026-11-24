@@ -1,0 +1,12 @@
+{
+  "entity.item.label": "Posten",
+  "entity.item.labelPlural": "Posten",
+  "entity.item.title": "Titel",
+  "entity.item.quantity": "Menge",
+  "entity.item.price": "Preis",
+  "entity.item.due": "Fällig am",
+  "entity.item.done": "Erledigt",
+  "page.about.title": "Info",
+  "page.about.heading": "Über diese Anwendung",
+  "page.about.text": "{appName} stellt {count} Entitäten bereit."
+}

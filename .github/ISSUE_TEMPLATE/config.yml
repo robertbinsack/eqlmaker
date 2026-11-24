@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 Robert Binsack
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/robertbinsack/eqlmaker/discussions
+    about: Questions about using EQLMaker and first ideas belong into the Discussions.
+  - name: Security problem
+    url: https://github.com/robertbinsack/eqlmaker/security/policy
+    about: Please report vulnerabilities by e-mail as SECURITY.md says, not in a public issue.

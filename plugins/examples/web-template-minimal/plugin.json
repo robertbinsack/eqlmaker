@@ -1,0 +1,7 @@
+{
+  "type": "web-template",
+  "name": "minimal",
+  "description": "Minimal example of a web template: one static page and a server without any dependency.",
+  "files": "files",
+  "variables": ["APP_NAME", "DB_ENV"]
+}

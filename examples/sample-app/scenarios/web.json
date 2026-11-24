@@ -1,0 +1,52 @@
+{
+  "name": "web",
+  "input": "background",
+  "video": true,
+  "fps": 5,
+  "closeAtEnd": true,
+  "steps": [
+    { "webopen": "${SAMPLE_URL}", "bounds": [0, 0, 1280, 800] },
+    { "webwait": { "css": "#btn-new-customer" } },
+
+    { "caption": "New customer" },
+    { "webclick": { "css": "#btn-new-customer" } },
+    { "webfill": { "css": "#customer-name", "value": "Harbour Books" } },
+    { "webfill": { "css": "#customer-city", "value": "Rostock" } },
+    { "webfill": { "css": "#customer-customer_group", "value": "A" } },
+    { "webfill": { "css": "#customer-credit_limit", "value": "2500" } },
+    { "webclick": { "css": "#btn-save-customer" } },
+    { "webwait": { "css": "#customer-row-9" } },
+
+    { "caption": "Change article price" },
+    { "webclick": { "css": "#nav-article" } },
+    { "webclick": { "css": "#article-row-3" } },
+    { "webclick": { "css": "#btn-edit-article" } },
+    { "webfill": { "css": "#article-unit_price", "value": "12.49" } },
+    { "webclick": { "css": "#btn-save-article" } },
+    { "wait": 400 },
+
+    { "caption": "New invoice" },
+    { "webclick": { "css": "#nav-invoice" } },
+    { "webclick": { "css": "#btn-new-invoice" } },
+    { "webfill": { "css": "#invoice-customer-no", "value": "9" } },
+    { "webfill": { "css": "#invoice-sku", "value": "OF-220" } },
+    { "webfill": { "css": "#invoice-quantity", "value": "14" } },
+    { "webclick": { "css": "#btn-add-line" } },
+    { "webwait": { "css": "#invoice-line-1" } },
+    { "webfill": { "css": "#invoice-sku", "value": "FD-300" } },
+    { "webfill": { "css": "#invoice-quantity", "value": "7" } },
+    { "webclick": { "css": "#btn-add-line" } },
+    { "webwait": { "css": "#invoice-line-2" } },
+    { "webfill": { "css": "#invoice-sku", "value": "TL-120" } },
+    { "webfill": { "css": "#invoice-quantity", "value": "3" } },
+    { "webclick": { "css": "#btn-add-line" } },
+    { "webwait": { "css": "#invoice-line-3" } },
+    { "webclick": { "css": "#btn-save-invoice" } },
+    { "webwait": { "css": "#invoice-row-4" } },
+
+    { "caption": "Mark invoice paid" },
+    { "webclick": { "css": "#invoice-row-4" } },
+    { "webclick": { "css": "#btn-mark-paid" } },
+    { "wait": 500 }
+  ]
+}

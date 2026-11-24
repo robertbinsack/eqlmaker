@@ -1,0 +1,6 @@
+{
+  "canonical": "en",
+  "languages": ["en", "de"],
+  "readme": { "de": "README.md", "en": "README.en.md" },
+  "roadmap": { "en": "ROADMAP.md", "de": "ROADMAP.de.md" }
+}

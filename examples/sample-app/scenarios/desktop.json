@@ -1,0 +1,52 @@
+{
+  "name": "desktop",
+  "input": "background",
+  "video": true,
+  "fps": 10,
+  "closeAtEnd": true,
+  "steps": [
+    { "run": "${SAMPLE_BIN}/sample-desktop.exe", "args": "--connection \"${SAMPLE_CONNECTION}\"" },
+    { "window": "Sample Shop", "timeout": 30000 },
+
+    { "caption": "New customer" },
+    { "control": { "text": "New customer" } },
+    { "window": "Customer" },
+    { "fill": { "class": "*EDIT*", "index": 0, "value": "Harbour Books" } },
+    { "fill": { "class": "*EDIT*", "index": 1, "value": "Rostock" } },
+    { "fill": { "class": "*EDIT*", "index": 2, "value": "A" } },
+    { "fill": { "class": "*EDIT*", "index": 3, "value": "2500" } },
+    { "control": { "text": "Save customer" } },
+    { "window": "Sample Shop" },
+
+    { "caption": "Change article price" },
+    { "control": { "class": "*SysTabControl32*", "at": [85, 10] } },
+    { "fill": { "class": "*EDIT*", "index": 0, "value": "3" } },
+    { "control": { "text": "Edit article" } },
+    { "window": "Article" },
+    { "fill": { "class": "*EDIT*", "index": 1, "value": "12.49" } },
+    { "control": { "text": "Save article" } },
+    { "window": "Sample Shop" },
+
+    { "caption": "New invoice" },
+    { "control": { "class": "*SysTabControl32*", "at": [140, 10] } },
+    { "control": { "text": "New invoice" } },
+    { "window": "New invoice" },
+    { "fill": { "class": "*EDIT*", "index": 0, "value": "9" } },
+    { "fill": { "class": "*EDIT*", "index": 1, "value": "OF-220" } },
+    { "fill": { "class": "*EDIT*", "index": 2, "value": "14" } },
+    { "control": { "text": "Add line" } },
+    { "fill": { "class": "*EDIT*", "index": 1, "value": "FD-300" } },
+    { "fill": { "class": "*EDIT*", "index": 2, "value": "7" } },
+    { "control": { "text": "Add line" } },
+    { "fill": { "class": "*EDIT*", "index": 1, "value": "TL-120" } },
+    { "fill": { "class": "*EDIT*", "index": 2, "value": "3" } },
+    { "control": { "text": "Add line" } },
+    { "control": { "text": "Save invoice" } },
+    { "window": "Sample Shop" },
+
+    { "caption": "Mark invoice paid" },
+    { "fill": { "class": "*EDIT*", "index": 0, "value": "4" } },
+    { "control": { "text": "Mark paid" } },
+    { "wait": 300 }
+  ]
+}

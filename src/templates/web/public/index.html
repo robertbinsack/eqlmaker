@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (c) 2026 Robert Binsack -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{APP_NAME}}</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+<script src="pages.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main" data-i18n="app.skipToContent">Skip to content</a>
+<div class="app" id="app">
+  <button type="button" class="titlebtn" id="btn-toggle-nav" aria-expanded="true" aria-controls="sidebar" data-i18n-aria-label="nav.toggle" data-i18n-title="nav.toggle"></button>
+  <aside class="sb" id="sidebar">
+    <div class="appswitch" id="app-name">{{APP_NAME}}</div>
+    <nav class="nav" id="nav" data-i18n-aria-label="nav.main"></nav>
+    <div class="langswitch seg" id="lang-switch" role="group" data-i18n-aria-label="lang.label">
+      <button type="button" id="lang-en" lang="en" data-lang="en" data-i18n-title="lang.en">EN</button>
+      <button type="button" id="lang-de" lang="de" data-lang="de" data-i18n-title="lang.de">DE</button>
+    </div>
+  </aside>
+  <main class="content" id="main" tabindex="-1">
+    <section class="sheet">
+      <header class="pagehead">
+        <h1 id="page-title"></h1>
+        <span class="meta" id="page-meta"></span>
+      </header>
+      <div class="page" id="page"></div>
+      <footer class="statusline" id="status" role="status" aria-live="polite" data-i18n="status.ready">Ready</footer>
+    </section>
+  </main>
+</div>
+<div id="dialog-root"></div>
+</body>
+</html>

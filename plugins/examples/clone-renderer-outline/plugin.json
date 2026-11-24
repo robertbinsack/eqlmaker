@@ -1,0 +1,6 @@
+{
+  "type": "clone-renderer",
+  "name": "outline",
+  "description": "Minimal example of a clone renderer: draws an outline with the text of every recorded control over the reference picture.",
+  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File render.ps1"
+}

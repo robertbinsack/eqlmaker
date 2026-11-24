@@ -1,0 +1,5 @@
+{
+  "name": "default",
+  "description": "Web application without framework: Node http server, pg pool, entity lists with edit dialogs from plain descriptions, English and German user interface, app shell with left navigation.",
+  "variables": ["APP_NAME", "DB_ENV"]
+}

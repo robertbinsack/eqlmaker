@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 396 100" width="396" height="100" role="img" aria-label="EQLMaker">
+  <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+  <!-- Copyright (c) 2026 Robert Binsack. Word mark of EQLMaker, for light backgrounds. The Q is drawn: a ring with a tail that crosses the bowl. -->
+  <title>EQLMaker</title>
+  <g font-family="'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="64" font-weight="700" fill="#24292E">
+    <text x="36" y="72" textLength="35" lengthAdjust="spacingAndGlyphs">E</text>
+    <text x="128" y="72" textLength="232" lengthAdjust="spacingAndGlyphs">LMaker</text>
+  </g>
+  <circle cx="100" cy="49" r="19" fill="none" stroke="#24292E" stroke-width="9"/>
+  <line x1="101" y1="51" x2="123" y2="79" stroke="#2F6BF0" stroke-width="9" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 Robert Binsack
+name: Proposal
+description: A new feature or a change of an existing one
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please look at ROADMAP.md first: what is planned is listed there. Questions about using
+        EQLMaker belong into the Discussions.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Which problem does it solve?
+      description: The situation and who is in it. One concrete case is worth more than a general wish.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What do you propose?
+      description: Command, option, tool, file format or plugin type, as concrete as you can
+    validations:
+      required: true
+  - type: textarea
+    id: test
+    attributes:
+      label: How would a test prove it?
+      description: A feature is listed as available only with a test. What would the test do?
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it belong?
+      options:
+        - Engine (record, correlate, spec, verify, video, manual, video-import)
+        - Guided steps (generate, clone, enrich) and templates
+        - Plugin (source, web-template, clone-renderer, video-layout)
+        - Setup and package
+        - Documentation or translation
+        - Not sure
+    validations:
+      required: true
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I would write it myself, with tests and signed-off commits

@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Builds the Windows package for a version tag and attaches it to the release:
+#   eqlmaker-windows-x64.zip, eqlmaker-windows-x64.zip.sha256, eqlmaker-version.json
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Windows package
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: The tag matches the VERSION file
+        shell: pwsh
+        run: |
+          $v = (Get-Content VERSION -TotalCount 1).Trim()
+          if ("v$v" -ne $env:GITHUB_REF_NAME) { throw "tag $env:GITHUB_REF_NAME does not match VERSION $v" }
+
+      - name: Build, lint, unit tests
+        shell: pwsh
+        run: |
+          ./build.ps1 -Lint
+          ./scripts/check-spdx.ps1
+          ./bin/eqlmaker-tests.exe
+          if ($LASTEXITCODE) { exit 1 }
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: pack-cache
+          key: pack-${{ hashFiles('scripts/setup/components.json') }}
+
+      - name: Package
+        shell: pwsh
+        run: ./scripts/pack-release.ps1 -CacheDir pack-cache
+
+      - name: Attach to the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view $env:GITHUB_REF_NAME 2>$null
+          if ($LASTEXITCODE) { gh release create $env:GITHUB_REF_NAME --title "EQLMaker $env:GITHUB_REF_NAME" --notes "Windows package. Unpack, run eqlmaker-setup.cmd. See README.md." --draft }
+          gh release upload $env:GITHUB_REF_NAME out/eqlmaker-windows-x64.zip out/eqlmaker-windows-x64.zip.sha256 out/eqlmaker-version.json --clobber

@@ -1,0 +1,6 @@
+{
+  "type": "source",
+  "name": "jsonl-file",
+  "description": "Minimal example of an event source: delivers the events of a JSON Lines file that another tool wrote while the capture ran.",
+  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File source.ps1"
+}

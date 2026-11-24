@@ -1,0 +1,12 @@
+{
+  "entity.item.label": "Item",
+  "entity.item.labelPlural": "Items",
+  "entity.item.title": "Title",
+  "entity.item.quantity": "Quantity",
+  "entity.item.price": "Price",
+  "entity.item.due": "Due date",
+  "entity.item.done": "Done",
+  "page.about.title": "About",
+  "page.about.heading": "About this application",
+  "page.about.text": "{appName} serves {count} entities."
+}

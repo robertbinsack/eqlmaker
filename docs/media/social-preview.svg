@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="EQLMaker: understand legacy software and rebuild it as a modern web application">
+  <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+  <!-- Copyright (c) 2026 Robert Binsack. Social preview of the repository, 1280 x 640. System fonts only. -->
+  <title>EQLMaker</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.04" y2="1">
+      <stop offset="0" stop-color="#E4EBF6"/>
+      <stop offset="0.4" stop-color="#DAE2EF"/>
+      <stop offset="0.75" stop-color="#D0D8E5"/>
+      <stop offset="1" stop-color="#C7CFD8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect x="48" y="48" width="1184" height="544" rx="28" fill="#FFFFFF" fill-opacity="0.62"/>
+  <g font-family="'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif">
+    <g font-size="128" font-weight="700" fill="#24292E">
+      <text x="96" y="230" textLength="70" lengthAdjust="spacingAndGlyphs">E</text>
+      <text x="280" y="230" textLength="464" lengthAdjust="spacingAndGlyphs">LMaker</text>
+    </g>
+    <circle cx="224" cy="184" r="38" fill="none" stroke="#24292E" stroke-width="18"/>
+    <line x1="226" y1="188" x2="270" y2="244" stroke="#2F6BF0" stroke-width="18" stroke-linecap="round"/>
+    <text x="96" y="318" font-size="38" font-weight="600" fill="#24292E">Understand legacy software and let AI rebuild it</text>
+    <text x="96" y="368" font-size="38" font-weight="600" fill="#24292E">as a modern web application.</text>
+    <text x="96" y="418" font-size="38" font-weight="600" fill="#5C6470">Without source code.</text>
+    <rect x="96" y="452" width="150" height="64" rx="14" fill="#FFFFFF" stroke="#C9D2DF" stroke-width="1.5"/>
+    <text x="171" y="493" text-anchor="middle" font-size="26" font-weight="600" fill="#24292E">Record</text>
+    <path d="M252 484 H277 M268 475 L277 484 L268 493" fill="none" stroke="#2F6BF0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="283" y="452" width="160" height="64" rx="14" fill="#FFFFFF" stroke="#C9D2DF" stroke-width="1.5"/>
+    <text x="363" y="493" text-anchor="middle" font-size="26" font-weight="600" fill="#24292E">Timeline</text>
+    <path d="M449 484 H474 M465 475 L474 484 L465 493" fill="none" stroke="#2F6BF0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="480" y="452" width="220" height="64" rx="14" fill="#FFFFFF" stroke="#C9D2DF" stroke-width="1.5"/>
+    <text x="590" y="493" text-anchor="middle" font-size="26" font-weight="600" fill="#24292E">Specification</text>
+    <path d="M706 484 H731 M722 475 L731 484 L722 493" fill="none" stroke="#2F6BF0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="737" y="452" width="150" height="64" rx="14" fill="#FFFFFF" stroke="#C9D2DF" stroke-width="1.5"/>
+    <text x="812" y="493" text-anchor="middle" font-size="26" font-weight="600" fill="#24292E">Rebuild</text>
+    <path d="M893 484 H918 M909 475 L918 484 L909 493" fill="none" stroke="#2F6BF0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="924" y="452" width="260" height="64" rx="14" fill="#FFFFFF" stroke="#C9D2DF" stroke-width="1.5"/>
+    <text x="1054" y="493" text-anchor="middle" font-size="26" font-weight="600" fill="#24292E">Comparison tests</text>
+    <text x="96" y="560" font-size="22" fill="#5C6470">Free software (AGPL-3.0) · Windows · PostgreSQL 15+ · MCP server and command line</text>
+  </g>
+</svg>

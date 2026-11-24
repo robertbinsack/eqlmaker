@@ -1,0 +1,8 @@
+{
+  "type": "video-layout",
+  "name": "stacked",
+  "description": "Minimal example of a video layout: the original above the rebuilt application.",
+  "height": 540,
+  "filter": "[a][b]vstack=inputs=2[v]",
+  "player": "column"
+}

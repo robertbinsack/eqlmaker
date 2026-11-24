@@ -1,0 +1,141 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Build, lint, tests, end-to-end run against a plain PostgreSQL, and repository checks.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build, lint, tests (Windows, plain PostgreSQL)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build and lint
+        shell: pwsh
+        run: ./build.ps1 -Lint
+
+      - name: Licence headers
+        shell: pwsh
+        run: ./scripts/check-spdx.ps1
+
+      - name: Status tables name tests that exist
+        shell: pwsh
+        run: ./scripts/update-status.ps1 -Check -Tests
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Web template and sample (Node tests without database)
+        shell: pwsh
+        run: |
+          Push-Location src/templates/web; node --test; if ($LASTEXITCODE) { exit 1 }; Pop-Location
+          Push-Location examples/sample-app/web; npm ci --no-audit --no-fund; if ($LASTEXITCODE) { exit 1 }; node --test; if ($LASTEXITCODE) { exit 1 }; Pop-Location
+
+      # A plain PostgreSQL: the server that the runner image ships, as its own cluster on the
+      # loopback address, with a password made up for this run. Nothing else is installed.
+      - name: Start a plain PostgreSQL
+        shell: pwsh
+        run: |
+          $bin = $env:PGBIN
+          if (-not $bin -or -not (Test-Path "$bin\initdb.exe")) { throw 'PostgreSQL of the runner image not found (PGBIN)' }
+          & "$bin\postgres.exe" --version
+          $pw = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 28 | ForEach-Object { [char]$_ })
+          Write-Output "::add-mask::$pw"
+          $data = Join-Path $env:RUNNER_TEMP 'pgdata'
+          $pwFile = Join-Path $env:RUNNER_TEMP 'pw.txt'
+          Set-Content $pwFile $pw -NoNewline -Encoding ascii
+          & "$bin\initdb.exe" -D $data -U postgres --pwfile=$pwFile -A scram-sha-256 -E UTF8 --locale=C | Out-Null
+          Remove-Item $pwFile
+          Add-Content "$data\postgresql.conf" "listen_addresses = '127.0.0.1'`nport = 54329`nwal_level = logical`nlogging_collector = on`nmax_replication_slots = 10"
+          & "$bin\pg_ctl.exe" -D $data -l (Join-Path $env:RUNNER_TEMP 'pg-start.log') -w start
+          if ($LASTEXITCODE) { Get-Content (Join-Path $env:RUNNER_TEMP 'pg-start.log'); exit 1 }
+          "EQLMAKER_TEST_PG=host=127.0.0.1 port=54329 user=postgres dbname=postgres password='$pw'" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: FFmpeg for the video tests
+        shell: pwsh
+        run: |
+          choco install ffmpeg --no-progress -y | Out-Null
+          ffmpeg -version | Select-Object -First 1
+
+      - name: Tests
+        shell: pwsh
+        run: |
+          ./bin/eqlmaker-tests.exe --json test-results.json
+          if ($LASTEXITCODE) { exit 1 }
+
+      - name: Sample application with its browser variant (Node tests with database)
+        shell: pwsh
+        run: |
+          $c = [regex]::Match($env:EQLMAKER_TEST_PG, "password='([^']*)'").Groups[1].Value
+          $env:EQLMAKER_PGPASSWORD = $c
+          New-Item -ItemType Directory e2e | Out-Null
+          '{"source":"postgres","connection":"host=127.0.0.1 port=54329 user=postgres dbname=postgres","capture":{"roles":[],"databases":["eqlmaker_sample"],"changes":true},"input":"background"}' | Set-Content e2e/eqlmaker.json -Encoding ascii
+          ./bin/eqlmaker.exe sample --project e2e
+          if ($LASTEXITCODE) { exit 1 }
+          ./bin/eqlmaker.exe sample --project e2e --flaw --no-video
+          if ($LASTEXITCODE) { exit 1 }
+
+      - name: Stop PostgreSQL
+        if: always()
+        shell: pwsh
+        run: |
+          & "$env:PGBIN\pg_ctl.exe" -D (Join-Path $env:RUNNER_TEMP 'pgdata') -m fast stop
+          exit 0
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: test-results
+          path: |
+            test-results.json
+            e2e/verify/**/report.txt
+          if-no-files-found: ignore
+
+  docs:
+    name: Translations in step
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - shell: pwsh
+        run: ./scripts/check-docs.ps1
+      - name: Status tables up to date
+        shell: pwsh
+        run: ./scripts/update-status.ps1 -Check
+
+  secrets:
+    name: Secret scan
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: gitleaks (pinned release, checksum verified)
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP 'gitleaks.zip'
+          Invoke-WebRequest 'https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_windows_x64.zip' -OutFile $zip
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne 'D29144DEFF3A68AA93CED33DDDF84B7FDC26070ADD4AA0F4513094C8332AFC4E') { throw 'checksum of gitleaks does not match' }
+          Expand-Archive $zip (Join-Path $env:RUNNER_TEMP 'gitleaks')
+          & (Join-Path $env:RUNNER_TEMP 'gitleaks\gitleaks.exe') git --no-banner --redact .
+          if ($LASTEXITCODE) { exit 1 }
+
+  sign-off:
+    name: Commits signed off (DCO)
+    if: github.event_name == 'pull_request'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - shell: pwsh
+        run: ./scripts/check-dco.ps1 -Range "origin/${{ github.base_ref }}..HEAD"

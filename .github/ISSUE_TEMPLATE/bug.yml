@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 Robert Binsack
+name: Bug report
+description: Something does not work as the documentation says
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report. Please do not attach recordings, database dumps or screenshots
+        of real applications: they may contain personal data. A reproduction with the sample
+        application (`eqlmaker sample`) is best. Security problems: see SECURITY.md, not here.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `eqlmaker version`, or the commit you built from
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: route
+    attributes:
+      label: How do you run it?
+      options:
+        - Built from source (build.cmd)
+        - Windows package (eqlmaker-setup.cmd)
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Windows version, PostgreSQL version, input mode (real or background)
+      placeholder: "Windows 11 24H2, PostgreSQL 18.4, background"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What did you do?
+      description: The commands or MCP tool calls, in order. Remove passwords.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened?
+      description: The complete message, and the `warnings` of recording.json when a recording is involved
+      render: text
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before sending
+      options:
+        - label: The report contains no passwords and no personal data
+          required: true

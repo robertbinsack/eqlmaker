@@ -1,0 +1,169 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later
+     Copyright (c) 2026 Robert Binsack -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EQLMaker recording</title>
+<style>
+/* EQLMaker recording viewer: the video, the actions and the database events of the application on
+   one time line. Written into the recording folder as viewer.html; the data is inlined below. */
+:root {
+  --bg: #f4f5f7; --surface: #fff; --line: #dfe3e8; --fg: #161b22; --muted: #5d6673;
+  --stage: #0d1117; --stage-fg: #e6edf3; --stage-muted: #8b949e; --stage-line: #262d36;
+  --accent: #1f6feb; --err: #c62828; --err-soft: #fde8e8; --tsql: #8250df; --tsql-soft: #f1eafd; --pg: #1a7f37; --pg-soft: #e6f4ea;
+  --cur: #fff6d6;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --sans: "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #0b0e13; --surface: #141920; --line: #262d36; --fg: #e6edf3; --muted: #8b949e;
+  --err: #ff7b72; --err-soft: #3b1d1d; --tsql: #c297ff; --tsql-soft: #2a1f3d; --pg: #56d364; --pg-soft: #15301d; --cur: #3a3217; color-scheme: dark } }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.45 var(--sans); display: grid; grid-template-rows: auto 1fr; }
+header { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
+h1 { font-size: 17px; margin: 0; }
+.meta { color: var(--muted); font-size: 13px; }
+main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 38%); min-height: 0; }
+main.novideo { grid-template-columns: 1fr; }
+.left { display: grid; grid-template-rows: 1fr auto auto; background: var(--stage); color: var(--stage-fg); min-height: 0; padding: 12px; gap: 10px; }
+.vwrap { position: relative; min-height: 0; display: grid; place-items: center; }
+video { max-width: 100%; max-height: 100%; background: #000; border-radius: 6px; display: block; }
+.sub { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); max-width: 92%; background: rgba(13,17,23,.86); color: #e6edf3; font: 13px/1.4 var(--mono);
+  padding: 6px 10px; border-radius: 6px; white-space: pre-wrap; max-height: 40%; overflow: hidden; pointer-events: none; }
+.sub[hidden] { display: none; }
+.sub.err { border-left: 3px solid #ff7b72; }
+.tl { position: relative; height: 26px; cursor: pointer; }
+.tl .track { position: absolute; left: 0; right: 0; top: 11px; height: 4px; background: var(--stage-line); border-radius: 2px; }
+.tl .tick { position: absolute; top: 6px; width: 2px; height: 14px; background: #3fb950; opacity: .75; }
+.tl .tick.error { background: #ff7b72; opacity: 1; }
+.tl .tick.tsql { background: #c297ff; }
+.tl .tick.act { background: #f0b429; top: 16px; height: 8px; }
+.tl .chap { position: absolute; top: 0; width: 2px; height: 26px; background: var(--stage-fg); opacity: .5; }
+.tl .head { position: absolute; top: 2px; width: 3px; height: 22px; margin-left: -1.5px; background: #fff; border-radius: 2px; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; }
+.ctrl button, .ctrl select { background: none; color: var(--stage-fg); border: 1px solid var(--stage-line); border-radius: 6px; padding: 4px 10px; font: inherit; cursor: pointer; }
+.ctrl .time { font: 13px var(--mono); color: var(--stage-muted); }
+.ctrl label { display: inline-flex; gap: 5px; align-items: center; color: var(--stage-muted); cursor: pointer; }
+.chapters { display: flex; flex-wrap: wrap; gap: 6px; }
+.chapters button { background: none; border: 1px solid var(--stage-line); color: var(--stage-fg); border-radius: 999px; padding: 2px 10px; font: 12.5px var(--sans); cursor: pointer; }
+.chapters button.cur { background: var(--stage-fg); color: var(--stage); }
+.right { display: grid; grid-template-rows: auto 1fr; min-height: 0; background: var(--surface); border-left: 1px solid var(--line); }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); align-items: center; }
+.tools input { flex: 1 1 160px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: var(--bg); color: var(--fg); }
+.tools select { padding: 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; }
+.tools .n { color: var(--muted); font-size: 12.5px; }
+.list { overflow: auto; min-height: 0; }
+.row { display: grid; grid-template-columns: 62px 1fr; gap: 2px 10px; padding: 7px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.row:hover { background: var(--bg); }
+.row.cur { background: var(--cur); }
+.row .t { font: 12.5px var(--mono); color: var(--muted); grid-row: span 2; padding-top: 1px; }
+.row .who { font-size: 12px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.chip { font: 600 10.5px var(--sans); padding: 1px 6px; border-radius: 999px; background: var(--pg-soft); color: var(--pg); text-transform: uppercase; letter-spacing: .03em; }
+.chip.error { background: var(--err-soft); color: var(--err); }
+.chip.tsql { background: var(--tsql-soft); color: var(--tsql); }
+.row pre { margin: 0; font: 12.5px/1.4 var(--mono); white-space: pre-wrap; word-break: break-word; max-height: 4.2em; overflow: hidden; }
+.row.open pre { max-height: none; }
+.row.error pre { color: var(--err); }
+.empty { padding: 24px 12px; color: var(--muted); }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; } .left { max-height: 60vh; } }
+</style>
+</head>
+<body>
+<header><h1 id="name"></h1><span class="meta" id="meta"></span></header>
+<main id="main">
+  <section class="left" id="left">
+    <div class="vwrap"><video id="v" controls muted playsinline preload="auto"></video><div class="sub" id="sub" hidden></div></div>
+    <div>
+      <div class="tl" id="tl"><div class="track"></div><div id="marks"></div><div class="head" id="head"></div></div>
+      <div class="ctrl">
+        <span class="time" id="time">0:00.0</span>
+        <select id="rate" aria-label="Speed"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="1.5">1.5x</option><option value="2">2x</option></select>
+        <label><input type="checkbox" id="showsub" checked> SQL in the video</label>
+        <label><input type="checkbox" id="follow" checked> list follows the video</label>
+      </div>
+    </div>
+    <div class="chapters" id="chapters"></div>
+  </section>
+  <section class="right">
+    <div class="tools">
+      <input id="q" type="search" placeholder="Filter SQL, user, program" aria-label="Filter">
+      <select id="kind" aria-label="Kind"><option value="">all</option><option value="error">errors</option><option value="tsql">changed rows</option><option value="pg">statements</option></select>
+      <span class="n" id="count"></span>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+</main>
+<script>
+const DATA = /*DATA*/null;
+const $ = (s) => document.querySelector(s);
+const v = $('#v'), list = $('#list');
+const D = DATA || { name: 'recording', duration: 0, chapters: [], sql: [], actions: [] };
+D.sql.forEach((e) => { e.sql = e.sql || ''; e.user = e.user || ''; e.app = e.app || ''; e.db = e.db || ''; });
+const dur = D.duration || 1;
+const fmt = (t) => { t = Math.max(0, t); const m = Math.floor(t / 60); return m + ':' + (t - m * 60).toFixed(1).padStart(4, '0'); };
+const kindOf = (e) => e.kind === 'error' ? 'error' : e.kind === 'transaction' ? 'tsql' : 'pg';
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+$('#name').textContent = D.name;
+document.title = D.name + ' - EQLMaker recording';
+const nErr = D.sql.filter((e) => e.kind === 'error').length;
+$('#meta').textContent = 'recorded ' + D.recorded + ' · ' + fmt(D.duration) + ' · ' + D.sql.length + ' database events' + (nErr ? ' · ' + nErr + ' errors' : '');
+if (D.video) v.src = D.video; else { $('#main').classList.add('novideo'); $('#left').hidden = true; }
+
+// timeline marks: SQL ticks and chapter lines
+$('#marks').innerHTML = D.sql.filter((e) => e.t >= 0 && e.t <= dur).map((e) => `<div class="tick ${kindOf(e)}" style="left:${(e.t / dur * 100).toFixed(3)}%" title="${esc(fmt(e.t) + ' ' + e.sql.slice(0, 80))}"></div>`).join('') +
+  (D.actions || []).filter((a) => a.t >= 0 && a.t <= dur).map((a) => `<div class="tick act" style="left:${(a.t / dur * 100).toFixed(3)}%" title="${esc(fmt(a.t) + ' ' + a.text)}"></div>`).join('') +
+  D.chapters.map((c) => `<div class="chap" style="left:${(c.start / dur * 100).toFixed(3)}%"></div>`).join('');
+$('#chapters').innerHTML = D.chapters.map((c, i) => `<button data-i="${i}">${esc(fmt(c.start) + ' ' + c.caption)}</button>`).join('');
+$('#chapters').onclick = (e) => { const b = e.target.closest('button'); if (b) { v.currentTime = D.chapters[+b.dataset.i].start; v.play(); } };
+const seekTl = (e) => { const r = $('#tl').getBoundingClientRect(); v.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur; };
+$('#tl').addEventListener('pointerdown', (e) => { seekTl(e); const mv = (x) => seekTl(x); window.addEventListener('pointermove', mv); window.addEventListener('pointerup', () => window.removeEventListener('pointermove', mv), { once: true }); });
+$('#rate').onchange = (e) => (v.playbackRate = +e.target.value);
+
+// SQL list
+function render() {
+  const q = $('#q').value.toLowerCase(), k = $('#kind').value;
+  const rows = D.sql.map((e, i) => [e, i]).filter(([e]) => (!k || kindOf(e) === k) && (!q || (e.sql + ' ' + e.user + ' ' + e.app + ' ' + e.db).toLowerCase().includes(q)));
+  $('#count').textContent = rows.length + ' / ' + D.sql.length;
+  list.innerHTML = rows.length ? rows.map(([e, i]) => `<div class="row ${kindOf(e)}" data-i="${i}">
+    <span class="t">${e.t < 0 ? '-' + fmt(-e.t) : fmt(e.t)}</span>
+    <span class="who"><span class="chip ${kindOf(e)}">${esc(e.kind)}</span>${esc([e.user, e.db, e.app].filter(Boolean).join(' · '))}${e.session ? ' · #' + e.session : ''}</span>
+    <pre>${esc(e.sql)}${e.params ? esc(' -- parameters: ' + JSON.stringify(e.params)) : ''}</pre></div>`).join('') : '<div class="empty">No SQL statements' + (D.sql.length ? ' match the filter.' : ' were recorded.') + '</div>';
+  last = -2;
+}
+$('#q').oninput = render; $('#kind').onchange = render;
+list.onclick = (e) => {
+  const r = e.target.closest('.row'); if (!r) return;
+  const x = D.sql[+r.dataset.i];
+  if (D.video && x.t >= 0) { v.currentTime = Math.max(0, x.t - 0.5); }
+  r.classList.toggle('open');
+};
+render();
+
+// follow the video: current statement (last one at or before the playhead) and subtitle
+let last = -2;
+function tick() {
+  const t = v.currentTime || 0;
+  $('#head').style.left = (t / dur * 100) + '%';
+  $('#time').textContent = fmt(t) + ' / ' + fmt(dur);
+  let cur = -1;
+  for (let i = 0; i < D.sql.length; i++) { if (D.sql[i].t <= t) cur = i; else break; }
+  if (cur !== last) {
+    last = cur;
+    list.querySelectorAll('.row.cur').forEach((r) => r.classList.remove('cur'));
+    const r = list.querySelector(`.row[data-i="${cur}"]`);
+    if (r) { r.classList.add('cur'); if ($('#follow').checked && !v.paused) r.scrollIntoView({ block: 'nearest' }); }
+  }
+  const e = cur >= 0 ? D.sql[cur] : null, sub = $('#sub');
+  if ($('#showsub').checked && e && t - e.t < 3) { sub.hidden = false; sub.textContent = (e.kind === 'error' ? 'ERROR: ' : '') + (e.sql.length > 400 ? e.sql.slice(0, 400) + ' ...' : e.sql); sub.classList.toggle('err', e.kind === 'error'); }
+  else sub.hidden = true;
+  let ch = -1; D.chapters.forEach((c, i) => { if (c.start <= t + 0.01) ch = i; });
+  document.querySelectorAll('#chapters button').forEach((b) => b.classList.toggle('cur', +b.dataset.i === ch));
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

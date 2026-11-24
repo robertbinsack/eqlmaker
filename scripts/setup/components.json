@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "note": "Pinned third-party components. 'delivery' is 'package' (inside the release zip, fetched by scripts/pack-release.ps1) or 'setup' (downloaded by eqlmaker-setup.cmd into the package folder). Every file is checked against 'sha256' before it is used. Licence texts: see COMPONENTS.md.",
+  "components": [
+    {
+      "id": "whisper",
+      "name": "whisper.cpp",
+      "version": "1.9.6",
+      "licence": "MIT",
+      "homepage": "https://github.com/ggml-org/whisper.cpp",
+      "delivery": "package",
+      "kind": "source-build",
+      "file": "whisper.cpp-1.9.6.tar.gz",
+      "url": "https://github.com/ggml-org/whisper.cpp/archive/refs/tags/v1.9.6.tar.gz",
+      "sha256": "7ab15dc88022d2425ad94dcffd8abbf1b6d7018089b4e48d6b40780738e0b445",
+      "size": 10064959,
+      "target": "tools/whisper",
+      "check": "tools/whisper/whisper-cli.exe"
+    },
+    {
+      "id": "whisper-model",
+      "name": "Whisper model small (quantised q5_1, multilingual)",
+      "version": "small-q5_1",
+      "licence": "MIT",
+      "homepage": "https://huggingface.co/ggerganov/whisper.cpp",
+      "delivery": "package",
+      "kind": "file",
+      "file": "ggml-small-q5_1.bin",
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-small-q5_1.bin",
+      "sha256": "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
+      "size": 190085487,
+      "licence_url": "https://raw.githubusercontent.com/openai/whisper/v20250625/LICENSE",
+      "licence_sha256": "b5d65a59060e68c4ff940e1eddfa6f94b2d68fdf58ed7f4dd57721c997e35e9d",
+      "target": "tools/whisper/models",
+      "check": "tools/whisper/models/ggml-small-q5_1.bin"
+    },
+    {
+      "id": "ffmpeg",
+      "name": "FFmpeg (LGPL build, shared libraries)",
+      "version": "9.0.2 (n9.0.2-39-g7adfbe40dc, build 2026-10-31)",
+      "licence": "LGPL-3.0-or-later",
+      "homepage": "https://github.com/BtbN/FFmpeg-Builds",
+      "delivery": "setup",
+      "kind": "zip",
+      "file": "ffmpeg-n9.0.2-39-g7adfbe40dc-win64-lgpl-shared-9.0.zip",
+      "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-31-12-59/ffmpeg-n9.0.2-39-g7adfbe40dc-win64-lgpl-shared-9.0.zip",
+      "sha256": "e907b01fa4783913151237e37df2a10fa97d99a1598a021bf59d4ae62ffed4c0",
+      "size": 76576818,
+      "target": "tools/ffmpeg",
+      "strip": 1,
+      "include": ["bin/ffmpeg.exe", "bin/ffprobe.exe", "bin/*.dll", "LICENSE.txt"],
+      "exclude": [],
+      "check": "tools/ffmpeg/bin/ffmpeg.exe"
+    },
+    {
+      "id": "node",
+      "name": "Node.js (LTS)",
+      "version": "26.13.1",
+      "licence": "MIT",
+      "homepage": "https://nodejs.org",
+      "delivery": "setup",
+      "kind": "zip",
+      "file": "node-v26.13.1-win-x64.zip",
+      "url": "https://nodejs.org/dist/v26.13.1/node-v26.13.1-win-x64.zip",
+      "sha256": "e2edda75bfb089654705cf65a13b58933bfd5f57148e8ebda916f58a2474f1f7",
+      "size": 41166246,
+      "target": "tools/node",
+      "strip": 1,
+      "include": ["*"],
+      "exclude": ["install_tools.bat"],
+      "check": "tools/node/node.exe"
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL (Windows x64 binaries of EnterpriseDB)",
+      "version": "18.4",
+      "licence": "PostgreSQL",
+      "homepage": "https://www.enterprisedb.com/download-postgresql-binaries",
+      "delivery": "setup",
+      "optional": true,
+      "kind": "zip",
+      "file": "postgresql-18.4-1-windows-x64-binaries.zip",
+      "url": "https://get.enterprisedb.com/postgresql/postgresql-18.4-1-windows-x64-binaries.zip",
+      "sha256": "7effe34c0bf89027b3f171447d351cbc460f4566c8d0f643daec67f140787858",
+      "size": 337444127,
+      "target": "tools/pgsql",
+      "strip": 1,
+      "include": ["bin/*", "lib/*", "share/*", "server_license.txt", "commandlinetools_3rd_party_licenses.txt"],
+      "exclude": ["bin/stackbuilder.exe", "bin/wx*.dll", "bin/testplug.dll","lib/pgxs/*", "lib/*.lib", "lib/*.a", "lib/pkgconfig/*", "lib/cmake/*"],
+      "check": "tools/pgsql/bin/postgres.exe"
+    }
+  ],
+  "models": [
+    {
+      "name": "base",
+      "file": "ggml-base.bin",
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base.bin",
+      "sha256": "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe",
+      "size": 147951465
+    },
+    {
+      "name": "small-q5_1",
+      "file": "ggml-small-q5_1.bin",
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-small-q5_1.bin",
+      "sha256": "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
+      "size": 190085487
+    },
+    {
+      "name": "small",
+      "file": "ggml-small.bin",
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-small.bin",
+      "sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b",
+      "size": 487601967
+    },
+    {
+      "name": "medium-q5_0",
+      "file": "ggml-medium-q5_0.bin",
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-medium-q5_0.bin",
+      "sha256": "19fea4b380c3a618ec4723c3eef2eb785ffba0d0538cf43f8f235e7b3b34220f",
+      "size": 539212467
+    },
+    {
+      "name": "large-v3-turbo-q5_0",
+      "file": "ggml-large-v3-turbo-q5_0.bin",
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-large-v3-turbo-q5_0.bin",
+      "sha256": "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
+      "size": 574041195
+    },
+    {
+      "name": "large-v3-turbo-q8_0",
+      "file": "ggml-large-v3-turbo-q8_0.bin",
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-large-v3-turbo-q8_0.bin",
+      "sha256": "317eb69c11673c9de1e1f0d459b253999804ec71ac4c23c17ecf5fbe24e259a1",
+      "size": 874188075
+    }
+  ]
+}

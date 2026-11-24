@@ -1,0 +1,86 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+[English](ROADMAP.md) · [Deutsch](ROADMAP.de.md)
+
+# Roadmap
+
+Diese Seite sagt, was EQLMaker heute kann, woran gearbeitet wird und was geplant ist. Die drei
+Listen unten schreibt `scripts/update-status.ps1` aus [docs/status.json](docs/status.json);
+nichts steht als verfügbar da ohne einen Test dieses Repositorys, der es belegt. Die Roadmap ist
+ein Plan, keine Zusage.
+
+<!-- status:begin release -->
+> [!NOTE]
+> **Stand:** Der Quellcode der Version 0.1.0 ist in diesem Repository veröffentlicht und getestet; die Tabelle unter [Funktionen](README.md#funktionen) nennt die Tests. Ein Release-Paket gibt es noch nicht: Die erste Veröffentlichung ist in Vorbereitung. Bis dahin wird aus dem Quellcode gebaut, siehe [Schnellstart](README.md#schnellstart).
+<!-- status:end -->
+
+## Verfügbar und getestet (v0.1)
+
+<!-- status:begin summary -->
+17 von 18 Funktionen der Version 0.1 sind verfügbar und getestet, 1 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
+<!-- status:end -->
+
+<!-- status:begin available -->
+| Funktion | Beschreibung | Seit | Test |
+|---|---|---|---|
+| Bedienung aufzeichnen | Windows-Programme und Browser-Anwendungen: Bildschirmvideo, dazu jede Bedienhandlung mit Zeit, Fenster und Steuerelement, wenn EQLMaker das Programm bedient (Szenariodatei oder MCP-Client); Video und Datenbankereignisse auch, während ein Mensch von Hand arbeitet | 0.1.0 | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`RecordCliTests.StartAndStopWhileSomeoneElseWorks` |
+| Gemessene Datenbankänderungen | Anweisungen, Parameter, Transaktionen und geänderte Zeilen mit Bordmitteln von PostgreSQL – nichts wird serverweit umgestellt, kein Neustart | 0.1.0 | `PostgresSourceTests.CapturesStatementsParametersErrorsAndChangedRows`<br>`PostgresSourceTests.RoleCaptureAndResetOfAnAbortedCapture`<br>`LogParserTests.DefaultPrefixStatementsParametersErrors`<br>`TestDecodingTests.InsertUpdateDeleteWithQuotingAndTypes` |
+| Offenes Ereignisformat | Datenbankzugriffe als JSON Lines, dokumentiert, Version 0.1 | 0.1.0 | `EventFormatTests.FileRoundTripWithAllFields`<br>`EventFormatTests.NewerMajorVersionIsRefused`<br>`EventFormatTests.SortIsStable` |
+| Handbuch einlesen | PDF, HTML, DOCX, Text oder Markdown; Kapitel werden mit Masken verknüpft | 0.1.0 | `ManualTests.PdfCompressedWithCharacterMapAndObjectStream`<br>`ManualTests.PdfPrintedByABrowser`<br>`ManualTests.Docx`<br>`ManualTests.Html`<br>`ManualTests.MarkdownAndTheSampleHandbook`<br>`ManualTests.PlainText`<br>`ManualTests.RunWritesIntoTheProjectAndSpecLinksIt` |
+| Zeitstempel-Leiste | Kleines Programm, das Datum und Uhrzeit mit Millisekunden über allen Fenstern zeigt | 0.1.0 | `TimecodeTests.OverlayProgramRendersTheSameStrip`<br>`TimecodeTests.ScaledAndCompressedFramesAreRead`<br>`TimecodeTests.DamagedPatternFallsBackToTheDigits` |
+| Video mit Ton nachreichen | Zeitstempel wird aus dem Bild gelesen und mit den Datenbankänderungen abgeglichen | 0.1.0 | `VideoImportTests.ImportAt15FramesPerSecond`<br>`VideoImportTests.ImportAt30FramesPerSecond`<br>`VideoImportTests.ImportAt60FramesPerSecond`<br>`ClockMapTests.CutsAreFoundAndMappedOnBothSides`<br>`ClockMapTests.OffsetOfAWrongClockIsEstimated` |
+| Transkript mit Whisper | Spracherkennung über whisper.cpp, vollständig offline. Das Erkennungsprogramm gehört zum Release-Paket; aus dem Quellcode nennt man ein eigenes `whisper-cli.exe` in der Konfiguration. Der Sprachtest läuft dort, wo ein Erkennungsprogramm vorhanden ist | 0.1.0 | `SpeechTests.SpokenSentenceIsTranscribed`<br>`VideoImportTests.TranscriptFormatsAreRead` |
+| Zeitachse und Spezifikation | Klick, Maske, Anweisung und Transaktion auf einer Zeitachse; daraus Masken, Abfragen und Tabellen nach festen Regeln | 0.1.0 | `TimelineTests.EventsGoToTheActionBeforeThem`<br>`TimelineTests.TransactionIdsGiveExactTies`<br>`TimelineTests.TransactionsAreTiedByTimeAndTableWithoutIds`<br>`TimelineTests.SameInputGivesSameOutput`<br>`SpecTests.StepsMasksQueriesTablesAndManualLinks` |
+| Nachbau als Webanwendung | Geführter Schritt mit Web-Vorlage und Anleitung für einen angeschlossenen KI-Assistenten | 0.1.0 | `GuidedTests.GenerateIsAWorkspaceAndInstructionsNotAnApplication`<br>`src/templates/web/test/template.test.js: server: API and files through HTTP with a stand-in pool` |
+| Archiv-Klon, nur lesend | Geführter Schritt mit Referenzbildern je Maske | 0.1.0 | `GuidedTests.CloneScaffoldShowsTheReferenceAndGreysOutWritingControls` |
+| Befunde aus dem Video übernehmen | Geführter Schritt: Jeder Befund wird als übernommen, abgelehnt oder offen entschieden, mit Bericht | 0.1.0 | `GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding` |
+| Vergleichstests | Bildvergleich und Vergleich der gemessenen Datenbankänderungen zweier Aufnahmen | 0.1.0 | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
+| Vergleichsvideo mit Player | Original und Nachbau auf einer Zeitachse | 0.1.0 | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |
+| MCP-Server und Kommandozeile | Dieselben Schritte als Werkzeuge für jeden MCP-Client und als Befehle | 0.1.0 | `McpTests.ProtocolToolsAndPrompts`<br>`PipelineTests.CommandLineReportsUnknownCommandsAndMissingArguments` |
+| Plugin-Schnittstellen | Für Ereignisquellen, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert | 0.1.0 | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason` |
+| Beispielanwendung mit Ende-zu-Ende-Lauf | Eine eigene Beispielanwendung als Windows-Programm und im Browser; `eqlmaker sample` durchläuft den ganzen Ablauf auf reinem PostgreSQL und findet die absichtlichen Fehler | 0.1.0 | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter`<br>`examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax` |
+| Deutsch und Englisch | Programme, Dokumentation und Web-Vorlage in beiden Sprachen | 0.1.0 | `I18nTests.TranslationsHaveTheSameKeysAndPlaceholders`<br>`I18nTests.GermanIsUsedWhenAskedFor`<br>`I18nTests.EnglishFileIsTheExportOfTheCode`<br>`src/templates/web/test/template.test.js: languages: English and German resources have the same keys` |
+<!-- status:end -->
+
+Die Tests mit Namen der Form `Class.Method` gehören zu `bin\eqlmaker-tests.exe` (Quellen in
+`tests/`); die übrigen sind Node-Tests, benannt nach Datei und Test. Wie man sie ausführt:
+[CONTRIBUTING.de.md](CONTRIBUTING.de.md).
+
+## In Entwicklung
+
+<!-- status:begin in-development -->
+| Funktion | Beschreibung |
+|---|---|
+| Einrichtung ohne Adminrechte | Eine Batchdatei richtet alles im eigenen Ordner ein: kein Installer, keine Registry, kein Dienst. Das Einrichtungsskript liegt im Repository; das Release-Paket, zu dem es gehört, ist in Vorbereitung |
+<!-- status:end -->
+
+Nächste Schritte der Version 0.1:
+
+- Erste Veröffentlichung als Windows-Paket (`eqlmaker-windows-x64.zip` mit Prüfsumme), gebaut
+  vom Release-Workflow aus einem Versions-Tag.
+- Eine kurze Demo-Animation für das README.
+
+## Geplant
+
+<!-- status:begin planned -->
+- **Ab Juni 2027 · geplant**
+  - [ ] Bildschirmelemente erkennen und mit Datenänderungen verknüpfen
+  - [ ] Live-Dialog per Text, später per Sprache
+  - [ ] Personenbezogene Daten erkennen und ersetzen
+  - [ ] Regeln aus Antworten ableiten und an vorhandenen Daten prüfen
+  - [ ] Anleitung mit Bildern, Deutsch und Englisch
+  - [ ] Tests mit Anwenderinnen und Anwendern, Fallstudie an einer freien Anwendung
+- **Später · ohne Termin**
+  - [ ] Ereignisformat als eigenständige Spezifikation 1.0 für andere Werkzeuge
+  - [ ] Weitere offene Quellen: MySQL/MariaDB und SQL Server
+  - [ ] Barrierefreiheit der erzeugten Webanwendungen (WCAG 2.1 AA)
+  - [ ] Vorlagen-Galerie für Beitragende
+<!-- status:end -->
+
+Die Punkte „ab Juni 2027“ sind ein klar abgegrenztes neues Modul. Bisher gibt es nur das Konzept,
+keinen Code. Eine Förderung wird beantragt; eine Zusage gibt es nicht.
+
+Die Punkte „später“ haben keinen Termin. Darunter: Quellen für MySQL/MariaDB und SQL Server
+brauchen einen Weg, geänderte Zeilen auf diesen Servern zu messen; bis dahin lassen sich
+Anwendungen auf anderen Datenbankservern erreichen, indem PostgreSQL durch EQLServer ersetzt
+wird, ein kommerzielles Produkt desselben Autors, das kein Teil von EQLMaker ist (siehe README,
+„Weitere Datenbanken“).

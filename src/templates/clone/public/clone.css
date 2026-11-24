@@ -1,0 +1,13 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later
+   Copyright (c) 2026 Robert Binsack
+   Archive pages: the reference picture is the backdrop, controls are positioned on top of it. */
+html, body { margin: 0; background: #6b7280; }
+.mask { position: relative; margin: 0; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; }
+.ctl { position: absolute; box-sizing: border-box; }
+.ctl.button { cursor: pointer; }
+.ctl.button:hover { outline: 1px dotted rgba(0, 0, 0, .45); outline-offset: -3px; }
+/* functions that change data: visible, greyed out, not operable */
+.ctl.archive-off { background: rgba(255, 255, 255, .55); cursor: not-allowed; }
+.ctl.archive-off:hover { outline: none; }
+/* a region that shows live data covers the backdrop */
+.ctl.bound { background: #fff; overflow: hidden; }

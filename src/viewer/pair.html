@@ -1,0 +1,103 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later
+     Copyright (c) 2026 Robert Binsack -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EQLMaker comparison</title>
+<style>
+/* Two recordings of the same steps on one time axis. Chapters with the same caption start
+   together; the shorter one waits on its last picture. The data is inlined below. */
+:root { --bg: #0d1117; --fg: #e6edf3; --muted: #8b949e; --line: #262d36; --accent: #f0b429;
+  --sans: "Segoe UI", system-ui, sans-serif; --mono: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.45 var(--sans); display: grid; grid-template-rows: auto 1fr auto; }
+header { display: flex; gap: 6px 18px; flex-wrap: wrap; align-items: baseline; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+h1 { font-size: 16px; margin: 0; }
+.meta { color: var(--muted); font-size: 13px; }
+main { display: grid; gap: 10px; padding: 10px; min-height: 0; }
+main.row { grid-template-columns: 1fr 1fr; }
+main.column { grid-template-rows: 1fr 1fr; }
+figure { margin: 0; display: grid; grid-template-rows: auto 1fr; min-height: 0; min-width: 0; }
+figcaption { font-size: 12.5px; color: var(--muted); padding: 0 2px 4px; text-transform: uppercase; letter-spacing: .04em; }
+figcaption b { color: var(--fg); }
+video { width: 100%; height: 100%; object-fit: contain; background: #000; border-radius: 6px; min-height: 0; }
+figure.waiting video { outline: 2px solid var(--accent); outline-offset: -2px; }
+footer { padding: 8px 16px 12px; border-top: 1px solid var(--line); }
+.tl { position: relative; height: 22px; cursor: pointer; }
+.tl .track { position: absolute; left: 0; right: 0; top: 9px; height: 4px; background: var(--line); border-radius: 2px; }
+.tl .chap { position: absolute; top: 2px; width: 2px; height: 18px; background: var(--fg); opacity: .5; }
+.tl .head { position: absolute; top: 1px; width: 3px; height: 20px; margin-left: -1.5px; background: #fff; border-radius: 2px; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 6px; }
+button { background: none; color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 12px; font: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--accent); }
+.chapters { display: flex; flex-wrap: wrap; gap: 6px; }
+.chapters button { border-radius: 999px; padding: 2px 10px; font-size: 12.5px; }
+.chapters button.cur { background: var(--fg); color: var(--bg); }
+.time { font: 13px var(--mono); color: var(--muted); }
+</style>
+</head>
+<body>
+<header><h1 id="title"></h1><span class="meta" id="meta"></span></header>
+<main id="main">
+  <figure id="fa"><figcaption><b id="na"></b></figcaption><video id="va" muted playsinline preload="auto"></video></figure>
+  <figure id="fb"><figcaption><b id="nb"></b></figcaption><video id="vb" muted playsinline preload="auto"></video></figure>
+</main>
+<footer>
+  <div class="tl" id="tl"><div class="track"></div><div id="marks"></div><div class="head" id="head"></div></div>
+  <div class="ctrl">
+    <button id="play" aria-label="Play or pause">Play</button>
+    <span class="time" id="time"></span>
+    <div class="chapters" id="chapters"></div>
+  </div>
+</footer>
+<script>
+const DATA = /*DATA*/null;
+const D = DATA || { a: { name: 'A', video: '' }, b: { name: 'B', video: '' }, duration: 1, chapters: [], player: 'row' };
+const $ = (s) => document.querySelector(s);
+const va = $('#va'), vb = $('#vb');
+const fmt = (t) => { t = Math.max(0, t); const m = Math.floor(t / 60); return m + ':' + (t - m * 60).toFixed(1).padStart(4, '0'); };
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+$('#title').textContent = D.a.name + ' / ' + D.b.name;
+document.title = D.a.name + ' / ' + D.b.name + ' - EQLMaker comparison';
+$('#meta').textContent = D.chapters.length + ' chapters · ' + fmt(D.duration);
+$('#na').textContent = D.a.name; $('#nb').textContent = D.b.name;
+$('#main').className = D.player === 'column' ? 'column' : 'row';
+va.src = D.a.video; vb.src = D.b.video;
+const dur = D.duration || 1;
+$('#marks').innerHTML = D.chapters.map((c) => `<div class="chap" style="left:${(c.start / dur * 100).toFixed(3)}%"></div>`).join('');
+$('#chapters').innerHTML = D.chapters.map((c, i) => `<button data-i="${i}">${esc(c.caption)}</button>`).join('');
+
+// one clock for both videos: t runs over the joined chapters
+let t = 0, playing = false, last = 0;
+function place(force) {
+  let k = D.chapters.length - 1;
+  for (let i = 0; i < D.chapters.length; i++) if (t < D.chapters[i].start + D.chapters[i].duration) { k = i; break; }
+  const c = D.chapters[k]; if (!c) return;
+  const tau = Math.min(c.duration, Math.max(0, t - c.start));
+  [[va, c.a_start, c.a_end, $('#fa')], [vb, c.b_start, c.b_end, $('#fb')]].forEach(([v, s, e, fig]) => {
+    const want = Math.min(e, s + tau), waiting = s + tau >= e - 0.02 && tau < c.duration - 0.02;
+    fig.classList.toggle('waiting', waiting);
+    if (force || Math.abs(v.currentTime - want) > 0.3) v.currentTime = want;
+    if (playing && !waiting && s + tau < e) { if (v.paused) v.play().catch(() => {}); } else if (!v.paused) v.pause();
+  });
+  $('#head').style.left = (t / dur * 100) + '%';
+  $('#time').textContent = fmt(t) + ' / ' + fmt(dur);
+  document.querySelectorAll('#chapters button').forEach((b) => b.classList.toggle('cur', +b.dataset.i === k));
+}
+function frame(now) {
+  if (playing) { t += (now - last) / 1000; last = now; if (t >= dur) { t = dur; playing = false; $('#play').textContent = 'Play'; } place(false); }
+  requestAnimationFrame(frame);
+}
+function setPlaying(p) { playing = p; last = performance.now(); if (p && t >= dur) t = 0; $('#play').textContent = p ? 'Pause' : 'Play'; place(true); }
+$('#play').onclick = () => setPlaying(!playing);
+$('#chapters').onclick = (e) => { const b = e.target.closest('button'); if (b) { t = D.chapters[+b.dataset.i].start; setPlaying(true); } };
+$('#tl').addEventListener('pointerdown', (e) => { const r = $('#tl').getBoundingClientRect(); t = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur; place(true); });
+document.addEventListener('keydown', (e) => { if (e.code === 'Space' && e.target.tagName !== 'BUTTON') { e.preventDefault(); setPlaying(!playing); } });
+place(true);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,6 +1,12 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <p align="right"><b>Deutsch</b> · <a href="README.en.md">English</a></p>
 
-<h1 align="center">EQLMaker</h1>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/media/wordmark-dark.svg">
+    <img alt="EQLMaker" src="docs/media/wordmark-light.svg" width="420">
+  </picture>
+</h1>
 
 <p align="center"><b>Alte Software verstehen und von KI automatisch als moderne Webanwendung nachbauen lassen. Ohne Quellcode.</b></p>
 
@@ -10,12 +16,19 @@
   <img alt="Plattform: Windows" src="https://img.shields.io/badge/Plattform-Windows-0078D6">
   <img alt="PostgreSQL 15+" src="https://img.shields.io/badge/PostgreSQL-15%2B-336791">
   <img alt="MCP-Server" src="https://img.shields.io/badge/MCP-Server-6E56CF">
+  <a href="https://github.com/robertbinsack/eqlmaker/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/robertbinsack/eqlmaker/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/robertbinsack/eqlmaker/releases"><img alt="Release" src="https://img.shields.io/github/v/release/robertbinsack/eqlmaker?label=Release"></a>
 </p>
+
+<!-- docs/media/demo.gif : die Demo-Animation folgt mit der ersten Veröffentlichung (erzeugt von scripts/demo/make-demo.ps1) -->
+<!-- check-docs: links -1 --><!-- die Videozeile der deutschen Fassung nennt eine Adresse weniger als die englische -->
 
 EQLMaker schaut bei der Bedienung zu, misst, was dabei in der Datenbank geschieht, und liest das Handbuch. Daraus entsteht die Grundlage für einen Nachbau, der sich mit Vergleichstests belegen lässt.
 
+<!-- status:begin release -->
 > [!NOTE]
-> **Stand:** EQLMaker wird gerade gebaut. Version 0.1 ist noch nicht veröffentlicht; bis dahin gilt alles hier als „in Entwicklung“ und nichts als verfügbar. Der Quellcode folgt mit v0.1 in diesem Repository.
+> **Stand:** Der Quellcode der Version 0.1.0 ist in diesem Repository veröffentlicht und getestet; die Tabelle unter [Funktionen](README.md#funktionen) nennt die Tests. Ein Release-Paket gibt es noch nicht: Die erste Veröffentlichung ist in Vorbereitung. Bis dahin wird aus dem Quellcode gebaut, siehe [Schnellstart](README.md#schnellstart).
+<!-- status:end -->
 
 ---
 
@@ -103,26 +116,37 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 
 ## Funktionen
 
-### In Entwicklung · Version 0.1
+### Version 0.1
 
-| Funktion | Beschreibung |
-|---|---|
-| Bedienung aufzeichnen | Windows-Programme und Browser-Anwendungen: Bildschirmvideo und jede Bedienhandlung mit Zeit, Fenster und Steuerelement |
-| Gemessene Datenbankänderungen | Anweisungen, Parameter, Transaktionen und geänderte Zeilen mit Bordmitteln von PostgreSQL – nichts wird serverweit umgestellt, kein Neustart |
-| Offenes Ereignisformat | Datenbankzugriffe als JSON Lines, dokumentiert, Version 0.1 |
-| Handbuch einlesen | PDF, HTML, DOCX, Text oder Markdown; Kapitel werden mit Masken verknüpft |
-| Zeitstempel-Leiste | Kleines Programm, das Datum und Uhrzeit mit Millisekunden über allen Fenstern zeigt |
-| Video mit Ton nachreichen | Zeitstempel wird aus dem Bild gelesen und mit den Datenbankänderungen abgeglichen |
-| Transkript mit Whisper | Spracherkennung über whisper.cpp, im Paket enthalten, vollständig offline |
-| Zeitachse und Spezifikation | Klick, Maske, Anweisung und Transaktion auf einer Zeitachse; daraus Masken, Abfragen und Tabellen |
-| Nachbau als Webanwendung | Geführter Schritt mit Web-Vorlage und Anleitung für einen angeschlossenen KI-Assistenten |
-| Archiv-Klon, nur lesend | Geführter Schritt mit Referenzbildern je Maske |
-| Vergleichstests | Bildvergleich und Vergleich der gemessenen Datenbankänderungen zweier Aufnahmen |
-| Vergleichsvideo mit Player | Original und Nachbau auf einer Zeitachse |
-| MCP-Server und Kommandozeile | Dieselben Schritte als Werkzeuge für jeden MCP-Client und als Befehle |
-| Plugin-Schnittstellen | Für Ereignisquellen, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert |
-| Einrichtung ohne Adminrechte | Eine Batchdatei richtet alles im eigenen Ordner ein: kein Installer, keine Registry, kein Dienst |
-| Deutsch und Englisch | Programme, Dokumentation und Web-Vorlage in beiden Sprachen |
+<!-- status:begin summary -->
+17 von 18 Funktionen der Version 0.1 sind verfügbar und getestet, 1 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
+<!-- status:end -->
+
+<!-- status:begin features -->
+| Funktion | Beschreibung | Stand | Test |
+|---|---|---|---|
+| Bedienung aufzeichnen | Windows-Programme und Browser-Anwendungen: Bildschirmvideo, dazu jede Bedienhandlung mit Zeit, Fenster und Steuerelement, wenn EQLMaker das Programm bedient (Szenariodatei oder MCP-Client); Video und Datenbankereignisse auch, während ein Mensch von Hand arbeitet | verfügbar · getestet | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`RecordCliTests.StartAndStopWhileSomeoneElseWorks` |
+| Gemessene Datenbankänderungen | Anweisungen, Parameter, Transaktionen und geänderte Zeilen mit Bordmitteln von PostgreSQL – nichts wird serverweit umgestellt, kein Neustart | verfügbar · getestet | `PostgresSourceTests.CapturesStatementsParametersErrorsAndChangedRows`<br>`PostgresSourceTests.RoleCaptureAndResetOfAnAbortedCapture`<br>`LogParserTests.DefaultPrefixStatementsParametersErrors`<br>`TestDecodingTests.InsertUpdateDeleteWithQuotingAndTypes` |
+| Offenes Ereignisformat | Datenbankzugriffe als JSON Lines, dokumentiert, Version 0.1 | verfügbar · getestet | `EventFormatTests.FileRoundTripWithAllFields`<br>`EventFormatTests.NewerMajorVersionIsRefused`<br>`EventFormatTests.SortIsStable` |
+| Handbuch einlesen | PDF, HTML, DOCX, Text oder Markdown; Kapitel werden mit Masken verknüpft | verfügbar · getestet | `ManualTests.PdfCompressedWithCharacterMapAndObjectStream`<br>`ManualTests.PdfPrintedByABrowser`<br>`ManualTests.Docx`<br>`ManualTests.Html`<br>`ManualTests.MarkdownAndTheSampleHandbook`<br>`ManualTests.PlainText`<br>`ManualTests.RunWritesIntoTheProjectAndSpecLinksIt` |
+| Zeitstempel-Leiste | Kleines Programm, das Datum und Uhrzeit mit Millisekunden über allen Fenstern zeigt | verfügbar · getestet | `TimecodeTests.OverlayProgramRendersTheSameStrip`<br>`TimecodeTests.ScaledAndCompressedFramesAreRead`<br>`TimecodeTests.DamagedPatternFallsBackToTheDigits` |
+| Video mit Ton nachreichen | Zeitstempel wird aus dem Bild gelesen und mit den Datenbankänderungen abgeglichen | verfügbar · getestet | `VideoImportTests.ImportAt15FramesPerSecond`<br>`VideoImportTests.ImportAt30FramesPerSecond`<br>`VideoImportTests.ImportAt60FramesPerSecond`<br>`ClockMapTests.CutsAreFoundAndMappedOnBothSides`<br>`ClockMapTests.OffsetOfAWrongClockIsEstimated` |
+| Transkript mit Whisper | Spracherkennung über whisper.cpp, vollständig offline. Das Erkennungsprogramm gehört zum Release-Paket; aus dem Quellcode nennt man ein eigenes `whisper-cli.exe` in der Konfiguration. Der Sprachtest läuft dort, wo ein Erkennungsprogramm vorhanden ist | verfügbar · getestet | `SpeechTests.SpokenSentenceIsTranscribed`<br>`VideoImportTests.TranscriptFormatsAreRead` |
+| Zeitachse und Spezifikation | Klick, Maske, Anweisung und Transaktion auf einer Zeitachse; daraus Masken, Abfragen und Tabellen nach festen Regeln | verfügbar · getestet | `TimelineTests.EventsGoToTheActionBeforeThem`<br>`TimelineTests.TransactionIdsGiveExactTies`<br>`TimelineTests.TransactionsAreTiedByTimeAndTableWithoutIds`<br>`TimelineTests.SameInputGivesSameOutput`<br>`SpecTests.StepsMasksQueriesTablesAndManualLinks` |
+| Nachbau als Webanwendung | Geführter Schritt mit Web-Vorlage und Anleitung für einen angeschlossenen KI-Assistenten | verfügbar · getestet | `GuidedTests.GenerateIsAWorkspaceAndInstructionsNotAnApplication`<br>`src/templates/web/test/template.test.js: server: API and files through HTTP with a stand-in pool` |
+| Archiv-Klon, nur lesend | Geführter Schritt mit Referenzbildern je Maske | verfügbar · getestet | `GuidedTests.CloneScaffoldShowsTheReferenceAndGreysOutWritingControls` |
+| Befunde aus dem Video übernehmen | Geführter Schritt: Jeder Befund wird als übernommen, abgelehnt oder offen entschieden, mit Bericht | verfügbar · getestet | `GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding` |
+| Vergleichstests | Bildvergleich und Vergleich der gemessenen Datenbankänderungen zweier Aufnahmen | verfügbar · getestet | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
+| Vergleichsvideo mit Player | Original und Nachbau auf einer Zeitachse | verfügbar · getestet | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |
+| MCP-Server und Kommandozeile | Dieselben Schritte als Werkzeuge für jeden MCP-Client und als Befehle | verfügbar · getestet | `McpTests.ProtocolToolsAndPrompts`<br>`PipelineTests.CommandLineReportsUnknownCommandsAndMissingArguments` |
+| Plugin-Schnittstellen | Für Ereignisquellen, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert | verfügbar · getestet | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason` |
+| Beispielanwendung mit Ende-zu-Ende-Lauf | Eine eigene Beispielanwendung als Windows-Programm und im Browser; `eqlmaker sample` durchläuft den ganzen Ablauf auf reinem PostgreSQL und findet die absichtlichen Fehler | verfügbar · getestet | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter`<br>`examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax` |
+| Deutsch und Englisch | Programme, Dokumentation und Web-Vorlage in beiden Sprachen | verfügbar · getestet | `I18nTests.TranslationsHaveTheSameKeysAndPlaceholders`<br>`I18nTests.GermanIsUsedWhenAskedFor`<br>`I18nTests.EnglishFileIsTheExportOfTheCode`<br>`src/templates/web/test/template.test.js: languages: English and German resources have the same keys` |
+| Einrichtung ohne Adminrechte | Eine Batchdatei richtet alles im eigenen Ordner ein: kein Installer, keine Registry, kein Dienst. Das Einrichtungsskript liegt im Repository; das Release-Paket, zu dem es gehört, ist in Vorbereitung | in Entwicklung |  |
+<!-- status:end -->
+
+„Verfügbar“ heißt: gebaut und durch die genannten Tests dieses Repositorys belegt. Wie eine Funktion dorthin kommt, steht in [CONTRIBUTING.de.md](CONTRIBUTING.de.md); die einzige Quelle dieser Tabelle ist [docs/status.json](docs/status.json).
+
 
 ### Geplant · Vorhaben ab Juni 2027
 
@@ -142,29 +166,69 @@ Deshalb gehören selten benutzte Funktionen und Fehlerfälle in die Aufnahme, un
 
 Die Nachbau-Schritte sind **geführt, nicht vollautomatisch**: EQLMaker erzeugt den Code nicht selbst, sondern bereitet die Arbeit eines KI-Assistenten vor und prüft sie.
 
-## Schnellstart (geplant)
+Weitere Grenzen der Version 0.1: Sie läuft nur unter Windows. Bedienhandlungen werden aufgezeichnet, wenn EQLMaker das Programm bedient (Szenariodatei oder MCP-Client); arbeitet ein Mensch von Hand, enthält die Aufnahme das Video und die Datenbankereignisse. Personenbezogene Daten in Aufnahmen werden nicht maskiert. Die vollständige Liste steht in den [häufigen Fragen](docs/de/faq.md).
 
-> [!WARNING]
-> Das Paket gibt es noch nicht. Namen und Optionen der Befehle können sich bis zur ersten Veröffentlichung ändern.
+## Schnellstart
+
+### Aus dem Quellcode (funktioniert heute)
 
 ~~~bat
-:: richtet alles im eigenen Ordner ein, ohne Adminrechte
-> eqlmaker-setup.cmd
-:: Bedienung und Datenbankänderungen aufzeichnen
-> eqlmaker record
-:: Zeitachse bilden
-> eqlmaker correlate
-:: Spezifikation schreiben
-> eqlmaker spec
+:: 1 · bauen: nutzt den C#-Compiler, der zu Windows gehört, kein SDK
+> git clone https://github.com/robertbinsack/eqlmaker.git
+> cd eqlmaker
+> build.cmd
+:: 2 · das Beispiel ausführen: eine kleine Shop-Anwendung wird bedient, aufgezeichnet und verglichen, von Anfang bis Ende
+> cd examples\sample-app\web
+> npm ci
+> cd ..\..\..
+> bin\eqlmaker init demo
+:: die Verbindung zum eigenen PostgreSQL in demo\eqlmaker.json eintragen, dann:
+> set EQLMAKER_PGPASSWORD=<Passwort des PostgreSQL-Superusers>
+> bin\eqlmaker sample --project demo
+:: 3 · die eigene Anwendung
+> bin\eqlmaker init my-project
+> cd my-project
+:: connection und capture.databases in eqlmaker.json eintragen, dann die Aufnahme starten und danach die Anwendung
+> ..\bin\eqlmaker record --start --name original
+> ..\bin\eqlmaker record --stop
+> ..\bin\eqlmaker correlate original
+> ..\bin\eqlmaker spec original
 :: Nachbau vorbereiten: Migration ...
-> eqlmaker generate
+> ..\bin\eqlmaker generate
 :: ... oder Archiv-Klon
-> eqlmaker clone
-:: Original und Nachbau vergleichen
-> eqlmaker verify
+> ..\bin\eqlmaker clone
+:: dieselben Schritte im Nachbau als „web“ aufzeichnen, dann vergleichen
+> ..\bin\eqlmaker verify db original web
 ~~~
 
-**Voraussetzungen (geplant):** Windows, PostgreSQL ab Version 15. Kein Installationsprogramm, keine Adminrechte, keine Änderungen am System – Entfernen heißt Ordner löschen.
+**Voraussetzungen aus dem Quellcode:** Windows, ein PostgreSQL ab Version 15 mit `wal_level = logical` und einer Superuser-Verbindung, Node.js ab Version 18 und FFmpeg im `PATH`. Nichts wird installiert; das Ergebnis des Baus ist der Ordner `bin`.
+
+### Mit der ersten Veröffentlichung: das Windows-Paket
+
+> [!WARNING]
+> Das Release-Paket gibt es noch nicht. Es wird lokal gebaut und getestet; dieser Weg funktioniert mit der ersten Veröffentlichung.
+
+~~~bat
+:: 1 · Zip entpacken, dann: richtet alles im eigenen Ordner ein, ohne Adminrechte
+> eqlmaker-setup.cmd
+:: 2 · das Beispiel ausführen
+> eqlmaker sample --project project
+:: 3 · die eigene Anwendung: wie oben, mit „eqlmaker“ statt „..\bin\eqlmaker“
+> eqlmaker init my-project
+~~~
+
+**Voraussetzungen des Pakets:** Windows ab Version 10 (x64). Kein Installationsprogramm, keine Adminrechte, keine Änderungen am System – Entfernen heißt Ordner löschen. Die Einrichtung bringt FFmpeg, Node.js, die Spracherkennung und auf Wunsch ein portables PostgreSQL mit; Einzelheiten in [docs/de/setup.md](docs/de/setup.md).
+
+## Dokumentation
+
+| | |
+|---|---|
+| [Schnellstart](docs/de/quick-start.md) | Beide Wege Schritt für Schritt, das erste eigene Projekt |
+| [Ablauf](docs/de/pipeline.md) | Jeder Schritt mit Eingaben, Ausgaben und den festen Regeln |
+| [Befehlsreferenz](docs/de/cli.md) · [MCP-Server](docs/de/mcp.md) | Jeder Befehl, jede Option, jedes Werkzeug |
+| [Geführte Schritte](docs/de/guided-steps.md) · [Vergleichstests](docs/de/verify.md) | Was EQLMaker vorbereitet, was Assistent oder Mensch tun, wie geprüft wird |
+| [Beispielanwendung](docs/de/sample-app.md) | Das Beispiel, seine verborgenen Regeln und was die Zahlen bedeuten |
+| [Alle Seiten](docs/de/index.md) | Übersicht der Dokumentation, auf Deutsch und Englisch |
 
 ## Für wen – und was die Allgemeinheit davon hat
 
@@ -179,9 +243,10 @@ Alte Fachprogramme sind ein stilles Risiko. Das Wissen über sie steckt in den K
 ## Roadmap
 
 - **Jetzt · in Entwicklung**
-  - [ ] Version 0.1 fertig bauen und testen
-  - [ ] Ende-zu-Ende-Lauf mit einer eigenen Beispielanwendung auf reinem PostgreSQL
-  - [ ] Quellcode veröffentlichen, erste Veröffentlichung als Windows-Paket
+  - [x] Version 0.1 fertig bauen und testen
+  - [x] Ende-zu-Ende-Lauf mit einer eigenen Beispielanwendung auf reinem PostgreSQL
+  - [x] Quellcode veröffentlichen
+  - [ ] Erste Veröffentlichung als Windows-Paket
 - **Ab Juni 2027 · geplant**
   - [ ] Bildschirmelemente erkennen und mit Datenänderungen verknüpfen
   - [ ] Live-Dialog per Text, später per Sprache
@@ -195,7 +260,7 @@ Alte Fachprogramme sind ein stilles Risiko. Das Wissen über sie steckt in den K
   - [ ] Barrierefreiheit der erzeugten Webanwendungen (WCAG 2.1 AA)
   - [ ] Vorlagen-Galerie für Beitragende
 
-<sub>Die Roadmap ist ein Plan, keine Zusage.</sub>
+<sub>Die Roadmap ist ein Plan, keine Zusage. Einzelheiten und der getestete Stand: [ROADMAP.de.md](ROADMAP.de.md).</sub>
 
 ## Verwandte Arbeiten
 
@@ -217,6 +282,6 @@ EQLMaker läuft vollständig mit einem normalen **PostgreSQL** und erreicht dami
 
 ## Mitmachen und Lizenz
 
-- **Lizenz:** [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) (GNU Affero General Public License, Version 3 oder später). Urheber ist Robert Binsack.
-- **Beiträge:** über das [Developer Certificate of Origin (DCO)](https://developercertificate.org/). Wer beiträgt, bestätigt mit der Zeile `Signed-off-by` im Commit, dass der Beitrag unter der Lizenz des Projekts eingebracht werden darf. Es gibt keine Sonderrechte an Beiträgen.
+- **Lizenz:** [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) (GNU Affero General Public License, Version 3 oder später), vollständiger Text in [LICENSE](LICENSE). Urheber ist Robert Binsack.
+- **Beiträge:** über das [Developer Certificate of Origin (DCO)](https://developercertificate.org/). Wer beiträgt, bestätigt mit der Zeile `Signed-off-by` im Commit, dass der Beitrag unter der Lizenz des Projekts eingebracht werden darf. Es gibt keine Sonderrechte an Beiträgen. Bauen, testen und beitragen: [CONTRIBUTING.de.md](CONTRIBUTING.de.md) · [DCO.md](DCO.md) · [Verhaltensregeln](CODE_OF_CONDUCT.md) · [Sicherheit](SECURITY.md) · [Hinweise zu Drittkomponenten](THIRD_PARTY_NOTICES.md).
 - **Kontakt:** office@eqlserver.de · [binsack.com](https://www.binsack.com)
