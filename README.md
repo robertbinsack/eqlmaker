@@ -2,7 +2,7 @@
 
 <h1 align="center">EQLMaker</h1>
 
-<p align="center"><b>Alte Software verstehen und als moderne Webanwendung nachbauen. Ohne Quellcode.</b></p>
+<p align="center"><b>Alte Software verstehen und von KI automatisch als moderne Webanwendung nachbauen lassen. Ohne Quellcode.</b></p>
 
 <p align="center">
   <img alt="Status: in Entwicklung" src="https://img.shields.io/badge/Status-in%20Entwicklung-orange">
