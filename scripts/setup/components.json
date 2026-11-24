@@ -1,6 +1,13 @@
 {
   "schema": 1,
-  "note": "Pinned third-party components. 'delivery' is 'package' (inside the release zip, fetched by scripts/pack-release.ps1) or 'setup' (downloaded by eqlmaker-setup.cmd into the package folder). Every file is checked against 'sha256' before it is used. Licence texts: see COMPONENTS.md.",
+  "note": "Pinned third-party components. 'delivery' is 'package' (inside the release zip, fetched by scripts/pack-release.ps1) or 'setup' (downloaded by eqlmaker-setup.cmd into the package folder). Every file is checked against 'sha256' before it is used. 'postgres' names the builds of the portable PostgreSQL (option -postgres) and the default. Licence texts: see COMPONENTS.md.",
+  "postgres": {
+    "default": "mingw",
+    "flavours": {
+      "mingw": "postgresql-mingw",
+      "edb": "postgresql"
+    }
+  },
   "components": [
     {
       "id": "whisper",
@@ -48,7 +55,12 @@
       "size": 76576818,
       "target": "tools/ffmpeg",
       "strip": 1,
-      "include": ["bin/ffmpeg.exe", "bin/ffprobe.exe", "bin/*.dll", "LICENSE.txt"],
+      "include": [
+        "bin/ffmpeg.exe",
+        "bin/ffprobe.exe",
+        "bin/*.dll",
+        "LICENSE.txt"
+      ],
       "exclude": [],
       "check": "tools/ffmpeg/bin/ffmpeg.exe"
     },
@@ -66,9 +78,300 @@
       "size": 41166246,
       "target": "tools/node",
       "strip": 1,
-      "include": ["*"],
-      "exclude": ["install_tools.bat"],
+      "include": [
+        "*"
+      ],
+      "exclude": [
+        "install_tools.bat"
+      ],
       "check": "tools/node/node.exe"
+    },
+    {
+      "id": "zstd",
+      "name": "Zstandard command line tool (unpacks the MSYS2 packages)",
+      "version": "1.5.7",
+      "licence": "BSD-3-Clause",
+      "homepage": "https://github.com/facebook/zstd",
+      "delivery": "setup",
+      "optional": true,
+      "kind": "zip",
+      "file": "zstd-v1.5.7-win64.zip",
+      "url": "https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-v1.5.7-win64.zip",
+      "sha256": "acb4e8111511749dc7a3ebedca9b04190e37a17afeb73f55d4425dbf0b90fad9",
+      "size": 1747181,
+      "target": "tools/zstd",
+      "strip": 1,
+      "include": [
+        "zstd.exe",
+        "README.md"
+      ],
+      "exclude": [],
+      "extras": [
+        {
+          "file": "zstd-1.5.7-LICENSE.txt",
+          "url": "https://raw.githubusercontent.com/facebook/zstd/v1.5.7/LICENSE",
+          "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8",
+          "size": 1549,
+          "target": "tools/zstd/LICENSE"
+        }
+      ],
+      "check": "tools/zstd/zstd.exe"
+    },
+    {
+      "id": "postgresql-mingw",
+      "name": "PostgreSQL (MinGW/UCRT build of the MSYS2 project)",
+      "version": "18.7",
+      "licence": "PostgreSQL",
+      "homepage": "https://packages.msys2.org/base/mingw-w64-postgresql",
+      "delivery": "setup",
+      "optional": true,
+      "kind": "packages",
+      "target": "tools/pgsql",
+      "strip": 1,
+      "check": "tools/pgsql/bin/postgres.exe",
+      "exclude_without": {
+        "psql": [
+          "bin/psql.exe"
+        ]
+      },
+      "extras": [
+        {
+          "file": "postgresql-18.7-COPYRIGHT.txt",
+          "url": "https://raw.githubusercontent.com/postgres/postgres/REL_18_7/COPYRIGHT",
+          "sha256": "3d6af92ff8a4c2cdf69afb1cf44edea727922f5cd0cf8b5f72b11cdecac8fdfd",
+          "size": 1198,
+          "target": "tools/pgsql/share/licenses/postgresql/COPYRIGHT"
+        },
+        {
+          "file": "icu-78-LICENSE.txt",
+          "url": "https://raw.githubusercontent.com/unicode-org/icu/release-78.3/LICENSE",
+          "sha256": "e55522d81edc687a341a4411e0776e54ca654e90147f354a90458aaced4116af",
+          "size": 27718,
+          "target": "tools/pgsql/share/licenses/icu/LICENSE"
+        },
+        {
+          "file": "lz4-1.11.1-LICENSE.txt",
+          "url": "https://raw.githubusercontent.com/lz4/lz4/v1.11.1/lib/LICENSE",
+          "sha256": "8b58c446121a109ccf32edc094bba3010a3d85e4ee3702950db55e4d3e87736c",
+          "size": 1311,
+          "target": "tools/pgsql/share/licenses/lz4/LICENSE"
+        }
+      ],
+      "packages": [
+        {
+          "name": "mingw-w64-ucrt-x86_64-postgresql",
+          "version": "18.7-2",
+          "licence": "PostgreSQL",
+          "file": "mingw-w64-ucrt-x86_64-postgresql-18.7-2-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-postgresql-18.7-2-any.pkg.tar.zst",
+          "sha256": "c51ff813af13e57807c9f3f3daf3cc0620f17cca03ec20481647b373adda0ab5",
+          "size": 11496411,
+          "include": [
+            "bin/*.exe",
+            "bin/*.dll",
+            "lib/postgresql/*",
+            "share/postgresql/*",
+            "share/licenses/*"
+          ],
+          "exclude": [
+            "bin/ecpg.exe",
+            "lib/postgresql/pgxs/*",
+            "lib/postgresql/*plperl*",
+            "lib/postgresql/*plpython*",
+            "lib/postgresql/pltcl*",
+            "lib/postgresql/pgxml.dll"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-icu",
+          "version": "78.3-4",
+          "licence": "Unicode-3.0",
+          "file": "mingw-w64-ucrt-x86_64-icu-78.3-4-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-icu-78.3-4-any.pkg.tar.zst",
+          "sha256": "db9282bbd0a2e74c31d66af6bd89eb68d647a09f721eef4c661768588dca4324",
+          "size": 23972050,
+          "include": [
+            "bin/libicudt*.dll",
+            "bin/libicuin*.dll",
+            "bin/libicuuc*.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-openssl",
+          "version": "4.1.0-1",
+          "licence": "Apache-2.0",
+          "file": "mingw-w64-ucrt-x86_64-openssl-4.1.0-1-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-openssl-4.1.0-1-any.pkg.tar.zst",
+          "sha256": "e4b35719e68c9d27ec0c36b6f38a16970dd875554401ef35e14c6d35ad2a9429",
+          "size": 8481931,
+          "include": [
+            "bin/libcrypto-*.dll",
+            "bin/libssl-*.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-libxml2",
+          "version": "2.15.4-3",
+          "licence": "MIT",
+          "file": "mingw-w64-ucrt-x86_64-libxml2-2.15.4-3-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libxml2-2.15.4-3-any.pkg.tar.zst",
+          "sha256": "e774c85139c004ce9b4085474d6b3450526c718d2e8c555a87e47adc11f376b1",
+          "size": 1003188,
+          "include": [
+            "bin/libxml2-*.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-zlib",
+          "version": "1.4-2",
+          "licence": "Zlib",
+          "file": "mingw-w64-ucrt-x86_64-zlib-1.4-2-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-zlib-1.4-2-any.pkg.tar.zst",
+          "sha256": "172541cf5e2391a402f092104988699b0163129d22be1d6b4b201bfb84af6fcf",
+          "size": 889083,
+          "include": [
+            "bin/zlib1.dll",
+            "bin/libz-1.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-lz4",
+          "version": "1.11.1-2",
+          "licence": "BSD-2-Clause",
+          "file": "mingw-w64-ucrt-x86_64-lz4-1.11.1-2-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-lz4-1.11.1-2-any.pkg.tar.zst",
+          "sha256": "b8cbe52b573a301cc03770d1521b0ba0ee554f276683c2f2cb61ca9ebecf09fb",
+          "size": 205904,
+          "include": [
+            "bin/liblz4.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-zstd",
+          "version": "1.5.7-2",
+          "licence": "BSD-3-Clause",
+          "file": "mingw-w64-ucrt-x86_64-zstd-1.5.7-2-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-zstd-1.5.7-2-any.pkg.tar.zst",
+          "sha256": "dbdb8427280046a2b41697780aa4c52983b708082b0da4755951dc3bea96ca89",
+          "size": 668277,
+          "include": [
+            "bin/libzstd.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-gettext-runtime",
+          "version": "1.0-1",
+          "licence": "LGPL-2.1-or-later",
+          "file": "mingw-w64-ucrt-x86_64-gettext-runtime-1.0-1-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-gettext-runtime-1.0-1-any.pkg.tar.zst",
+          "sha256": "ba693dda4ac375af76ce481ff3a6e7481286546cc7dc6d56c7021dae34084157",
+          "size": 417977,
+          "include": [
+            "bin/libintl-*.dll",
+            "share/licenses/gettext-runtime/intl/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-libiconv",
+          "version": "1.19.1-1",
+          "licence": "LGPL-2.1-or-later",
+          "file": "mingw-w64-ucrt-x86_64-libiconv-1.19.1-1-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libiconv-1.19.1-1-any.pkg.tar.zst",
+          "sha256": "8a45dc317a285a036bddd79e01505d67b79e44ff49fc3f6e7177a5ea98d098cf",
+          "size": 742799,
+          "include": [
+            "bin/libiconv-*.dll",
+            "share/licenses/libiconv/COPYING.LIB",
+            "share/licenses/libiconv/README"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-libgcc",
+          "version": "16.2.0-7",
+          "licence": "GPL-3.0-or-later WITH GCC-exception-3.1",
+          "file": "mingw-w64-ucrt-x86_64-libgcc-16.2.0-7-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libgcc-16.2.0-7-any.pkg.tar.zst",
+          "sha256": "bc0ae31c582e0847964b4c8c4b55bb2404a9b7ddce7ebf0b176b6693b76e0c62",
+          "size": 77135,
+          "include": [
+            "bin/libgcc_s_seh-1.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-libstdc++",
+          "version": "16.2.0-7",
+          "licence": "GPL-3.0-or-later WITH GCC-exception-3.1",
+          "file": "mingw-w64-ucrt-x86_64-libstdc++-16.2.0-7-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libstdc++-16.2.0-7-any.pkg.tar.zst",
+          "sha256": "4dd4b216b0e92ffa160127dd50620372609e98cb219ff1c5dcb9b3fbfe153253",
+          "size": 795665,
+          "include": [
+            "bin/libstdc++-6.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-libwinpthread",
+          "version": "14.0.0.r598.ge3d18511f-1",
+          "licence": "MIT AND BSD-3-Clause",
+          "file": "mingw-w64-ucrt-x86_64-libwinpthread-14.0.0.r598.ge3d18511f-1-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libwinpthread-14.0.0.r598.ge3d18511f-1-any.pkg.tar.zst",
+          "sha256": "c35d6be83d141c8cfbb61f1637dd4b53aac8f5562d766aa26d0741c40bad4e4d",
+          "size": 34470,
+          "include": [
+            "bin/libwinpthread-1.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-tzdata",
+          "version": "2026f-1",
+          "licence": "LicenseRef-public-domain",
+          "file": "mingw-w64-ucrt-x86_64-tzdata-2026f-1-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-tzdata-2026f-1-any.pkg.tar.zst",
+          "sha256": "dd8af2f770b3241d8c299343c12cd4d7e3b94c47195608158d28788a01575323",
+          "size": 225917,
+          "include": [
+            "share/zoneinfo/*",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-readline",
+          "version": "8.3.003-1",
+          "licence": "GPL-3.0-or-later",
+          "file": "mingw-w64-ucrt-x86_64-readline-8.3.003-1-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-readline-8.3.003-1-any.pkg.tar.zst",
+          "sha256": "de2423c2e10fcd88272a0ab2f833f6a082cfe613d4c17c2f548cc50a5d2190c4",
+          "size": 513820,
+          "only_with": "psql",
+          "include": [
+            "bin/libreadline8.dll",
+            "share/licenses/*"
+          ]
+        },
+        {
+          "name": "mingw-w64-ucrt-x86_64-termcap",
+          "version": "1.3.1-8",
+          "licence": "GPL-2.0-or-later",
+          "file": "mingw-w64-ucrt-x86_64-termcap-1.3.1-8-any.pkg.tar.zst",
+          "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-termcap-1.3.1-8-any.pkg.tar.zst",
+          "sha256": "c7891143e252568d8d46df72b3aefea932f4166771e17f22317218d7dd2af23c",
+          "size": 19274,
+          "only_with": "psql",
+          "include": [
+            "bin/libtermcap-0.dll",
+            "share/licenses/*"
+          ]
+        }
+      ]
     },
     {
       "id": "postgresql",
@@ -85,8 +388,23 @@
       "size": 337444127,
       "target": "tools/pgsql",
       "strip": 1,
-      "include": ["bin/*", "lib/*", "share/*", "server_license.txt", "commandlinetools_3rd_party_licenses.txt"],
-      "exclude": ["bin/stackbuilder.exe", "bin/wx*.dll", "bin/testplug.dll","lib/pgxs/*", "lib/*.lib", "lib/*.a", "lib/pkgconfig/*", "lib/cmake/*"],
+      "include": [
+        "bin/*",
+        "lib/*",
+        "share/*",
+        "server_license.txt",
+        "commandlinetools_3rd_party_licenses.txt"
+      ],
+      "exclude": [
+        "bin/stackbuilder.exe",
+        "bin/wx*.dll",
+        "bin/testplug.dll",
+        "lib/pgxs/*",
+        "lib/*.lib",
+        "lib/*.a",
+        "lib/pkgconfig/*",
+        "lib/cmake/*"
+      ],
       "check": "tools/pgsql/bin/postgres.exe"
     }
   ],

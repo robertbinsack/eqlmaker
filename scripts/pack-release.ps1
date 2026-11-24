@@ -21,7 +21,7 @@
 .PARAMETER OutDir
   Default: out in the repository.
 .PARAMETER AllowMissingDocs
-  For local test builds: LICENSE, THIRD_PARTY_NOTICES.md, README.md and docs\ may be missing.
+  For local test builds: LICENSE, THIRD_PARTY_NOTICES.md, README.md, README.en.md and docs\ may be missing.
 .PARAMETER SkipBuild
   Does not run build.ps1 and takes bin\ as it is.
 .PARAMETER KeepStage
@@ -94,7 +94,7 @@ Write-Host "EQLMaker $version - building the release package"
 
 # ---------------------------------------------------------------- required files
 $missing = @()
-foreach ($f in 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'README.md') { if (-not (Test-Path -LiteralPath (Join-Path $repo $f))) { $missing += $f } }
+foreach ($f in 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'README.md', 'README.en.md') { if (-not (Test-Path -LiteralPath (Join-Path $repo $f))) { $missing += $f } }
 if (-not (Test-Path -LiteralPath (Join-Path $repo 'docs')) -or -not @(Get-ChildItem -LiteralPath (Join-Path $repo 'docs') -File -Recurse).Count) { $missing += 'docs\ (empty)' }
 if ($missing.Count) {
     if ($AllowMissingDocs) { Write-Host "WARNING: missing and left out (-AllowMissingDocs): $($missing -join ', ')" }
@@ -134,7 +134,8 @@ Copy-Tree (Join-Path $repo 'examples') (Join-Path $stage 'examples') @('node_mod
 Get-ChildItem -LiteralPath $stage -Recurse -File -Force |
     Where-Object { $_.Name -eq 'selftest-result.json' -or $_.Name -eq 'test-results.json' -or $_.Extension -eq '.user' -or $_.Extension -eq '.pdb' } |
     ForEach-Object { Remove-Item -LiteralPath $_.FullName -Force }
-foreach ($f in @('LICENSE', 'THIRD_PARTY_NOTICES.md') + @(Get-ChildItem -LiteralPath $repo -File -Filter 'README*.md' | ForEach-Object Name)) {
+# LICENSE and every Markdown file of the repository folder (README, ROADMAP, notices, policies, in all languages)
+foreach ($f in @('LICENSE') + @(Get-ChildItem -LiteralPath $repo -File -Filter '*.md' | ForEach-Object Name | Sort-Object)) {
     if (Test-Path -LiteralPath (Join-Path $repo $f)) { Copy-Item -LiteralPath (Join-Path $repo $f) (Join-Path $stage $f) }
 }
 # setup files: the batch files in the root, everything else in setup\
@@ -199,33 +200,46 @@ if ($IncludeVcRuntime) {
 
 # ---------------------------------------------------------------- package archives of the browser sample
 $npmList = @()
-$lockFile = Join-Path $repo 'examples\sample-app\web\package-lock.json'
-if (Test-Path -LiteralPath $lockFile) {
+# lock files of the browser sample and of the web templates: their package archives go into the
+# package, so that 'npm ci --offline' works there
+$lockFiles = @()
+foreach ($candidate in @((Join-Path $stage 'examples\sample-app\web\package-lock.json')) + @(Get-ChildItem -LiteralPath (Join-Path $stage 'bin\share\templates') -Directory -ErrorAction SilentlyContinue | Sort-Object Name | ForEach-Object { Join-Path $_.FullName 'package-lock.json' })) {
+    if (Test-Path -LiteralPath $candidate) { $lockFiles += $candidate }
+}
+if ($lockFiles.Count) {
     $stageNpm = Join-Path $stage 'downloads\npm'
     New-Item -ItemType Directory -Force $stageNpm | Out-Null
-    # the lock file has an empty key (the root package), which ConvertFrom-Json of Windows PowerShell rejects
-    $lockText = [System.IO.File]::ReadAllText($lockFile, [System.Text.Encoding]::UTF8)
-    if ($PSVersionTable.PSVersion.Major -ge 6) { $lock = $lockText | ConvertFrom-Json -AsHashtable }
-    else {
-        Add-Type -AssemblyName System.Web.Extensions
-        $serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
-        $serializer.MaxJsonLength = [int]::MaxValue
-        $lock = $serializer.DeserializeObject($lockText)
+    $seen = @{}
+    foreach ($lockFile in $lockFiles) {
+        # a lock file has an empty key (the root package), which ConvertFrom-Json of Windows PowerShell rejects
+        $lockText = [System.IO.File]::ReadAllText($lockFile, [System.Text.Encoding]::UTF8)
+        if ($PSVersionTable.PSVersion.Major -ge 6) { $lock = $lockText | ConvertFrom-Json -AsHashtable }
+        else {
+            Add-Type -AssemblyName System.Web.Extensions
+            $serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
+            $serializer.MaxJsonLength = [int]::MaxValue
+            $lock = $serializer.DeserializeObject($lockText)
+        }
+        $keys = [string[]]@($lock['packages'].Keys)
+        [Array]::Sort($keys, [System.StringComparer]::Ordinal)
+        foreach ($key in $keys) {
+            $v = $lock['packages'][$key]
+            if (-not $v.ContainsKey('resolved')) { continue }
+            if ("$($v['integrity'])" -notlike 'sha512-*') { throw "package-lock.json: $key has no SHA-512 integrity" }
+            if ($v['resolved'] -notlike 'https://registry.npmjs.org/*') { throw "package-lock.json: $key does not come from the npm registry" }
+            $file = ($v['resolved'] -split '/')[-1]
+            $want = $v['integrity']
+            if ($seen.ContainsKey($file)) {
+                if ($seen[$file] -ne $want) { throw "package-lock.json files disagree about $file" }
+                continue
+            }
+            $seen[$file] = $want
+            $tgz = Get-Cached $v['resolved'] "npm\$file" { param($q) ('sha512-' + (Get-Sha512Base64 $q)) -eq $want } "npm package $file"
+            Copy-Item -LiteralPath $tgz (Join-Path $stageNpm $file)
+            $npmList += [ordered]@{ name = ($key -replace '^.*node_modules/', ''); version = $v['version']; licence = $v['license']; delivered = 'package'; file = "downloads/npm/$file" }
+        }
     }
-    $keys = [string[]]@($lock['packages'].Keys)
-    [Array]::Sort($keys, [System.StringComparer]::Ordinal)
-    foreach ($key in $keys) {
-        $v = $lock['packages'][$key]
-        if (-not $v.ContainsKey('resolved')) { continue }
-        if ("$($v['integrity'])" -notlike 'sha512-*') { throw "package-lock.json: $key has no SHA-512 integrity" }
-        if ($v['resolved'] -notlike 'https://registry.npmjs.org/*') { throw "package-lock.json: $key does not come from the npm registry" }
-        $file = ($v['resolved'] -split '/')[-1]
-        $want = $v['integrity']
-        $tgz = Get-Cached $v['resolved'] "npm\$file" { param($q) ('sha512-' + (Get-Sha512Base64 $q)) -eq $want } "npm package $file"
-        Copy-Item -LiteralPath $tgz (Join-Path $stageNpm $file)
-        $npmList += [ordered]@{ name = ($key -replace '^.*node_modules/', ''); version = $v['version']; licence = $v['license']; delivered = 'package'; file = "downloads/npm/$file" }
-    }
-    Write-Host "npm: $($npmList.Count) package archives verified against package-lock.json"
+    Write-Host "npm: $($npmList.Count) package archives verified against $($lockFiles.Count) lock files"
 }
 
 # ---------------------------------------------------------------- manifest

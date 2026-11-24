@@ -4,8 +4,8 @@
 # Quick start
 
 This page takes you from nothing to a first run of the sample and to a first project of your
-own. There are two routes. The route from source works today. The route with the Windows
-package works with the first release; until then the package is built and tested locally only.
+own. There are two routes: from source, or with the Windows package of the
+[latest release](https://github.com/robertbinsack/eqlmaker/releases/latest).
 
 ## Route 1: from source
 
@@ -67,10 +67,12 @@ specification, compares the database changes and writes a player page. Each line
 starts with `ok` or `FAIL`. What happens in detail is described in
 [sample application](sample-app.md).
 
-## Route 2: the Windows package (with the first release)
+## Route 2: the Windows package
 
-The release will consist of `eqlmaker-windows-x64.zip`, its checksum file
-`eqlmaker-windows-x64.zip.sha256` and `eqlmaker-version.json`. Unpack the zip anywhere, then:
+The [latest release](https://github.com/robertbinsack/eqlmaker/releases/latest) consists of
+`eqlmaker-windows-x64.zip`, its checksum file `eqlmaker-windows-x64.zip.sha256` and
+`eqlmaker-version.json`. Download the zip, compare its checksum if you like
+(`certutil -hashfile eqlmaker-windows-x64.zip SHA256`), unpack it anywhere, then:
 
 ```text
 eqlmaker-setup.cmd
@@ -80,6 +82,12 @@ eqlmaker sample --project project
 The setup needs no admin rights and writes nothing outside its folder. It downloads FFmpeg and
 Node.js, brings the speech recognition, and installs a portable PostgreSQL if you want one. At
 the end it runs a self test. Options, exit codes and limits are in [setup](setup.md).
+
+What was tested: the package of version 0.1.0 on Windows Server 2025, as a user without admin
+rights, in a fresh folder with a blank and an umlaut in its name, with all downloads, the self
+test with speech recognition, and the removal. Not tested yet: a clean Windows 10 or Windows 11,
+a download through a proxy, and building the package with PowerShell 7. If the setup fails on
+your computer, please open an issue with the file `downloads\setup.log`.
 
 In the package, `eqlmaker` is the batch file `eqlmaker.cmd` in the package folder; it starts
 `bin\eqlmaker.exe`. From source, write `bin\eqlmaker` instead, or put `bin` on the `PATH`.

@@ -22,7 +22,7 @@ $TempDir = Join-Path $Downloads 'tmp'
 $LogFile = Join-Path $Downloads 'setup.log'
 
 # ------------------------------------------------------------------ options
-$opt = @{ Offline = $false; Lang = ''; Model = ''; NoPostgres = $false; NoSelftest = $false; Unattended = $false; Help = $false }
+$opt = @{ Offline = $false; Lang = ''; Model = ''; Postgres = ''; WithPsql = $false; NoPostgres = $false; NoSelftest = $false; Unattended = $false; Help = $false }
 $badOption = $null
 for ($i = 0; $i -lt $args.Count; $i++) {
     $a = "$($args[$i])"
@@ -30,6 +30,8 @@ for ($i = 0; $i -lt $args.Count; $i++) {
         '^[-/]+offline$' { $opt.Offline = $true; break }
         '^[-/]+no-postgres$' { $opt.NoPostgres = $true; break }
         '^[-/]+no-selftest$' { $opt.NoSelftest = $true; break }
+        '^[-/]+with-psql$' { $opt.WithPsql = $true; break }
+        '^[-/]+postgres$' { $i++; if ($i -lt $args.Count) { $opt.Postgres = "$($args[$i])".ToLowerInvariant() } else { $badOption = $a }; break }
         '^[-/]+unattended$' { $opt.Unattended = $true; break }
         '^[-/]+(help|h|\?)$' { $opt.Help = $true; break }
         '^[-/]+lang$' { $i++; if ($i -lt $args.Count) { $opt.Lang = "$($args[$i])".ToLowerInvariant() } else { $badOption = $a }; break }
@@ -302,7 +304,9 @@ function Get-Marker([string]$Target) {
     return $null
 }
 function Set-Marker([string]$Target, $Comp, [int]$Files) {
-    $o = [ordered]@{ id = $Comp.id; version = $Comp.version; sha256 = $Comp.sha256; files = $Files }
+    $options = ''
+    if ($Comp.PSObject.Properties['options']) { $options = [string]$Comp.options }
+    $o = [ordered]@{ id = $Comp.id; version = $Comp.version; sha256 = $Comp.sha256; files = $Files; options = $options }
     Set-Content -LiteralPath (Join-Path $Target '.eqlmaker-component.json') -Value ($o | ConvertTo-Json) -Encoding UTF8
 }
 
@@ -313,17 +317,112 @@ function Test-ComponentInstalled($Comp) {
     return [bool]($marker -and $marker.sha256 -eq $Comp.sha256 -and (Test-Path -LiteralPath $check))
 }
 
-# Step 1 of 2: the verified archive is in downloads\ (or the component is installed already).
+# Step 1 of 2: the verified archives are in downloads\ (or the component is installed already).
 function Get-ComponentArchive($Comp) {
-    $archive = Join-Path $Downloads $Comp.file
+    $items = @()
+    if ($Comp.kind -eq 'packages') { foreach ($pkg in $Comp.selected) { $items += $pkg } } else { $items += $Comp }
+    if ($Comp.PSObject.Properties['extras']) { foreach ($x in $Comp.extras) { $items += $x } }
     if (Test-ComponentInstalled $Comp) {
-        # installed: the archive is not needed again, it is only verified when it is still there
-        if (Test-Path -LiteralPath $archive) {
-            if ((Get-Sha256 $archive) -ne $Comp.sha256) { Say (T 'dl.badsum.cached' $Comp.file) } else { Say (T 'dl.cached' $Comp.file) }
+        # installed: the archives are not needed again, they are only verified when they are still there
+        foreach ($item in $items) {
+            $archive = Join-Path $Downloads $item.file
+            if (Test-Path -LiteralPath $archive) {
+                if ((Get-Sha256 $archive) -ne $item.sha256) { Say (T 'dl.badsum.cached' $item.file) } else { Say (T 'dl.cached' $item.file) }
+            }
         }
         return $true
     }
-    return (Get-VerifiedFile $Comp $archive $Comp.file)
+    $ok = $true
+    foreach ($item in $items) { if (-not (Get-VerifiedFile $item (Join-Path $Downloads $item.file) $item.file)) { $ok = $false } }
+    return $ok
+}
+
+function Read-Block([System.IO.Stream]$Stream, [byte[]]$Buffer, [int]$Count) {
+    $done = 0
+    while ($done -lt $Count) {
+        $n = $Stream.Read($Buffer, $done, $Count - $done)
+        if ($n -le 0) { break }
+        $done += $n
+    }
+    return $done
+}
+
+# Unpacks the wanted files of a tar archive (ustar, pax and GNU long names) below $DestRoot. All
+# entries are checked first; an entry that would land outside the target stops the setup before
+# a file of this archive is written. Links are never created.
+function Expand-TarInto([string]$TarFile, [string]$DestRoot, [int]$Strip, $Include, $Exclude, [string]$Label) {
+    $destFull = [System.IO.Path]::GetFullPath($DestRoot).TrimEnd('\')
+    $ascii = [System.Text.Encoding]::ASCII
+    $utf8 = [System.Text.Encoding]::UTF8
+    $fs = [System.IO.File]::OpenRead($TarFile)
+    try {
+        $header = New-Object byte[] 512
+        $plan = New-Object System.Collections.Generic.List[object]
+        $nextName = $null
+        while ((Read-Block $fs $header 512) -eq 512) {
+            $empty = $true
+            foreach ($byte in $header) { if ($byte -ne 0) { $empty = $false; break } }
+            if ($empty) { break }
+            $name = $utf8.GetString($header, 0, 100).Split([char]0)[0]
+            if ($ascii.GetString($header, 257, 5) -eq 'ustar') {
+                $prefix = $utf8.GetString($header, 345, 155).Split([char]0)[0]
+                if ($prefix) { $name = "$prefix/$name" }
+            }
+            [long]$size = 0
+            if ($header[124] -band 0x80) { for ($k = 125; $k -lt 136; $k++) { $size = $size * 256 + $header[$k] } }
+            else {
+                $octal = $ascii.GetString($header, 124, 12).Trim([char]0, ' ')
+                if ($octal) { $size = [Convert]::ToInt64($octal, 8) }
+            }
+            $type = [char]$header[156]
+            $data = $fs.Position
+            [long]$padded = [long][Math]::Ceiling($size / 512.0) * 512
+            if ($type -eq 'x' -or $type -eq 'L') {
+                if ($size -gt 1048576) { Stop-Setup (T 'err.traversal' $Label 'extended header') }
+                $buffer = New-Object byte[] ([int]$size)
+                $null = Read-Block $fs $buffer ([int]$size)
+                $text = $utf8.GetString($buffer)
+                if ($type -eq 'L') { $nextName = $text.Split([char]0)[0] }
+                else { $m = [regex]::Match($text, '(?m)^\d+ path=([^\n]*)$'); if ($m.Success) { $nextName = $m.Groups[1].Value } }
+                $null = $fs.Seek($data + $padded, [System.IO.SeekOrigin]::Begin)
+                continue
+            }
+            if ($nextName) { $name = $nextName; $nextName = $null }
+            $null = $fs.Seek($data + $padded, [System.IO.SeekOrigin]::Begin)
+            if ($type -eq 'g') { continue }
+            $name = $name.Replace('\', '/')
+            if ($name.StartsWith('/') -or $name -match '^[A-Za-z]:' -or $name -match '(^|/)\.\.(/|$)') { Stop-Setup (T 'err.traversal' $Label $name) }
+            # only regular files; folders are made as needed, links and devices are left out
+            if ($type -ne '0' -and $type -ne [char]0 -and $type -ne '7') { continue }
+            $parts = $name.Split('/')
+            if ($parts.Count -le $Strip) { continue }
+            $rel = ($parts[$Strip..($parts.Count - 1)]) -join '/'
+            if (-not (Test-Pattern $rel $Include)) { continue }
+            if (Test-Pattern $rel $Exclude) { continue }
+            $dest = [System.IO.Path]::GetFullPath((Join-Path $destFull $rel.Replace('/', '\')))
+            if (-not $dest.StartsWith($destFull + '\', [System.StringComparison]::OrdinalIgnoreCase)) { Stop-Setup (T 'err.traversal' $Label $name) }
+            if ($dest.Length -gt 259) { Stop-Setup (T 'err.longpath' $Root.Length (Get-PathLimit)) }
+            $plan.Add([pscustomobject]@{ Dest = $dest; Offset = $data; Size = $size })
+        }
+        $buffer = New-Object byte[] 1048576
+        $made = @{}
+        foreach ($item in $plan) {
+            $dir = [System.IO.Path]::GetDirectoryName($item.Dest)
+            if (-not $made.ContainsKey($dir)) { [void][System.IO.Directory]::CreateDirectory($dir); $made[$dir] = 1 }
+            $null = $fs.Seek($item.Offset, [System.IO.SeekOrigin]::Begin)
+            $out = [System.IO.File]::Create($item.Dest)
+            try {
+                [long]$left = $item.Size
+                while ($left -gt 0) {
+                    $n = $fs.Read($buffer, 0, [int][Math]::Min($left, $buffer.Length))
+                    if ($n -le 0) { Stop-Setup (T 'err.emptyarchive' $Label) }
+                    $out.Write($buffer, 0, $n)
+                    $left -= $n
+                }
+            } finally { $out.Dispose() }
+        }
+        return $plan.Count
+    } finally { $fs.Dispose() }
 }
 
 # Step 2 of 2: unpack. Only called when all archives of this run are there and verified.
@@ -333,11 +432,50 @@ function Install-Component($Comp) {
         Say (T 'comp.present' $Comp.name $Comp.version $Comp.target.Replace('/', '\'))
         return
     }
-    $archive = Join-Path $Downloads $Comp.file
-    # checked again directly before unpacking
-    if ((Get-Sha256 $archive) -ne $Comp.sha256) { Stop-Setup (T 'err.checksum' $Comp.file $Comp.sha256) }
     Say (T 'comp.unpack' $Comp.name $Comp.target.Replace('/', '\'))
-    $n = Expand-Component $Comp $archive $target
+    if ($Comp.kind -eq 'packages') {
+        # package archives of the MSYS2 project (tar, compressed with Zstandard): each one is
+        # decompressed with the zstd tool into the temporary folder, then the wanted files are taken
+        $zstd = Join-Path $Root 'tools\zstd\zstd.exe'
+        $new = "$target.new"
+        if (Test-Path -LiteralPath $new) { Remove-Item -LiteralPath $new -Recurse -Force }
+        $strip = 0
+        if ($Comp.PSObject.Properties['strip']) { $strip = [int]$Comp.strip }
+        $n = 0
+        foreach ($pkg in $Comp.selected) {
+            $archive = Join-Path $Downloads $pkg.file
+            # checked again directly before unpacking
+            if ((Get-Sha256 $archive) -ne $pkg.sha256) { Stop-Setup (T 'err.checksum' $pkg.file $pkg.sha256) }
+            $tar = Join-Path $TempDir 'package.tar'
+            if (Test-Path -LiteralPath $tar) { Remove-Item -LiteralPath $tar -Force }
+            $r = Invoke-Tool $zstd @('-d', '-q', '-f', $archive, '-o', $tar)
+            if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tar)) { $r | ForEach-Object { Say "  $_" }; Stop-Setup (T 'err.unpack' $pkg.name $pkg.file) }
+            $exclude = @()
+            if ($pkg.PSObject.Properties['exclude']) { $exclude += @($pkg.exclude) }
+            $exclude += @($Comp.excluded)
+            $count = Expand-TarInto $tar $new $strip @($pkg.include) $exclude $pkg.name
+            Remove-Item -LiteralPath $tar -Force
+            if (-not $count) { Stop-Setup (T 'err.emptyarchive' $pkg.name) }
+            $n += $count
+        }
+        if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+        Move-Item -LiteralPath $new $target
+    } else {
+        $archive = Join-Path $Downloads $Comp.file
+        # checked again directly before unpacking
+        if ((Get-Sha256 $archive) -ne $Comp.sha256) { Stop-Setup (T 'err.checksum' $Comp.file $Comp.sha256) }
+        $n = Expand-Component $Comp $archive $target
+    }
+    if ($Comp.PSObject.Properties['extras']) {
+        foreach ($x in $Comp.extras) {
+            $from = Join-Path $Downloads $x.file
+            if ((Get-Sha256 $from) -ne $x.sha256) { Stop-Setup (T 'err.checksum' $x.file $x.sha256) }
+            $to = Join-Path $Root ($x.target.Replace('/', '\'))
+            [void][System.IO.Directory]::CreateDirectory([System.IO.Path]::GetDirectoryName($to))
+            Copy-Item -LiteralPath $from $to -Force
+            $n++
+        }
+    }
     $check = Join-Path $Root ($Comp.check.Replace('/', '\'))
     if (-not (Test-Path -LiteralPath $check)) { Stop-Setup (T 'err.unpack' $Comp.name $Comp.check) }
     Set-Marker $target $Comp $n
@@ -414,8 +552,18 @@ try {
     $byId = @{}
     foreach ($c in $components.components) { $byId[$c.id] = $c }
 
+    # The speech recognition is built for processors with AVX2. Asked from Windows before anything
+    # is downloaded; without AVX2 the setup goes on and everything else works.
+    $hasAvx2 = $true
+    try {
+        $kernel = Add-Type -Name 'Cpu' -Namespace 'EqlMakerSetup' -PassThru -MemberDefinition '[DllImport("kernel32.dll")] public static extern bool IsProcessorFeaturePresent(uint feature);'
+        $hasAvx2 = $kernel::IsProcessorFeaturePresent(40)
+    } catch { Write-Log "processor feature check not possible: $($_.Exception.Message)" }
+    if ($env:EQLMAKER_TEST_NO_AVX2) { $hasAvx2 = $false }
+
     # ---------------------------------------------------------- 1. shipped speech recognition
     Step (T 'step.whisper')
+    if (-not $hasAvx2) { Say (T 'whisper.noavx2') }
     $whisperDir = Join-Path $Root 'tools\whisper'
     $whisperExe = Join-Path $whisperDir 'whisper-cli.exe'
     $modelTxt = Join-Path $whisperDir 'model.txt'
@@ -459,6 +607,37 @@ try {
     $portFile = Join-Path $dataDir 'pg-port.txt'
     $passFile = Join-Path $dataDir 'pgpass.conf'
     $hasCluster = Test-Path -LiteralPath (Join-Path $cluster 'PG_VERSION')
+    # which build of PostgreSQL: the one named by -postgres, else the one that is installed, else the default
+    $flavours = $components.postgres.flavours
+    $flavour = ''
+    $withPsql = $opt.WithPsql
+    $installedPg = Get-Marker (Join-Path $Root 'tools\pgsql')
+    if ($opt.Postgres) {
+        if (-not $flavours.PSObject.Properties[$opt.Postgres]) { Stop-Setup (T 'err.postgres.unknown' $opt.Postgres (($flavours.PSObject.Properties | ForEach-Object { $_.Name }) -join ', ')) }
+        $flavour = $opt.Postgres
+    } elseif ($installedPg) {
+        foreach ($f in $flavours.PSObject.Properties) { if ($f.Value -eq $installedPg.id) { $flavour = $f.Name } }
+    }
+    if (-not $flavour) { $flavour = [string]$components.postgres.default }
+    $pgComp = $byId[[string]$flavours.$flavour]
+    if ($pgComp.kind -eq 'packages') {
+        # psql of this build needs two libraries under the GPL; they are fetched only on request
+        if (-not $withPsql -and $installedPg -and $installedPg.id -eq $pgComp.id -and "$($installedPg.options)" -eq 'psql') { $withPsql = $true }
+        $selected = @($pgComp.packages | Where-Object { -not $_.PSObject.Properties['only_with'] -or ($withPsql -and $_.only_with -eq 'psql') })
+        $excluded = @()
+        if (-not $withPsql -and $pgComp.PSObject.Properties['exclude_without']) { $excluded = @($pgComp.exclude_without.psql) }
+        $text = (($selected | ForEach-Object { "$($_.file):$($_.sha256)" }) -join '|') + '|' + ($excluded -join ',')
+        $sha = [System.Security.Cryptography.SHA256]::Create()
+        $combined = ([BitConverter]::ToString($sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($text))) -replace '-', '').ToLowerInvariant()
+        $sha.Dispose()
+        $pgSize = 0
+        foreach ($pkg in $selected) { $pgSize += [long]$pkg.size }
+        $pgComp | Add-Member -NotePropertyName selected -NotePropertyValue $selected -Force
+        $pgComp | Add-Member -NotePropertyName excluded -NotePropertyValue $excluded -Force
+        $pgComp | Add-Member -NotePropertyName sha256 -NotePropertyValue $combined -Force
+        $pgComp | Add-Member -NotePropertyName size -NotePropertyValue $pgSize -Force
+        $pgComp | Add-Member -NotePropertyName options -NotePropertyValue $(if ($withPsql) { 'psql' } else { '' }) -Force
+    } else { $withPsql = $true }
     $usePg = $true
     if ($opt.NoPostgres) { $usePg = $false }
     elseif (-not $hasCluster) {
@@ -471,7 +650,7 @@ try {
             try { if ([Console]::IsInputRedirected) { $interactive = $false } } catch { $interactive = $false }
             if ($interactive) {
                 Say ''
-                $answer = Read-Host (ConvertTo-Safe (T 'pg.ask' (Format-Size $byId['postgresql'].size)))
+                $answer = Read-Host (ConvertTo-Safe (T 'pg.ask' (Format-Size $pgComp.size)))
                 if ($answer -match '^\s*(n|no|nein)\s*$') { $usePg = $false }
             }
         }
@@ -486,12 +665,15 @@ try {
             try { $PgRoot = (New-Object -ComObject Scripting.FileSystemObject).GetFolder($Root).ShortPath.TrimEnd('\') } catch { }
             if ($PgRoot -match '[^\x20-\x7E]') { Stop-Setup (T 'err.pg.path') }
         }
-        # The PostgreSQL programs need the Microsoft Visual C++ run-time libraries. They are on
-        # most computers; where they are not, copies shipped in tools\vcruntime are put next to
-        # the PostgreSQL programs. Checked before anything is downloaded.
+        # The PostgreSQL programs of EnterpriseDB need the Microsoft Visual C++ run-time libraries
+        # (the MinGW build does not). They are on most computers; where they are not, copies
+        # shipped in tools\vcruntime are put next to the PostgreSQL programs. Checked before
+        # anything is downloaded.
         $system = Join-Path $env:WINDIR 'System32'
         if (-not [Environment]::Is64BitProcess) { $system = Join-Path $env:WINDIR 'Sysnative' }
-        foreach ($dll in 'vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll') {
+        $runtimeNames = @()
+        if ($pgComp.id -eq 'postgresql') { $runtimeNames = @('vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll') }
+        foreach ($dll in $runtimeNames) {
             $inSystem = (Test-Path -LiteralPath (Join-Path $system $dll)) -and -not $env:EQLMAKER_TEST_NO_SYSTEM_VCRUNTIME
             if ($inSystem -or (Test-Path -LiteralPath (Join-Path $Root "tools\pgsql\bin\$dll"))) { continue }
             if (-not (Test-Path -LiteralPath (Join-Path $Root "tools\vcruntime\$dll"))) { Stop-Setup (T 'err.pg.vcruntime' $dll) }
@@ -502,7 +684,15 @@ try {
     # ---------------------------------------------------------- 3. downloads and unpacking
     Step (T 'step.components')
     $wanted = @('ffmpeg', 'node')
-    if ($usePg) { $wanted += 'postgresql' }
+    if ($usePg) {
+        if ($pgComp.kind -eq 'packages') {
+            Say (T 'pg.flavour.mingw')
+            if ($pgComp.options -eq 'psql') { Say (T 'pg.withpsql') } else { Say (T 'pg.nopsql') }
+            # the tool that unpacks the package archives; not needed again once PostgreSQL is installed
+            if (-not (Test-ComponentInstalled $pgComp) -or (Test-ComponentInstalled $byId['zstd'])) { $wanted += 'zstd' }
+        } else { Say (T 'pg.flavour.edb') }
+        $wanted += $pgComp.id
+    }
     $allThere = $true
     foreach ($id in $wanted) { if (-not (Get-ComponentArchive $byId[$id])) { $allThere = $false } }
 
@@ -513,17 +703,35 @@ try {
     $npmCache = Join-Path $Downloads 'npm-cache'
     $npmTarballs = Join-Path $Downloads 'npm'
     $npmNeeded = (Test-Path -LiteralPath $lockFile) -and -not (Test-Path -LiteralPath (Join-Path $webDir 'node_modules\.package-lock.json'))
+    # lock files: the browser sample and the web templates the program copies for generated applications
+    $lockFiles = @()
+    if (Test-Path -LiteralPath $lockFile) { $lockFiles += $lockFile }
+    $templates = Join-Path $Root 'bin\share\templates'
+    if (Test-Path -LiteralPath $templates) {
+        foreach ($d in Get-ChildItem -LiteralPath $templates -Directory) {
+            $f = Join-Path $d.FullName 'package-lock.json'
+            if (Test-Path -LiteralPath $f) { $lockFiles += $f }
+        }
+    }
     $lockEntries = @()
-    if (Test-Path -LiteralPath $lockFile) {
-        # the lock file has an empty key (the root package), which ConvertFrom-Json of Windows PowerShell rejects
+    $seen = @{}
+    if ($lockFiles.Count) {
+        # a lock file has an empty key (the root package), which ConvertFrom-Json of Windows PowerShell rejects
         Add-Type -AssemblyName System.Web.Extensions
         $serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
         $serializer.MaxJsonLength = [int]::MaxValue
-        $lock = $serializer.DeserializeObject([System.IO.File]::ReadAllText($lockFile, [System.Text.Encoding]::UTF8))
-        foreach ($key in @($lock['packages'].Keys)) {
-            $v = $lock['packages'][$key]
-            if ($v.ContainsKey('resolved') -and $v.ContainsKey('integrity')) {
-                $lockEntries += [pscustomobject]@{ File = ($v['resolved'] -split '/')[-1]; Url = $v['resolved']; Integrity = $v['integrity'] }
+        foreach ($file in $lockFiles) {
+            $lock = $serializer.DeserializeObject([System.IO.File]::ReadAllText($file, [System.Text.Encoding]::UTF8))
+            foreach ($key in @($lock['packages'].Keys)) {
+                $v = $lock['packages'][$key]
+                if (-not ($v.ContainsKey('resolved') -and $v.ContainsKey('integrity'))) { continue }
+                $name = ($v['resolved'] -split '/')[-1]
+                if ($seen.ContainsKey($name)) {
+                    if ($seen[$name] -ne $v['integrity']) { Stop-Setup (T 'err.npm.integrity' $name) }
+                    continue
+                }
+                $seen[$name] = $v['integrity']
+                $lockEntries += [pscustomobject]@{ File = $name; Url = $v['resolved']; Integrity = $v['integrity'] }
             }
         }
     }
@@ -558,7 +766,7 @@ try {
 
     # all archives are there and verified: unpack what is not installed yet
     # (the running portable server is stopped before its programs are replaced by another version)
-    if ($usePg -and $hasCluster -and -not (Test-ComponentInstalled $byId['postgresql']) -and (Test-Path -LiteralPath (Join-Path $Root 'tools\pgsql\bin\pg_ctl.exe'))) {
+    if ($usePg -and $hasCluster -and -not (Test-ComponentInstalled $pgComp) -and (Test-Path -LiteralPath (Join-Path $Root 'tools\pgsql\bin\pg_ctl.exe'))) {
         $null = Invoke-Tool (Join-Path $PgRoot 'tools\pgsql\bin\pg_ctl.exe') @('-D', 'data\pg', '-m', 'fast', '-w', 'stop') $PgRoot
     }
     foreach ($id in $wanted) { Install-Component $byId[$id] }
@@ -581,13 +789,18 @@ try {
     if ($LASTEXITCODE -ne 0) { Stop-Setup (T 'err.tool' 'node') }
     $versions['Node.js'] = "$($out[0])".Trim()
     Say (T 'tool.ok' 'Node.js' $versions['Node.js'] 'tools\node\node.exe')
-    $out = Invoke-Tool $whisperExe @('--version')
-    if ($LASTEXITCODE -ne 0) {
-        if ($LASTEXITCODE -eq -1073741795) { Stop-Setup (T 'err.cpu') }
-        Stop-Setup (T 'err.tool' 'whisper-cli')
+    if ($hasAvx2) {
+        $out = Invoke-Tool $whisperExe @('--version')
+        if ($LASTEXITCODE -ne 0) {
+            if ($LASTEXITCODE -eq -1073741795) { Stop-Setup (T 'err.cpu') }
+            Stop-Setup (T 'err.tool' 'whisper-cli')
+        }
+        $versions['whisper.cpp'] = $byId['whisper'].version
+        Say (T 'tool.ok' 'whisper.cpp' $versions['whisper.cpp'] 'tools\whisper\whisper-cli.exe')
+    } else {
+        $versions['whisper.cpp'] = T 'whisper.noavx2.short'
+        Say (T 'whisper.noavx2.tool')
     }
-    $versions['whisper.cpp'] = $byId['whisper'].version
-    Say (T 'tool.ok' 'whisper.cpp' $versions['whisper.cpp'] 'tools\whisper\whisper-cli.exe')
 
     # ---------------------------------------------------------- 5. packages of the browser sample
     if ($npmNeeded) {
@@ -692,25 +905,30 @@ try {
         }
         $pgRunning = $true
         $psql = Join-Path $pgBin 'psql.exe'
-        $r = Invoke-Tool $psql @('-X', '-At', '-h', '127.0.0.1', '-p', "$port", '-U', 'postgres', '-d', 'postgres', '-w', '-c', 'select current_setting(''server_version'')')
+        $hasPsql = Test-Path -LiteralPath $psql
+        $r = Invoke-Tool (Join-Path $pgBin 'pg_isready.exe') @('-h', '127.0.0.1', '-p', "$port", '-t', '20')
         if ($LASTEXITCODE -ne 0) { $r | ForEach-Object { Say "  $_" }; Stop-Setup (T 'err.pg.connect') }
-        Say (T 'pg.connected' "$($r[0])".Trim())
-
-        # sample database: role sample_app, database eqlmaker_sample (script of the sample application)
-        $sampleScript = Join-Path $Root 'examples\sample-app\db\setup.ps1'
-        if (Test-Path -LiteralPath $sampleScript) {
-            $appPw = Read-PgPass $passFile 'sample_app'
-            if (-not $appPw) { Stop-Setup (T 'err.pg.nosamplepw' 'data\pgpass.conf') }
-            $env:SAMPLE_APP_PASSWORD = $appPw
-            try {
-                $ps = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
-                $r = Invoke-Tool $ps @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $sampleScript, '-Psql', $psql, '-AdminHost', '127.0.0.1', '-AdminPort', "$port", '-AdminUser', 'postgres')
-                $code = $LASTEXITCODE
-            } finally { $env:SAMPLE_APP_PASSWORD = $null; $appPw = $null }
-            $r | ForEach-Object { if ($_.Trim()) { Say "  $_" } }
-            if ($code -ne 0) { Stop-Setup (T 'err.pg.sample') }
-            Say (T 'pg.sample' 'eqlmaker_sample')
-        } else { Say (T 'pg.nosample') }
+        Say (T 'pg.ready' $port)
+        if ($hasPsql) {
+            $r = Invoke-Tool $psql @('-X', '-At', '-h', '127.0.0.1', '-p', "$port", '-U', 'postgres', '-d', 'postgres', '-w', '-c', 'select current_setting(''server_version'')')
+            if ($LASTEXITCODE -ne 0) { $r | ForEach-Object { Say "  $_" }; Stop-Setup (T 'err.pg.connect') }
+            Say (T 'pg.connected' "$($r[0])".Trim())
+            # sample database: role sample_app, database eqlmaker_sample (script of the sample application)
+            $sampleScript = Join-Path $Root 'examples\sample-app\db\setup.ps1'
+            if (Test-Path -LiteralPath $sampleScript) {
+                $appPw = Read-PgPass $passFile 'sample_app'
+                if (-not $appPw) { Stop-Setup (T 'err.pg.nosamplepw' 'data\pgpass.conf') }
+                $env:SAMPLE_APP_PASSWORD = $appPw
+                try {
+                    $ps = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
+                    $r = Invoke-Tool $ps @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $sampleScript, '-Psql', $psql, '-AdminHost', '127.0.0.1', '-AdminPort', "$port", '-AdminUser', 'postgres')
+                    $code = $LASTEXITCODE
+                } finally { $env:SAMPLE_APP_PASSWORD = $null; $appPw = $null }
+                $r | ForEach-Object { if ($_.Trim()) { Say "  $_" } }
+                if ($code -ne 0) { Stop-Setup (T 'err.pg.sample') }
+                Say (T 'pg.sample' 'eqlmaker_sample')
+            } else { Say (T 'pg.nosample') }
+        }
     }
 
     # ---------------------------------------------------------- 7. project configuration
@@ -730,6 +948,15 @@ try {
         [System.IO.File]::WriteAllText($projectFile, $json + "`r`n", (New-Object System.Text.UTF8Encoding($false)))
     }
 
+    # login with the generated password, checked by the program itself with the project
+    # configuration that was just written (it has its own PostgreSQL client; psql is not needed)
+    if ($usePg) {
+        $r = Invoke-Tool (Join-Path $Root 'bin\eqlmaker.exe') @('clock', '--project', $projectDir)
+        if ($LASTEXITCODE -ne 0) { $r | ForEach-Object { if ($_.Trim()) { Say "  $_" } }; Stop-Setup (T 'err.pg.connect') }
+        Say (T 'pg.login')
+        if (-not $hasPsql) { if ($opt.NoSelftest) { Say (T 'pg.sample.later') } else { Say (T 'pg.sample.selftest') } }
+    }
+
     # ---------------------------------------------------------- 8. self test
     $selfTest = 'skipped'
     if ($opt.NoSelftest) { Step (T 'step.selftest'); Say (T 'selftest.skipped') }
@@ -738,7 +965,11 @@ try {
         Step (T 'step.selftest')
         # speech recognition on a sentence spoken by a Windows voice (made here, not shipped)
         $speech = 'skipped'
-        foreach ($lang in 'en', 'de') {
+        $audioForProgram = $null
+        $expectForProgram = $null
+        $languages = @('en', 'de')
+        if (-not $hasAvx2) { $languages = @(); Say (T 'selftest.noavx2') }
+        foreach ($lang in $languages) {
             $wav = Join-Path $TempDir "selftest-$lang.wav"
             $sentence = 'The invoice was saved and the customer list is open.'
             $expect = @('invoice', 'customer')
@@ -756,20 +987,29 @@ try {
                 $j = [System.IO.File]::ReadAllText("$base.json", [System.Text.Encoding]::UTF8) | ConvertFrom-Json
                 $text = (@($j.transcription | ForEach-Object { $_.text }) -join ' ').Trim()
             }
-            Remove-Item -LiteralPath $wav, "$base.json" -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath "$base.json" -Force -ErrorAction SilentlyContinue
             $hit = @($expect | Where-Object { $text -match [regex]::Escape($_) }).Count
             if ($code -eq -1073741795) { Stop-Setup (T 'err.cpu') }
             if ($hit -eq $expect.Count) { Say (T 'selftest.speech.ok' $lang $text); if ($speech -ne 'failed') { $speech = 'passed' } }
             else { Say (T 'selftest.speech.fail' $lang $text); $speech = 'failed' }
+            # the first spoken sentence also goes to the self test of the program, which checks
+            # its own way to the speech recognition (conversion with FFmpeg, then whisper)
+            if (-not $audioForProgram) { $audioForProgram = $wav; $expectForProgram = $expect -join ',' }
+            else { Remove-Item -LiteralPath $wav -Force -ErrorAction SilentlyContinue }
         }
         # the self test builds the sample database again; with the password of the password file
         # in the environment the role sample_app keeps the password that is written there
         $samplePw = Read-PgPass $passFile 'sample_app'
         if ($usePg -and $samplePw) { $env:SAMPLE_APP_PASSWORD = $samplePw }
         try {
-            $r = Invoke-Tool (Join-Path $Root 'bin\eqlmaker.exe') @('selftest', '--project', $projectDir)
+            $selfArgs = @('selftest', '--project', $projectDir)
+            if ($audioForProgram) { $selfArgs += @('--audio', $audioForProgram, '--expect', $expectForProgram) }
+            $r = Invoke-Tool (Join-Path $Root 'bin\eqlmaker.exe') $selfArgs
             $code = $LASTEXITCODE
-        } finally { $env:SAMPLE_APP_PASSWORD = $null; $samplePw = $null }
+        } finally {
+            $env:SAMPLE_APP_PASSWORD = $null; $samplePw = $null
+            if ($audioForProgram) { Remove-Item -LiteralPath $audioForProgram -Force -ErrorAction SilentlyContinue }
+        }
         $r | ForEach-Object { if ($_.Trim()) { Say "  $_" } }
         if ($code -eq 0 -and $speech -ne 'failed') { $selfTest = 'passed'; Say (T 'selftest.passed') }
         else { $selfTest = 'failed'; Say (T 'selftest.failed' $code); $script:ExitCode = 2 }
@@ -784,6 +1024,7 @@ try {
         Say (T 'sum.pg' $port)
         Say (T 'sum.pg.files')
         Say (T 'sum.pg.startstop')
+        if (-not $hasPsql) { Say (T 'sum.pg.nopsql') }
     } else { Say (T 'sum.nopg') }
     Say (T 'sum.selftest' (T "selftest.state.$selfTest"))
     Say (T 'sum.start')

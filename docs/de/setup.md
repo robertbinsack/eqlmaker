@@ -19,14 +19,17 @@ sorgt dafür, dass dort alles funktioniert.
 
 - Windows 10 (ab Version 1803), Windows 11 oder Windows Server ab 2019, 64 Bit (x64).
 - Windows PowerShell 5.1, `curl.exe` und `tar.exe`, die zu diesen Windows-Versionen gehören.
-- Ein Prozessor mit AVX2 für die Spracherkennung (Intel ab 2013, AMD ab 2015).
-- Etwa 1.1 GB freier Plattenplatz mit dem portablen PostgreSQL (etwa 0.6 GB ohne) und eine
-  Internetverbindung für den ersten Lauf (etwa 455 MB Downloads mit PostgreSQL, etwa 118 MB
+- Ein Prozessor mit AVX2 für die Spracherkennung (Intel ab 2013, AMD ab 2015). Die Einrichtung
+  fragt Windows danach, bevor sie etwas herunterlädt. Ohne AVX2 sagt sie das und läuft weiter:
+  Alles andere funktioniert, nur die Spracherkennung (die Transkription besprochener Videos)
+  kann auf diesem Rechner nicht laufen.
+- Etwa 0.8 GB freier Plattenplatz mit dem portablen PostgreSQL (etwa 0.6 GB ohne) und eine
+  Internetverbindung für den ersten Lauf (etwa 170 MB Downloads mit PostgreSQL, etwa 118 MB
   ohne), sofern Sie nicht `-offline` verwenden. Die heruntergeladenen Archive bleiben für
   spätere Läufe in `downloads\`; sie dürfen gelöscht werden, wenn die Einrichtung abgeschlossen
   ist.
-- Für das portable PostgreSQL: die Laufzeitbibliotheken von Microsoft Visual C++, siehe
-  [Portables PostgreSQL](#portables-postgresql).
+- Keine weiteren Laufzeitbibliotheken und keine Adminrechte. Die einzige Ausnahme ist der
+  wahlweise EnterpriseDB-Build von PostgreSQL, siehe [Portables PostgreSQL](#portables-postgresql).
 
 ## Die Einrichtung ausführen
 
@@ -41,6 +44,8 @@ eqlmaker-setup.cmd [options]
 | `-lang en` / `-lang de` | Sprache der Meldungen. Vorgabe: die Sprache von Windows, sonst Englisch. |
 | `-model <name>` | Lädt ein größeres Spracherkennungsmodell herunter und macht es zur Vorgabe. |
 | `-no-postgres` | Installiert das portable PostgreSQL nicht; Sie verwenden Ihren eigenen Server. |
+| `-postgres mingw` / `-postgres edb` | Build des portablen PostgreSQL. Vorgabe: `mingw`. |
+| `-with-psql` | Richtet mit dem Vorgabe-Build auch psql ein; holt zwei Bibliotheken unter der GPL. |
 | `-no-selftest` | Führt den Selbsttest am Ende nicht aus. |
 | `-help` | Zeigt die Optionen. |
 
@@ -73,11 +78,13 @@ Die vollständige Ausgabe jedes Laufs wird außerdem an `downloads\setup.log` an
    Archiv mit einem Eintrag, der außerhalb seines Zielordners landen würde, wird abgelehnt.
 4. Installiert die Pakete der Browser-Variante der Beispielanwendung mit dem npm des Pakets, aus
    den Paketarchiven, die in `downloads\npm` mitgeliefert werden (kein Netzzugriff).
-5. Legt den portablen Datenbankcluster an, startet den Server und lädt die Beispieldatenbank.
+5. Legt den portablen Datenbankcluster an, startet den Server und prüft die Anmeldung.
 6. Schreibt `project\eqlmaker.json`, die fertige Projektkonfiguration für das Beispiel.
 7. Führt den Selbsttest aus: Ein von einer Windows-Stimme gesprochener Satz wird von der
    Spracherkennung erkannt (Englisch und Deutsch, wenn Windows solche Stimmen hat), dann
-   `bin\eqlmaker.exe selftest --project <folder>\project`.
+   `bin\eqlmaker.exe selftest --project <folder>\project`, das den gesprochenen Satz über
+   `--audio` und `--expect` erhält und damit seinen eigenen Weg zur Spracherkennung prüft.
+   Der Selbsttest legt auch die Beispieldatenbank an.
 8. Gibt eine Zusammenfassung aus: was wo liegt, Versionen, Port, wie man startet und wie man
    entfernt.
 
@@ -99,6 +106,7 @@ tools\whisper\                speech recognition: whisper-cli.exe, models\, mode
 tools\ffmpeg\bin\             ffmpeg.exe, ffprobe.exe and their libraries                (downloaded)
 tools\node\                   node.exe, npm                                              (downloaded)
 tools\pgsql\                  PostgreSQL programs                                        (downloaded, optional)
+tools\zstd\                   zstd.exe, unpacks the PostgreSQL packages                  (downloaded with PostgreSQL)
 data\pg\                      database cluster of the portable PostgreSQL
 data\pg-port.txt              its port
 data\pgpass.conf              its passwords (password file format of PostgreSQL)
@@ -189,32 +197,63 @@ PostgreSQL 18 nach `tools\pgsql` und legt einen Cluster in `data\pg` an:
 - Er ist kein Windows-Dienst. `eqlmaker-db-start.cmd` startet ihn, `eqlmaker-db-stop.cmd`
   beendet ihn. Er läuft weiter, wenn das Fenster geschlossen wird, und endet, wenn Sie sich
   abmelden. Nach der Einrichtung läuft er.
-- Die Beispieldatenbank `eqlmaker_sample` wird von `examples\sample-app\db\setup.ps1` angelegt.
+- Die Beispieldatenbank `eqlmaker_sample` wird vom Selbsttest angelegt, oder später von
+  `eqlmaker.cmd sample --project project`.
 
-Um sich mit einem eigenen Werkzeug zu verbinden:
+**Zwei Builds.** Die Vorgabe ist der MinGW-Build des MSYS2-Projekts (`-postgres mingw`). Er
+braucht nichts über das hinaus, was Windows 10 und neuer mitbringen, und funktioniert deshalb
+ohne Installationsprogramm und ohne Adminrechte. Die Einrichtung holt ihn als festgelegte
+Paketarchive aus dem MSYS2-Repository und entpackt sie mit dem Zstandard-Werkzeug, das sie dafür
+herunterlädt (`tools\zstd`). `-postgres edb` wählt stattdessen die Programme von EnterpriseDB;
+sie brauchen die Laufzeit von Microsoft Visual C++, siehe unten. Ein späterer Lauf ohne die
+Option bleibt bei dem Build, der eingerichtet ist.
+
+**psql gehört nicht zur Vorgabe.** Im MinGW-Build braucht `psql.exe` zwei Bibliotheken, die
+unter der GPL stehen (readline, GPL-3.0-or-later, und termcap, GPL-2.0-or-later). EQLMaker
+braucht psql nicht: Es spricht mit seinem eigenen Client mit dem Server, und die Einrichtung
+prüft die Anmeldung mit `eqlmaker clock`. Die Vorgabe lässt psql und die zwei Bibliotheken
+deshalb weg. `-with-psql` holt sie und richtet psql ein; die Einrichtung nennt beide
+Bibliotheken und ihre Lizenzen, bevor sie sie herunterlädt. Der EnterpriseDB-Build hat immer
+sein psql.
+
+Um sich mit psql zu verbinden (nach `-with-psql` oder mit einem eigenen psql):
 
 ```
 set PGPASSFILE=<folder>\data\pgpass.conf
 tools\pgsql\bin\psql.exe -h 127.0.0.1 -p <port> -U postgres
 ```
 
-**Laufzeit von Microsoft Visual C++.** Die PostgreSQL-Programme von EnterpriseDB brauchen
-`vcruntime140.dll`, `vcruntime140_1.dll` und `msvcp140.dll`, und das Archiv enthält sie nicht.
-Auf den meisten Rechnern sind sie vorhanden, weil viele Programme sie installieren. Fehlen sie,
-sagt die Einrichtung das, bevor sie etwas herunterlädt. Dann installiert entweder Ihre
-IT-Betreuung das „Microsoft Visual C++ Redistributable (x64)“, oder Sie verwenden mit
-`-no-postgres` Ihr eigenes PostgreSQL, oder Sie verwenden ein Paket, das mit `-IncludeVcRuntime`
-gebaut wurde: Es bringt die drei Bibliotheken in `tools\vcruntime` mit, und die Einrichtung
-kopiert sie neben die PostgreSQL-Programme. Die übrigen Teile des Pakets (EQLMaker,
-Spracherkennung, FFmpeg, Node.js) brauchen diese Bibliotheken nicht.
+**Laufzeit von Microsoft Visual C++ (nur mit `-postgres edb`).** Die PostgreSQL-Programme von
+EnterpriseDB brauchen `vcruntime140.dll`, `vcruntime140_1.dll` und `msvcp140.dll`, und das Archiv
+enthält sie nicht. Auf den meisten Rechnern sind sie vorhanden, weil viele Programme sie
+installieren. Fehlen sie, sagt die Einrichtung das, bevor sie etwas herunterlädt, und nennt die
+Auswege:
+
+- Den Vorgabe-Build verwenden: die Einrichtung ohne `-postgres edb` ausführen.
+- Das „Microsoft Visual C++ Redistributable (x64)“ einmal mit dem Installationsprogramm von
+  Microsoft installieren, `https://aka.ms/vc14/vc_redist.x64.exe`, dann die Einrichtung erneut
+  ausführen. Das ist der eine Schritt, der Adminrechte braucht.
+- Ihr eigenes PostgreSQL verwenden: die Einrichtung mit `-no-postgres` ausführen.
+- Ein Paket verwenden, das mit `-IncludeVcRuntime` gebaut wurde: Es bringt die drei
+  Bibliotheken in `tools\vcruntime` mit, und die Einrichtung kopiert sie neben die
+  PostgreSQL-Programme.
+
+Die Einrichtung holt diese Bibliotheken nicht selbst, und das Standardpaket enthält sie nicht.
+Microsoft bietet sie zum Download nur als dieses Installationsprogramm an; ein Archiv der
+einzelnen Dateien gibt es nicht, und das ähnlich benannte Paket von Microsoft auf NuGet
+(`Microsoft.VCRTForwarders.140`) leitet nur auf eine installierte Laufzeit weiter. Die Weitergabe
+des Installationsprogramms oder der einzelnen Dateien ist laut Microsoft lizenzierten Nutzern
+von Visual Studio vorbehalten, zu dessen Lizenzbedingungen; dafür ist `-IncludeVcRuntime` da,
+zu verwenden von dem, der das Paket baut und eine solche Lizenz hält. Kein anderer Teil des
+Pakets braucht diese Bibliotheken.
 
 ### Ihr eigenes PostgreSQL
 
 Mit `-no-postgres` wird nichts von PostgreSQL heruntergeladen. Beim ersten Lauf schreibt die
-Einrichtung `project\eqlmaker.json` als Vorlage; tragen Sie dort Ihre Verbindung ein. Die
-Beispieldatenbank lässt sich mit `examples\sample-app\db\setup.ps1` laden (siehe
-`examples\sample-app\README.md`). Führen Sie die Einrichtung danach erneut aus, um den
-Selbsttest zu erhalten. Eine vorhandene `project\eqlmaker.json` wird nie überschrieben.
+Einrichtung `project\eqlmaker.json` als Vorlage; tragen Sie dort Ihre Verbindung ein. Führen
+Sie die Einrichtung danach erneut aus, um den Selbsttest zu erhalten, der auch die
+Beispieldatenbank anlegt (oder laden Sie sie mit `examples\sample-app\db\setup.ps1` und dem
+psql Ihres Servers, siehe `examples\sample-app\README.md`). Eine vorhandene `project\eqlmaker.json` wird nie überschrieben.
 
 ## npm des Pakets
 

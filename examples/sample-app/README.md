@@ -48,6 +48,10 @@ $env:SAMPLE_APP_PASSWORD = '<password for sample_app>'
 ```
 
 With `-Recreate` the database is dropped and built again, so every run ends in the same state.
+
+The script needs a `psql.exe` (15 or later). You do not need it to try the sample:
+`eqlmaker sample` creates role and database itself, without psql. The PostgreSQL that the setup
+of the release package installs comes without psql unless it is run with `-with-psql`.
 Without it an existing database is left unchanged.
 
 ## Desktop program

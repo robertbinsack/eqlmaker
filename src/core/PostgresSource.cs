@@ -392,7 +392,8 @@ public class PostgresSource : IEventSource {
     }
     void Poll1() {
         var r = pollClient.Exec("SELECT pid, coalesce(usename, ''), coalesce(datname, ''), coalesce(application_name, ''), CASE WHEN " + Filter() + " THEN 1 ELSE 0 END FROM pg_stat_activity WHERE backend_type = 'client backend'");
-        lock (sessions) foreach (var row in r.Rows) sessions[int.Parse(row[0], CultureInfo.InvariantCulture)] = new[] { row[1], row[2], row[3], row[4] };
+        // a session that is still logging in has neither user nor database yet: it is not judged before it has them
+        lock (sessions) foreach (var row in r.Rows) { if (row[1] == "" && row[2] == "") continue; sessions[int.Parse(row[0], CultureInfo.InvariantCulture)] = new[] { row[1], row[2], row[3], row[4] }; }
     }
     void Poll() {
         while (!stop) {

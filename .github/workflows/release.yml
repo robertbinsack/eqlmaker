@@ -3,9 +3,10 @@
 #   eqlmaker-windows-x64.zip, eqlmaker-windows-x64.zip.sha256, eqlmaker-version.json
 name: Release
 
+# Started by hand on a tag: a package is attached only as a draft release, and it counts as untested until its
+# setup has run once (a published release keeps the files that were tested).
 on:
-  push:
-    tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -48,4 +49,5 @@ jobs:
         run: |
           gh release view $env:GITHUB_REF_NAME 2>$null
           if ($LASTEXITCODE) { gh release create $env:GITHUB_REF_NAME --title "EQLMaker $env:GITHUB_REF_NAME" --notes "Windows package. Unpack, run eqlmaker-setup.cmd. See README.md." --draft }
+          if ((gh release view $env:GITHUB_REF_NAME --json isDraft -q .isDraft) -ne 'true') { throw 'the release is published; its tested files are not replaced' }
           gh release upload $env:GITHUB_REF_NAME out/eqlmaker-windows-x64.zip out/eqlmaker-windows-x64.zip.sha256 out/eqlmaker-version.json --clobber

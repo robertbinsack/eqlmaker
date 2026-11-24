@@ -26,7 +26,7 @@ EQLMaker watches the application being used, measures what happens in the databa
 
 <!-- status:begin release -->
 > [!NOTE]
-> **Status:** The source code of version 0.1.0 is published in this repository and is tested; the table under [Features](README.en.md#features) names the tests. There is no release package yet: the first release is in preparation. Until then, build from source, see [Quick start](README.en.md#quick-start).
+> **Status:** Version 0.1.0 was released on 2026-11-24. The Windows package is on the [release page](https://github.com/robertbinsack/eqlmaker/releases/latest); the table under [Features](README.en.md#features) names the tests behind it. See [Quick start](README.en.md#quick-start).
 <!-- status:end -->
 
 ---
@@ -118,7 +118,7 @@ All steps are also available as tools of an **MCP server**.
 ### Version 0.1
 
 <!-- status:begin summary -->
-17 of 18 features of version 0.1 are available and tested, 1 in development. The test column names the tests of the repository that prove each feature.
+18 of 18 features of version 0.1 are available and tested, 0 in development. The test column names the tests of the repository that prove each feature.
 <!-- status:end -->
 
 <!-- status:begin features -->
@@ -130,7 +130,7 @@ All steps are also available as tools of an **MCP server**.
 | Read the manual | PDF, HTML, DOCX, text or Markdown; chapters are linked to screens | available · tested | `ManualTests.PdfCompressedWithCharacterMapAndObjectStream`<br>`ManualTests.PdfPrintedByABrowser`<br>`ManualTests.Docx`<br>`ManualTests.Html`<br>`ManualTests.MarkdownAndTheSampleHandbook`<br>`ManualTests.PlainText`<br>`ManualTests.RunWritesIntoTheProjectAndSpecLinksIt` |
 | Timestamp overlay | Small program showing date and time with milliseconds on top of all windows | available · tested | `TimecodeTests.OverlayProgramRendersTheSameStrip`<br>`TimecodeTests.ScaledAndCompressedFramesAreRead`<br>`TimecodeTests.DamagedPatternFallsBackToTheDigits` |
 | Add video with audio later | The timestamp is read from the image and matched with the database changes | available · tested | `VideoImportTests.ImportAt15FramesPerSecond`<br>`VideoImportTests.ImportAt30FramesPerSecond`<br>`VideoImportTests.ImportAt60FramesPerSecond`<br>`ClockMapTests.CutsAreFoundAndMappedOnBothSides`<br>`ClockMapTests.OffsetOfAWrongClockIsEstimated` |
-| Transcript with Whisper | Speech recognition via whisper.cpp, fully offline. The recogniser is part of the release package; from source, name your own `whisper-cli.exe` in the configuration. The speech test runs where a recogniser is present | available · tested | `SpeechTests.SpokenSentenceIsTranscribed`<br>`VideoImportTests.TranscriptFormatsAreRead` |
+| Transcript with Whisper | Speech recognition via whisper.cpp, fully offline. The recogniser and a model are part of the Windows package; from source, name your own `whisper-cli.exe` in the configuration. The speech test runs where a recogniser is present; the test of the package transcribes an English and a German sample | available · tested | `SpeechTests.SpokenSentenceIsTranscribed`<br>`VideoImportTests.TranscriptFormatsAreRead` |
 | Timeline and specification | Click, screen, statement and transaction on one timeline; screens, queries and tables derived from it by fixed rules | available · tested | `TimelineTests.EventsGoToTheActionBeforeThem`<br>`TimelineTests.TransactionIdsGiveExactTies`<br>`TimelineTests.TransactionsAreTiedByTimeAndTableWithoutIds`<br>`TimelineTests.SameInputGivesSameOutput`<br>`SpecTests.StepsMasksQueriesTablesAndManualLinks` |
 | Rebuild as web app | Guided step with web template and instructions for a connected AI assistant | available · tested | `GuidedTests.GenerateIsAWorkspaceAndInstructionsNotAnApplication`<br>`src/templates/web/test/template.test.js: server: API and files through HTTP with a stand-in pool` |
 | Read-only archive clone | Guided step with reference images per screen | available · tested | `GuidedTests.CloneScaffoldShowsTheReferenceAndGreysOutWritingControls` |
@@ -141,7 +141,7 @@ All steps are also available as tools of an **MCP server**.
 | Plugin interfaces | For event sources, web templates, clone renderers and video layouts, documented | available · tested | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason` |
 | Sample application with end-to-end run | An own sample application as Windows program and in the browser; `eqlmaker sample` runs the whole pipeline on plain PostgreSQL and finds the deliberate defects | available · tested | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter`<br>`examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax` |
 | German and English | Programs, documentation and web template in both languages | available · tested | `I18nTests.TranslationsHaveTheSameKeysAndPlaceholders`<br>`I18nTests.GermanIsUsedWhenAskedFor`<br>`I18nTests.EnglishFileIsTheExportOfTheCode`<br>`src/templates/web/test/template.test.js: languages: English and German resources have the same keys` |
-| Setup without admin rights | One batch file sets everything up in its own folder: no installer, no registry, no service. The setup script is in the repository; the release package it belongs to is in preparation | in development |  |
+| Setup without admin rights | One batch file sets everything up in its own folder: no installer, no registry, no service. Tested with the released package as a user without admin rights on Windows Server 2025; not tested on a clean Windows 10 or 11. The tests of the package run locally before a release, not in the automatic checks of the repository | available · tested | `scripts/setup/tests/test-setup.ps1: the setup process is not elevated (restricted token, evidence taken inside the run)`<br>`scripts/setup/tests/test-setup.ps1: eqlmaker-setup.cmd -unattended as ordinary user: downloads, default PostgreSQL without psql, self test with speech and logical decoding`<br>`scripts/setup/tests/test-setup.ps1: registry autostart and uninstall keys, PATH, environment, services, firewall rules, scheduled tasks: nothing added, removed or changed by the package`<br>`scripts/setup/tests/test-setup.ps1: remove: after eqlmaker-db-stop.cmd the folders can be deleted completely by the ordinary user` |
 <!-- status:end -->
 
 "Available" means: built, and proven by the named tests of this repository. How a feature gets there is described in [CONTRIBUTING.md](CONTRIBUTING.md); the single source of this table is [docs/status.json](docs/status.json).
@@ -202,10 +202,10 @@ More limits of version 0.1: it runs on Windows only. User actions are recorded w
 
 **Requirements from source:** Windows, a PostgreSQL 15 or later with `wal_level = logical` and a superuser connection, Node.js 18 or later and FFmpeg on the `PATH`. Nothing is installed; the build result is the folder `bin`.
 
-### With the first release: the Windows package
+### The Windows package
 
-> [!WARNING]
-> The release package does not exist yet. It is built and tested locally; this route works with the first release.
+> [!NOTE]
+> Download `eqlmaker-windows-x64.zip` from the [latest release](https://github.com/robertbinsack/eqlmaker/releases/latest). Tested before the release on Windows Server 2025 as a user without admin rights: fresh folder with a blank and an umlaut in its name, setup with all downloads, self test with speech recognition, removal. Not tested yet: a clean Windows 10 or Windows 11, a download through a proxy, and building the package with PowerShell 7.
 
 ~~~bat
 :: 1 · unpack the zip, then: sets everything up in its own folder, no admin rights
@@ -245,7 +245,7 @@ Old line-of-business software is a silent risk. Knowledge about it lives in the 
   - [x] Finish and test version 0.1
   - [x] End-to-end run with an own sample application on plain PostgreSQL
   - [x] Publish source code
-  - [ ] First release as a Windows package
+  - [x] First release as a Windows package
 - **From June 2027 · planned**
   - [ ] Recognize screen elements and link them to data changes
   - [ ] Live dialogue via text, later via voice

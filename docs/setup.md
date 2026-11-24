@@ -17,13 +17,16 @@ still needed, checks it, unpacks it into the same folder and makes everything wo
 
 - Windows 10 (version 1803 or later), Windows 11 or Windows Server 2019 or later, 64 bit (x64).
 - Windows PowerShell 5.1, `curl.exe` and `tar.exe`, which are part of these Windows versions.
-- A processor with AVX2 for the speech recognition (Intel from 2013, AMD from 2015).
-- About 1.1 GB of free disk space with the portable PostgreSQL (about 0.6 GB without it), and
-  an internet connection for the first run (about 455 MB of downloads with PostgreSQL, about
+- A processor with AVX2 for the speech recognition (Intel from 2013, AMD from 2015). The setup
+  asks Windows for it before it downloads anything. Without AVX2 it says so and continues:
+  everything else works, only the speech recognition (the transcription of narrated videos)
+  cannot run on that computer.
+- About 0.8 GB of free disk space with the portable PostgreSQL (about 0.6 GB without it), and
+  an internet connection for the first run (about 170 MB of downloads with PostgreSQL, about
   118 MB without it), unless you use `-offline`. The downloaded archives stay in `downloads\`
   for later runs; they may be deleted when the setup is complete.
-- For the portable PostgreSQL: the Microsoft Visual C++ run-time libraries, see
-  [Portable PostgreSQL](#portable-postgresql).
+- No further run-time libraries and no admin rights. The only exception is the optional
+  EnterpriseDB build of PostgreSQL, see [Portable PostgreSQL](#portable-postgresql).
 
 ## Running the setup
 
@@ -38,6 +41,8 @@ eqlmaker-setup.cmd [options]
 | `-lang en` / `-lang de` | Language of the messages. Default: the language of Windows, English otherwise. |
 | `-model <name>` | Downloads a larger speech recognition model and makes it the default. |
 | `-no-postgres` | Does not install the portable PostgreSQL; you use your own server. |
+| `-postgres mingw` / `-postgres edb` | Build of the portable PostgreSQL. Default: `mingw`. |
+| `-with-psql` | Also installs psql with the default build; fetches two libraries under the GPL. |
 | `-no-selftest` | Does not run the self test at the end. |
 | `-help` | Shows the options. |
 
@@ -69,11 +74,13 @@ The complete output of every run is also appended to `downloads\setup.log`.
    with an entry that would land outside its target folder is refused.
 4. Installs the packages of the browser variant of the sample application with the npm of the
    package, from the package archives shipped in `downloads\npm` (no network access).
-5. Creates the portable database cluster, starts the server and loads the sample database.
+5. Creates the portable database cluster, starts the server and checks the login.
 6. Writes `project\eqlmaker.json`, the ready project configuration for the sample.
 7. Runs the self test: a sentence spoken by a Windows voice is recognised by the speech
    recognition (English and German, when Windows has such voices), then
-   `bin\eqlmaker.exe selftest --project <folder>\project`.
+   `bin\eqlmaker.exe selftest --project <folder>\project`, which gets the spoken sentence
+   through `--audio` and `--expect` and checks its own way to the speech recognition with it.
+   The self test also creates the sample database.
 8. Prints a summary: what is where, versions, port, how to start and how to remove.
 
 A second run does nothing but verify. It needs no network access.
@@ -94,6 +101,7 @@ tools\whisper\                speech recognition: whisper-cli.exe, models\, mode
 tools\ffmpeg\bin\             ffmpeg.exe, ffprobe.exe and their libraries                (downloaded)
 tools\node\                   node.exe, npm                                              (downloaded)
 tools\pgsql\                  PostgreSQL programs                                        (downloaded, optional)
+tools\zstd\                   zstd.exe, unpacks the PostgreSQL packages                  (downloaded with PostgreSQL)
 data\pg\                      database cluster of the portable PostgreSQL
 data\pg-port.txt              its port
 data\pgpass.conf              its passwords (password file format of PostgreSQL)
@@ -181,31 +189,59 @@ and creates a cluster in `data\pg`:
 - It is not a Windows service. `eqlmaker-db-start.cmd` starts it and `eqlmaker-db-stop.cmd`
   stops it. It keeps running when the window is closed and ends when you log off. After the
   setup it is running.
-- The sample database `eqlmaker_sample` is created by `examples\sample-app\db\setup.ps1`.
+- The sample database `eqlmaker_sample` is created by the self test, or later by
+  `eqlmaker.cmd sample --project project`.
 
-To connect with a tool of your own:
+**Two builds.** The default is the MinGW build of the MSYS2 project (`-postgres mingw`). It
+needs nothing beyond what Windows 10 and later bring along, so it works without any installer
+and without admin rights. The setup fetches it as pinned package archives from the MSYS2
+repository and unpacks them with the Zstandard tool it downloads for this purpose
+(`tools\zstd`). `-postgres edb` selects the binaries of EnterpriseDB instead; they need the
+Microsoft Visual C++ run-time, see below. A later run without the option keeps the build that
+is installed.
+
+**psql is not part of the default.** In the MinGW build `psql.exe` needs two libraries that are
+licensed under the GPL (readline, GPL-3.0-or-later, and termcap, GPL-2.0-or-later). EQLMaker
+does not need psql: it talks to the server with its own client, and the setup checks the login
+with `eqlmaker clock`. So the default leaves psql and the two libraries out. `-with-psql`
+fetches them and installs psql; the setup names both libraries and their licences before it
+downloads them. The EnterpriseDB build always has its psql.
+
+To connect with psql (after `-with-psql`, or with a psql of your own):
 
 ```
 set PGPASSFILE=<folder>\data\pgpass.conf
 tools\pgsql\bin\psql.exe -h 127.0.0.1 -p <port> -U postgres
 ```
 
-**Microsoft Visual C++ run-time.** The PostgreSQL programs of EnterpriseDB need
-`vcruntime140.dll`, `vcruntime140_1.dll` and `msvcp140.dll`, and the archive does not contain
-them. They are present on most computers because many programs install them. When they are
-missing, the setup says so before it downloads anything. Then either your IT support installs
-the "Microsoft Visual C++ Redistributable (x64)", or you use your own PostgreSQL with
-`-no-postgres`, or you use a package that was built with `-IncludeVcRuntime`: it carries the
-three libraries in `tools\vcruntime` and the setup copies them next to the PostgreSQL programs.
-The other parts of the package (EQLMaker, speech recognition, FFmpeg, Node.js) do not need
-these libraries.
+**Microsoft Visual C++ run-time (only with `-postgres edb`).** The PostgreSQL programs of
+EnterpriseDB need `vcruntime140.dll`, `vcruntime140_1.dll` and `msvcp140.dll`, and the archive
+does not contain them. They are present on most computers because many programs install them.
+When they are missing, the setup says so before it downloads anything and names the ways out:
+
+- Use the default build: run the setup without `-postgres edb`.
+- Install the "Microsoft Visual C++ Redistributable (x64)" once with the installer of
+  Microsoft, `https://aka.ms/vc14/vc_redist.x64.exe`, then run the setup again. This is the
+  one step that needs admin rights.
+- Use your own PostgreSQL: run the setup with `-no-postgres`.
+- Use a package that was built with `-IncludeVcRuntime`: it carries the three libraries in
+  `tools\vcruntime` and the setup copies them next to the PostgreSQL programs.
+
+The setup does not fetch these libraries by itself, and the standard package does not contain
+them. Microsoft offers them for download only as that installer; there is no archive of the
+plain files, and the package of Microsoft on NuGet with a similar name
+(`Microsoft.VCRTForwarders.140`) only forwards to an installed run-time. According to Microsoft,
+passing on the installer or the single files is reserved to licensed users of Visual Studio,
+under its licence terms; that is what `-IncludeVcRuntime` is for, to be used by whoever builds
+the package and holds such a licence. No other part of the package needs these libraries.
 
 ### Your own PostgreSQL
 
 With `-no-postgres` nothing of PostgreSQL is downloaded. On the first run the setup writes
-`project\eqlmaker.json` as a template; enter your connection there. The sample database can be
-loaded with `examples\sample-app\db\setup.ps1` (see `examples\sample-app\README.md`). Run the
-setup again afterwards to get the self test. An existing `project\eqlmaker.json` is never
+`project\eqlmaker.json` as a template; enter your connection there. Run the setup again
+afterwards to get the self test, which also creates the sample database (or load it with
+`examples\sample-app\db\setup.ps1` and the psql of your server, see
+`examples\sample-app\README.md`). An existing `project\eqlmaker.json` is never
 overwritten.
 
 ## npm of the package

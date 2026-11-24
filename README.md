@@ -27,7 +27,7 @@ EQLMaker schaut bei der Bedienung zu, misst, was dabei in der Datenbank geschieh
 
 <!-- status:begin release -->
 > [!NOTE]
-> **Stand:** Der Quellcode der Version 0.1.0 ist in diesem Repository veröffentlicht und getestet; die Tabelle unter [Funktionen](README.md#funktionen) nennt die Tests. Ein Release-Paket gibt es noch nicht: Die erste Veröffentlichung ist in Vorbereitung. Bis dahin wird aus dem Quellcode gebaut, siehe [Schnellstart](README.md#schnellstart).
+> **Stand:** Version 0.1.0 wurde am 2026-11-24 veröffentlicht. Das Windows-Paket liegt auf der [Release-Seite](https://github.com/robertbinsack/eqlmaker/releases/latest); die Tabelle unter [Funktionen](README.md#funktionen) nennt die Tests dahinter. Siehe [Schnellstart](README.md#schnellstart).
 <!-- status:end -->
 
 ---
@@ -119,7 +119,7 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 ### Version 0.1
 
 <!-- status:begin summary -->
-17 von 18 Funktionen der Version 0.1 sind verfügbar und getestet, 1 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
+18 von 18 Funktionen der Version 0.1 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
 <!-- status:end -->
 
 <!-- status:begin features -->
@@ -131,7 +131,7 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 | Handbuch einlesen | PDF, HTML, DOCX, Text oder Markdown; Kapitel werden mit Masken verknüpft | verfügbar · getestet | `ManualTests.PdfCompressedWithCharacterMapAndObjectStream`<br>`ManualTests.PdfPrintedByABrowser`<br>`ManualTests.Docx`<br>`ManualTests.Html`<br>`ManualTests.MarkdownAndTheSampleHandbook`<br>`ManualTests.PlainText`<br>`ManualTests.RunWritesIntoTheProjectAndSpecLinksIt` |
 | Zeitstempel-Leiste | Kleines Programm, das Datum und Uhrzeit mit Millisekunden über allen Fenstern zeigt | verfügbar · getestet | `TimecodeTests.OverlayProgramRendersTheSameStrip`<br>`TimecodeTests.ScaledAndCompressedFramesAreRead`<br>`TimecodeTests.DamagedPatternFallsBackToTheDigits` |
 | Video mit Ton nachreichen | Zeitstempel wird aus dem Bild gelesen und mit den Datenbankänderungen abgeglichen | verfügbar · getestet | `VideoImportTests.ImportAt15FramesPerSecond`<br>`VideoImportTests.ImportAt30FramesPerSecond`<br>`VideoImportTests.ImportAt60FramesPerSecond`<br>`ClockMapTests.CutsAreFoundAndMappedOnBothSides`<br>`ClockMapTests.OffsetOfAWrongClockIsEstimated` |
-| Transkript mit Whisper | Spracherkennung über whisper.cpp, vollständig offline. Das Erkennungsprogramm gehört zum Release-Paket; aus dem Quellcode nennt man ein eigenes `whisper-cli.exe` in der Konfiguration. Der Sprachtest läuft dort, wo ein Erkennungsprogramm vorhanden ist | verfügbar · getestet | `SpeechTests.SpokenSentenceIsTranscribed`<br>`VideoImportTests.TranscriptFormatsAreRead` |
+| Transkript mit Whisper | Spracherkennung über whisper.cpp, vollständig offline. Das Erkennungsprogramm und ein Modell gehören zum Windows-Paket; aus dem Quellcode nennt man ein eigenes `whisper-cli.exe` in der Konfiguration. Der Sprachtest läuft dort, wo ein Erkennungsprogramm vorhanden ist; der Test des Pakets transkribiert eine englische und eine deutsche Probe | verfügbar · getestet | `SpeechTests.SpokenSentenceIsTranscribed`<br>`VideoImportTests.TranscriptFormatsAreRead` |
 | Zeitachse und Spezifikation | Klick, Maske, Anweisung und Transaktion auf einer Zeitachse; daraus Masken, Abfragen und Tabellen nach festen Regeln | verfügbar · getestet | `TimelineTests.EventsGoToTheActionBeforeThem`<br>`TimelineTests.TransactionIdsGiveExactTies`<br>`TimelineTests.TransactionsAreTiedByTimeAndTableWithoutIds`<br>`TimelineTests.SameInputGivesSameOutput`<br>`SpecTests.StepsMasksQueriesTablesAndManualLinks` |
 | Nachbau als Webanwendung | Geführter Schritt mit Web-Vorlage und Anleitung für einen angeschlossenen KI-Assistenten | verfügbar · getestet | `GuidedTests.GenerateIsAWorkspaceAndInstructionsNotAnApplication`<br>`src/templates/web/test/template.test.js: server: API and files through HTTP with a stand-in pool` |
 | Archiv-Klon, nur lesend | Geführter Schritt mit Referenzbildern je Maske | verfügbar · getestet | `GuidedTests.CloneScaffoldShowsTheReferenceAndGreysOutWritingControls` |
@@ -142,7 +142,7 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 | Plugin-Schnittstellen | Für Ereignisquellen, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert | verfügbar · getestet | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason` |
 | Beispielanwendung mit Ende-zu-Ende-Lauf | Eine eigene Beispielanwendung als Windows-Programm und im Browser; `eqlmaker sample` durchläuft den ganzen Ablauf auf reinem PostgreSQL und findet die absichtlichen Fehler | verfügbar · getestet | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter`<br>`examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax` |
 | Deutsch und Englisch | Programme, Dokumentation und Web-Vorlage in beiden Sprachen | verfügbar · getestet | `I18nTests.TranslationsHaveTheSameKeysAndPlaceholders`<br>`I18nTests.GermanIsUsedWhenAskedFor`<br>`I18nTests.EnglishFileIsTheExportOfTheCode`<br>`src/templates/web/test/template.test.js: languages: English and German resources have the same keys` |
-| Einrichtung ohne Adminrechte | Eine Batchdatei richtet alles im eigenen Ordner ein: kein Installer, keine Registry, kein Dienst. Das Einrichtungsskript liegt im Repository; das Release-Paket, zu dem es gehört, ist in Vorbereitung | in Entwicklung |  |
+| Einrichtung ohne Adminrechte | Eine Batchdatei richtet alles im eigenen Ordner ein: kein Installer, keine Registry, kein Dienst. Getestet mit dem veröffentlichten Paket als Benutzer ohne Adminrechte unter Windows Server 2025; nicht getestet auf einem frischen Windows 10 oder 11. Die Tests des Pakets laufen lokal vor einer Veröffentlichung, nicht in den automatischen Prüfungen des Repositorys | verfügbar · getestet | `scripts/setup/tests/test-setup.ps1: the setup process is not elevated (restricted token, evidence taken inside the run)`<br>`scripts/setup/tests/test-setup.ps1: eqlmaker-setup.cmd -unattended as ordinary user: downloads, default PostgreSQL without psql, self test with speech and logical decoding`<br>`scripts/setup/tests/test-setup.ps1: registry autostart and uninstall keys, PATH, environment, services, firewall rules, scheduled tasks: nothing added, removed or changed by the package`<br>`scripts/setup/tests/test-setup.ps1: remove: after eqlmaker-db-stop.cmd the folders can be deleted completely by the ordinary user` |
 <!-- status:end -->
 
 „Verfügbar“ heißt: gebaut und durch die genannten Tests dieses Repositorys belegt. Wie eine Funktion dorthin kommt, steht in [CONTRIBUTING.de.md](CONTRIBUTING.de.md); die einzige Quelle dieser Tabelle ist [docs/status.json](docs/status.json).
@@ -203,10 +203,10 @@ Weitere Grenzen der Version 0.1: Sie läuft nur unter Windows. Bedienhandlungen 
 
 **Voraussetzungen aus dem Quellcode:** Windows, ein PostgreSQL ab Version 15 mit `wal_level = logical` und einer Superuser-Verbindung, Node.js ab Version 18 und FFmpeg im `PATH`. Nichts wird installiert; das Ergebnis des Baus ist der Ordner `bin`.
 
-### Mit der ersten Veröffentlichung: das Windows-Paket
+### Das Windows-Paket
 
-> [!WARNING]
-> Das Release-Paket gibt es noch nicht. Es wird lokal gebaut und getestet; dieser Weg funktioniert mit der ersten Veröffentlichung.
+> [!NOTE]
+> `eqlmaker-windows-x64.zip` von der [neuesten Veröffentlichung](https://github.com/robertbinsack/eqlmaker/releases/latest) herunterladen. Vor der Veröffentlichung getestet unter Windows Server 2025 als Benutzer ohne Adminrechte: frischer Ordner mit Leerzeichen und Umlaut im Namen, Einrichtung mit allen Downloads, Selbsttest mit Spracherkennung, Entfernen. Noch nicht getestet: ein frisches Windows 10 oder Windows 11, ein Download über einen Proxy und der Bau des Pakets mit PowerShell 7.
 
 ~~~bat
 :: 1 · Zip entpacken, dann: richtet alles im eigenen Ordner ein, ohne Adminrechte
@@ -246,7 +246,7 @@ Alte Fachprogramme sind ein stilles Risiko. Das Wissen über sie steckt in den K
   - [x] Version 0.1 fertig bauen und testen
   - [x] Ende-zu-Ende-Lauf mit einer eigenen Beispielanwendung auf reinem PostgreSQL
   - [x] Quellcode veröffentlichen
-  - [ ] Erste Veröffentlichung als Windows-Paket
+  - [x] Erste Veröffentlichung als Windows-Paket
 - **Ab Juni 2027 · geplant**
   - [ ] Bildschirmelemente erkennen und mit Datenänderungen verknüpfen
   - [ ] Live-Dialog per Text, später per Sprache

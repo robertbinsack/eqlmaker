@@ -96,7 +96,7 @@ The README and the roadmap list a feature as available only when a test proves i
 1. Write the feature and at least one test that fails without it.
 2. Add or change its entry in [docs/status.json](docs/status.json): `status` `available`, the
    test names under `tests` (`Class.Method` for the test program, `<file>: <test name>` for
-   Node tests), `since` and `date`.
+   Node tests and the tests of the package), `since` and `date`.
 3. Run `scripts\update-status.ps1`. It writes the status tables into the README and ROADMAP
    files of every language and fails when a named test does not exist.
 4. Describe it in `docs/` in English and in every language that is complete (see below).

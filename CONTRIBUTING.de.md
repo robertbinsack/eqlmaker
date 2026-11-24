@@ -97,7 +97,7 @@ README und Roadmap führen eine Funktion nur dann als verfügbar, wenn ein Test 
 1. Die Funktion schreiben und mindestens einen Test, der ohne sie fehlschlägt.
 2. Ihren Eintrag in [docs/status.json](docs/status.json) anlegen oder ändern: `status`
    `available`, die Testnamen unter `tests` (`Class.Method` für das Testprogramm,
-   `<file>: <test name>` für Node-Tests), `since` und `date`.
+   `<file>: <test name>` für Node-Tests und die Tests des Pakets), `since` und `date`.
 3. `scripts\update-status.ps1` ausführen. Es schreibt die Statustabellen in die README- und
    ROADMAP-Dateien jeder Sprache und schlägt fehl, wenn ein genannter Test nicht existiert.
 4. Sie in `docs/` beschreiben, auf Englisch und in jeder vollständigen Sprache (siehe unten).

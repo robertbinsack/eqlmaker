@@ -35,7 +35,10 @@ The notes on each component (what is unpacked, what is bundled inside) are in
 | Larger Whisper models | see `components.json` | MIT | downloaded by the setup on request (`-model <name>`) | `tools\whisper\models\LICENSE` |
 | FFmpeg, LGPL build with shared libraries | 9.0.2 | LGPL-3.0-or-later | downloaded by the setup from the build provider; not redistributed by EQLMaker | `tools\ffmpeg\LICENSE.txt` |
 | Node.js with npm | 26.13.1 | MIT (Node.js), Artistic-2.0 (npm) | downloaded by the setup | `tools\node\LICENSE` |
-| PostgreSQL, Windows x64 binaries (optional) | 18.4 | PostgreSQL | downloaded by the setup | `tools\pgsql\server_license.txt` |
+| PostgreSQL, MinGW/UCRT build of the MSYS2 project with the libraries it needs (default of the setup, optional); the full list with versions and licences is in `setup\COMPONENTS.md` | 18.7 | PostgreSQL; libraries: MIT, BSD, Zlib, Apache-2.0, Unicode-3.0, LGPL-2.1-or-later, GPL-3.0-or-later WITH GCC-exception-3.1, public domain | downloaded by the setup | `tools\pgsql`, see `setup\COMPONENTS.md` |
+| Zstandard command line tool (unpacks the package archives of PostgreSQL) | 1.5.7 | BSD-3-Clause | downloaded by the setup | in its archive |
+| readline and termcap, needed by `psql.exe` only | see `components.json` | GPL-3.0-or-later, GPL-2.0-or-later | downloaded by the setup only on request (`-with-psql`) | in their archives |
+| PostgreSQL, Windows x64 binaries of EnterpriseDB | 18.4 | PostgreSQL | downloaded by the setup only on request (`-postgres edb`) | `tools\pgsql\server_license.txt` |
 | npm package `pg` and its dependencies, as package archives | pg 8.23.1 | MIT, ISC | inside the release zip (`downloads\npm`) | in every archive, and below |
 | Microsoft Visual C++ run-time libraries, only in packages built with `-IncludeVcRuntime` | of the build tools used | Microsoft redistributable terms (not open source) | inside such a zip only | `tools\vcruntime\LICENSE.txt` |
 

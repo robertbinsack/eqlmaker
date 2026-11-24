@@ -65,7 +65,7 @@ function Test-WindowsLibrary([string]$Name) {
     if ($n -like 'api-ms-win-*' -or $n -like 'ext-ms-*') { return $true }
     $known = 'kernel32.dll', 'kernelbase.dll', 'ntdll.dll', 'advapi32.dll', 'user32.dll', 'gdi32.dll', 'shell32.dll', 'ole32.dll',
         'oleaut32.dll', 'ws2_32.dll', 'bcrypt.dll', 'bcryptprimitives.dll', 'crypt32.dll', 'ncrypt.dll', 'secur32.dll', 'shlwapi.dll',
-        'rpcrt4.dll', 'winmm.dll', 'version.dll', 'psapi.dll', 'iphlpapi.dll', 'dnsapi.dll', 'userenv.dll', 'ucrtbase.dll',
+        'rpcrt4.dll', 'msvcrt.dll', 'winmm.dll', 'version.dll', 'psapi.dll', 'iphlpapi.dll', 'dnsapi.dll', 'userenv.dll', 'ucrtbase.dll',
         'dbghelp.dll', 'msimg32.dll', 'usp10.dll', 'd2d1.dll', 'dwrite.dll', 'cfgmgr32.dll', 'avrt.dll', 'avicap32.dll',
         'powrprof.dll', 'netapi32.dll', 'wldap32.dll', 'comctl32.dll', 'comdlg32.dll', 'imm32.dll', 'setupapi.dll', 'mswsock.dll',
         'authz.dll', 'sspicli.dll', 'wtsapi32.dll', 'winhttp.dll', 'wininet.dll', 'normaliz.dll', 'pdh.dll', 'dwmapi.dll', 'uxtheme.dll'

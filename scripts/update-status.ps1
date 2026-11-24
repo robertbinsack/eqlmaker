@@ -86,6 +86,7 @@ function Block([string]$kind, [string]$lang) {
             foreach ($f in $avail) { $out += "| $(Cell $f.name.$lang) | $(Cell $f.description.$lang) | $($f.since) | $(TestCell $f) |" }
         }
         'in-development' {
+            if (-not $dev.Count) { $out += ($l.none_in_development -f ($status.version -replace '\.\d+$', '')); break }
             $out += "| $($l.feature) | $($l.description) |"; $out += '|---|---|'
             foreach ($f in $dev) { $out += "| $(Cell $f.name.$lang) | $(Cell $f.description.$lang) |" }
         }

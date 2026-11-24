@@ -16,7 +16,9 @@ its checksum before it is used.
 | Larger Whisper models (`-model <name>`) | see `components.json` | https://huggingface.co/ggerganov/whisper.cpp | MIT | downloaded by setup on request | `tools\whisper\models\LICENSE` |
 | FFmpeg, LGPL build with shared libraries | 9.0.2 (n9.0.2-39-g7adfbe40dc, build of 2026-10-31) | https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-10-31-12-59 | LGPL-3.0-or-later | downloaded by setup | `tools\ffmpeg\LICENSE.txt` |
 | Node.js (LTS) with npm | 26.13.1 | https://nodejs.org/dist/v26.13.1/node-v26.13.1-win-x64.zip | MIT (Node.js), Artistic-2.0 (npm), see below | downloaded by setup | `tools\node\LICENSE`, `tools\node\node_modules\npm\LICENSE` |
-| PostgreSQL, Windows x64 binaries of EnterpriseDB (optional) | 18.4 | https://get.enterprisedb.com/postgresql/postgresql-18.4-1-windows-x64-binaries.zip | PostgreSQL | downloaded by setup | `tools\pgsql\server_license.txt`, `tools\pgsql\commandlinetools_3rd_party_licenses.txt` |
+| PostgreSQL, MinGW/UCRT build of the MSYS2 project (default, optional) with the libraries it needs, see the table below | 18.7 | https://repo.msys2.org/mingw/ucrt64/ (package archives, see `components.json`) | PostgreSQL, and the licences of the libraries | downloaded by setup | `tools\pgsql\share\licenses\<name>\` |
+| Zstandard command line tool (unpacks the MSYS2 package archives) | 1.5.7 | https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-v1.5.7-win64.zip | BSD-3-Clause | downloaded by setup, with the default PostgreSQL | `tools\zstd\LICENSE` |
+| PostgreSQL, Windows x64 binaries of EnterpriseDB (only with `-postgres edb`) | 18.4 | https://get.enterprisedb.com/postgresql/postgresql-18.4-1-windows-x64-binaries.zip | PostgreSQL | downloaded by setup on request | `tools\pgsql\server_license.txt`, `tools\pgsql\commandlinetools_3rd_party_licenses.txt` |
 | `pg` and its dependencies (npm packages of the browser sample and of generated web applications) | pg 8.23.1, see the table below | https://registry.npmjs.org | MIT, ISC | in the zip (`downloads\npm\*.tgz`) | in every package archive; after the setup in `examples\sample-app\web\node_modules\<name>\LICENSE` |
 | Microsoft Visual C++ run-time libraries (only when the package was built with `-IncludeVcRuntime`) | of the build tools used | Visual Studio build tools, folder `VC\Redist` | Microsoft Visual Studio redistributable terms (not open source) | in the zip, only in such builds | `tools\vcruntime\LICENSE.txt` |
 
@@ -69,15 +71,59 @@ permissive licence that is not in the usual short list; it is used unchanged as 
 not linked into EQLMaker or into generated applications. `install_tools.bat` of the archive is
 not unpacked.
 
-### PostgreSQL
+### PostgreSQL (default: MinGW/UCRT build of the MSYS2 project)
 PostgreSQL is released under the PostgreSQL licence, a permissive licence similar to BSD and
-MIT. Only the server and client parts are unpacked (`bin`, `lib`, `share` without the graphical
+MIT. The default build is the one of the MSYS2 project. It is linked against the universal C
+run-time that is part of Windows 10 and later and needs no Microsoft Visual C++ run-time.
+The setup downloads the package archives below from the MSYS2 repository (each one pinned with
+its SHA-256 in `components.json`), unpacks them with the Zstandard tool and takes only the
+files named in the table: the PostgreSQL programs and the libraries they load. Command line
+tools of the library packages are not unpacked. The licence texts of the packages land in
+`tools\pgsql\share\licenses\<name>\`; the texts for PostgreSQL, ICU and lz4, which the
+package archives do not carry, are fetched from the projects' source repositories (pinned as
+well).
+
+| Package | Version | Licence of what is unpacked | Files taken | Fetched |
+|---|---|---|---|---|
+| postgresql | 18.7-2 | PostgreSQL | `bin/*.exe`, `bin/*.dll`, `lib/postgresql/*`, `share/postgresql/*` | default |
+| icu | 78.3-4 | Unicode-3.0 | `bin/libicudt*.dll`, `bin/libicuin*.dll`, `bin/libicuuc*.dll` | default |
+| openssl | 4.1.0-1 | Apache-2.0 | `bin/libcrypto-*.dll`, `bin/libssl-*.dll` | default |
+| libxml2 | 2.15.4-3 | MIT | `bin/libxml2-*.dll` | default |
+| zlib | 1.4-2 | Zlib | `bin/zlib1.dll`, `bin/libz-1.dll` | default |
+| lz4 | 1.11.1-2 | BSD-2-Clause | `bin/liblz4.dll` | default |
+| zstd | 1.5.7-2 | BSD-3-Clause | `bin/libzstd.dll` | default |
+| gettext-runtime | 1.0-1 | LGPL-2.1-or-later | `bin/libintl-*.dll` | default |
+| libiconv | 1.19.1-1 | LGPL-2.1-or-later | `bin/libiconv-*.dll` | default |
+| libgcc | 16.2.0-7 | GPL-3.0-or-later WITH GCC-exception-3.1 | `bin/libgcc_s_seh-1.dll` | default |
+| libstdc++ | 16.2.0-7 | GPL-3.0-or-later WITH GCC-exception-3.1 | `bin/libstdc++-6.dll` | default |
+| libwinpthread | 14.0.0.r598.ge3d18511f-1 | MIT AND BSD-3-Clause | `bin/libwinpthread-1.dll` | default |
+| tzdata | 2026f-1 | LicenseRef-public-domain | `share/zoneinfo/*` | default |
+| readline | 8.3.003-1 | GPL-3.0-or-later | `bin/libreadline8.dll` | only with `-with-psql` |
+| termcap | 1.3.1-8 | GPL-2.0-or-later | `bin/libtermcap-0.dll` | only with `-with-psql` |
+
+`psql.exe` of this build needs readline and termcap, which are licensed under the GPL. They are
+therefore not fetched by default and `psql.exe` is not unpacked; EQLMaker does not use psql.
+With `-with-psql` the setup fetches both packages, names them and their licences in its
+output, and unpacks `psql.exe`. Only psql uses these two libraries.
+
+The MSYS2 repository removes a package version 1.75 years after it has left the package
+database (https://www.msys2.org/docs/faq/). After that the pinned addresses stop working and
+the versions in `components.json` have to be raised, unless the archives are mirrored.
+
+### PostgreSQL (option `-postgres edb`: binaries of EnterpriseDB)
+Only the server and client parts are unpacked (`bin`, `lib`, `share` without the graphical
 tools, the documentation and the header files). Bundled libraries, with their licence texts in
 `tools\pgsql\commandlinetools_3rd_party_licenses.txt`: OpenSSL (Apache-2.0), zlib (Zlib),
 libxml2 and libxslt (MIT), ICU (Unicode-3.0), lz4 (BSD-2-Clause), zstd (BSD-3-Clause),
 libcurl (curl), gettext runtime, libiconv and winpthreads (LGPL-2.1).
 The programs need the Microsoft Visual C++ run-time libraries `vcruntime140.dll`,
 `vcruntime140_1.dll` and `msvcp140.dll`, which the archive does not contain; see `docs/setup.md`.
+
+### Zstandard tool
+`zstd.exe` of the official release archive, used by the setup to decompress the MSYS2 package
+archives (the `tar.exe` of Windows 10 cannot read them). BSD-3-Clause (the project offers it
+under BSD-3-Clause or GPL-2.0; the BSD terms are used). The release archive has no licence
+file; the text is fetched from the source repository at the same version.
 
 ### npm packages
 Used by the browser variant of the sample application and by generated web applications. The
@@ -103,6 +149,23 @@ and `npm ci` checks it a third time when it installs from that cache.
 | postgres-interval | 1.2.0 | MIT |
 | split2 | 4.2.0 | ISC |
 | xtend | 4.0.2 | MIT |
+
+## Licences beyond the usual short list
+The short list is MIT, BSD, Apache-2.0, LGPL, MPL-2.0 and ISC. What is used in addition, all in
+parts that the setup downloads and none of it linked into EQLMaker:
+
+| Licence | Where |
+|---|---|
+| PostgreSQL | PostgreSQL itself (both builds) |
+| GPL-3.0-or-later WITH GCC-exception-3.1 | `libgcc_s_seh-1.dll` and `libstdc++-6.dll`, the compiler run-time of the MinGW build; the exception allows using them with programs under any licence |
+| Unicode-3.0 | ICU, in PostgreSQL and in Node.js |
+| Zlib | zlib, in PostgreSQL, FFmpeg and Node.js; SDL2 in FFmpeg |
+| Public domain | time zone data (tzdata) of the MinGW build |
+| BSD-3-Clause OR GPL-2.0 (BSD used) | the Zstandard tool and library |
+| Artistic-2.0 | npm, inside the Node.js archive, used as a tool |
+| WTFPL, FTL and LGPL-3.0 parts | inside the FFmpeg build (zimg, freetype, gmp, libaribb24) |
+| GPL-3.0-or-later and GPL-2.0-or-later | readline and termcap, **only** with `-with-psql`, used by psql only |
+| Microsoft Visual Studio redistributable terms | the three run-time libraries, **only** in packages built with `-IncludeVcRuntime` |
 
 ## Test audio
 No recorded audio is shipped. The self test and the tests make their audio on the spot with a

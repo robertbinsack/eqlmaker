@@ -4,9 +4,8 @@
 # Schnellstart
 
 Diese Seite führt von null zu einem ersten Lauf des Beispiels und zu einem ersten eigenen
-Projekt. Es gibt zwei Wege. Der Weg aus dem Quellcode funktioniert heute. Der Weg mit dem
-Windows-Paket funktioniert mit der ersten Veröffentlichung; bis dahin wird das Paket nur lokal
-gebaut und getestet.
+Projekt. Es gibt zwei Wege: aus dem Quellcode oder mit dem Windows-Paket der
+[neuesten Veröffentlichung](https://github.com/robertbinsack/eqlmaker/releases/latest).
 
 ## Weg 1: aus dem Quellcode
 
@@ -68,11 +67,13 @@ beides auf, bildet Zeitachse und Spezifikation, vergleicht die Datenbankänderun
 eine Player-Seite. Jede Zeile der Ausgabe beginnt mit `ok` oder `FAIL`. Was im Einzelnen
 geschieht, steht unter [Beispielanwendung](sample-app.md).
 
-## Weg 2: das Windows-Paket (mit der ersten Veröffentlichung)
+## Weg 2: das Windows-Paket
 
-Die Veröffentlichung wird aus `eqlmaker-windows-x64.zip`, der Prüfsummendatei
-`eqlmaker-windows-x64.zip.sha256` und `eqlmaker-version.json` bestehen. Entpacken Sie das Zip
-an beliebiger Stelle, dann:
+Die [neueste Veröffentlichung](https://github.com/robertbinsack/eqlmaker/releases/latest) besteht aus
+`eqlmaker-windows-x64.zip`, der Prüfsummendatei `eqlmaker-windows-x64.zip.sha256` und
+`eqlmaker-version.json`. Laden Sie das Zip herunter, vergleichen Sie bei Bedarf die Prüfsumme
+(`certutil -hashfile eqlmaker-windows-x64.zip SHA256`), entpacken Sie es an beliebiger Stelle,
+dann:
 
 ```text
 eqlmaker-setup.cmd
@@ -83,6 +84,13 @@ Die Einrichtung braucht keine Adminrechte und schreibt nichts außerhalb ihres O
 FFmpeg und Node.js herunter, bringt die Spracherkennung mit und installiert auf Wunsch ein
 portables PostgreSQL. Am Ende läuft ein Selbsttest. Optionen, Rückgabewerte und Grenzen stehen
 unter [Einrichtung](setup.md).
+
+Was getestet wurde: das Paket der Version 0.1.0 unter Windows Server 2025, als Benutzer ohne
+Adminrechte, in einem frischen Ordner mit Leerzeichen und Umlaut im Namen, mit allen Downloads,
+dem Selbsttest mit Spracherkennung und dem Entfernen. Noch nicht getestet: ein frisches
+Windows 10 oder Windows 11, ein Download über einen Proxy und der Bau des Pakets mit
+PowerShell 7. Schlägt die Einrichtung auf Ihrem Rechner fehl, eröffnen Sie bitte ein Issue mit
+der Datei `downloads\setup.log`.
 
 Im Paket ist `eqlmaker` die Batchdatei `eqlmaker.cmd` im Paketordner; sie startet
 `bin\eqlmaker.exe`. Aus dem Quellcode schreiben Sie stattdessen `bin\eqlmaker`, oder Sie nehmen
