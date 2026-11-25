@@ -20,6 +20,9 @@ public static class Program {
   eqlmaker reset                              undo what an aborted capture left on the database server
   eqlmaker correlate <recording>              time line: chapters -> actions -> statements -> tables
   eqlmaker spec <recording> [...]             specification of masks, queries and tables from time lines
+  eqlmaker read <files|folders> [--reader name]   read the files of the application (PowerBuilder libraries): menus, windows, SQL
+  eqlmaker export-sql <recording>             statements of a recording as table sql.tsv (for tools that replay statements)
+  eqlmaker convert-scenario <file.json>       convert a scenario file of the earlier recorder
   eqlmaker manual <file>                      take over a manual (PDF, HTML, DOCX, TXT, Markdown) as project context
   eqlmaker generate [--template name]         guided step: workspace and instructions for the new web application
   eqlmaker clone [--renderer name]            guided step: workspace and instructions for the read-only 1:1 clone
@@ -110,9 +113,10 @@ Documentation: docs/ in the repository or the package.";
     static string StateDir(Config cfg) { string d = cfg.Sub(".eqlmaker"); Directory.CreateDirectory(d); return d; }
 
     static object Record(Config cfg, Args a) {
-        if (a.Opt.Has("capture-database")) {   // capture exactly this database, whatever the configuration names
+        if (a.Opt.Has("capture-database") || a.Opt.Has("capture-role")) {   // capture exactly these logins and this database, whatever the configuration names
             var cap = cfg.Raw.Obj("capture") ?? new JO(); cfg.Raw["capture"] = cap;
-            cap["roles"] = new List<object>(); cap["databases"] = new List<object> { a.Opt.Str("capture-database") };
+            var roles = new List<object>(); if (a.Opt.Has("capture-role")) foreach (var r in a.Opt.Str("capture-role").Split(',')) if (r.Trim() != "") roles.Add(r.Trim());
+            cap["roles"] = roles; cap["databases"] = a.Opt.Has("capture-database") ? new List<object> { a.Opt.Str("capture-database") } : new List<object>();
         }
         var c = new Controller(cfg);
         if (a.Opt.Has("input")) { c.Input = a.Opt.Str("input"); c.InputForced = true; }
@@ -131,7 +135,7 @@ Documentation: docs/ in the repository or the package.";
             string name = a.Opt.Str("name") ?? "recording-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
             foreach (var f in new[] { stopFile, done, started }) if (File.Exists(f)) File.Delete(f);
             var psi = new ProcessStartInfo(System.Reflection.Assembly.GetExecutingAssembly().Location,
-                "record --serve --name \"" + name + "\" --project \"" + cfg.Dir + "\" --region \"" + a.Opt.Str("region", "workarea") + "\" --fps " + a.Opt.Int("fps", 15) + (a.Opt.Has("no-video") ? " --no-video" : "") + (a.Opt.Has("no-capture") ? " --no-capture" : "") + " --input " + c.Input);
+                "record --serve --name \"" + name + "\" --project \"" + cfg.Dir + "\" --region \"" + a.Opt.Str("region", "workarea") + "\" --fps " + a.Opt.Int("fps", 15) + (a.Opt.Has("no-video") ? " --no-video" : "") + (a.Opt.Has("no-capture") ? " --no-capture" : "") + (a.Opt.Has("capture-database") ? " --capture-database \"" + a.Opt.Str("capture-database") + "\"" : "") + (a.Opt.Has("capture-role") ? " --capture-role \"" + a.Opt.Str("capture-role") + "\"" : "") + " --input " + c.Input);
             // started through the shell: the recorder must not inherit the output pipes of this process,
             // or a script that reads the output of "record --start" would wait until the recording ends
             psi.UseShellExecute = true; psi.WindowStyle = ProcessWindowStyle.Hidden;

@@ -49,7 +49,7 @@ public static class Timeline {
             var tx = ev[i]; if (tx.Kind != "transaction") continue;
             var stm = new List<DbEvent>(); string method = null, session = null;
             // exact: same transaction id
-            if (tx.Tx != null) foreach (var s in ev) if (s.Kind != "transaction" && s.Tx == tx.Tx && (s.Database == null || tx.Database == null || s.Database == tx.Database)) stm.Add(s);
+            if (tx.Tx != null) foreach (var s in ev) if (s.Kind != "transaction" && s.Tx == tx.Tx && !OtherDatabase(s, tx)) stm.Add(s);
             if (stm.Count > 0) { method = "tx-id"; session = stm[0].Session; }
             if (method == null) {
                 // the session whose last write statement before the commit names a changed table
@@ -57,12 +57,12 @@ public static class Timeline {
                     var s = ev[j];
                     if (s.Kind == "transaction" || s.Sql == null) continue;
                     if (tx.Ts - s.Ts > 120000000L) break;
-                    if (s.Database != null && tx.Database != null && s.Database != tx.Database) continue;
+                    if (OtherDatabase(s, tx)) continue;
                     if (!SqlText.IsWrite(SqlText.Verb(s.Sql))) continue;
-                    foreach (var tn in SqlText.Tables(s.Sql)) if (SameTable(tn, tx.Tables)) { session = s.Session; method = "time+table"; break; }
+                    foreach (var tn in SqlText.Tables(s.Sql)) if (SameTable(tn, tx.Tables, s.Database)) { session = s.Session; method = "time+table"; break; }
                 }
                 if (session == null) {
-                    for (int j = i - 1; j >= 0; j--) if (ev[j].Kind != "transaction" && ev[j].Sql != null && !(ev[j].Database != null && tx.Database != null && ev[j].Database != tx.Database)) { session = ev[j].Session; method = "time"; break; }
+                    for (int j = i - 1; j >= 0; j--) if (ev[j].Kind != "transaction" && ev[j].Sql != null && !OtherDatabase(ev[j], tx)) { session = ev[j].Session; method = "time"; break; }
                 }
                 if (session != null) {
                     // statements of that session back to the start of its transaction block (or the one statement)
@@ -121,12 +121,29 @@ public static class Timeline {
         return tl;
     }
 
-    static bool SameTable(string name, List<string> changed) {
+    /// <summary>True when both name a database and the names differ. Statements that came through the statement trace of a
+    /// server name the database of the application's protocol (for example a T-SQL database), changed rows the physical
+    /// one: those names are not comparable.</summary>
+    static bool OtherDatabase(DbEvent s, DbEvent tx) {
+        return s.Database != null && tx.Database != null && s.Database != tx.Database && s.Via != "trace";
+    }
+
+    static void SplitName(string n, out string schema, out string table) {
+        int dot = n.LastIndexOf('.');
+        schema = dot >= 0 ? n.Substring(0, dot).Trim('"') : null; table = (dot >= 0 ? n.Substring(dot + 1) : n).Trim('"');
+    }
+
+    /// <summary>The table of a statement is the changed table: the same name, an unqualified name, or - when the server keeps
+    /// several databases in one (multi-database mode) - the schema prefixed with the name of the database ("shop_dbo" for
+    /// database "shop", schema "dbo").</summary>
+    static bool SameTable(string name, List<string> changed, string database) {
         if (changed == null) return false;
+        string ns, nt; SplitName(name, out ns, out nt);
         foreach (var c in changed) {
-            if (string.Equals(c, name, StringComparison.OrdinalIgnoreCase)) return true;
-            int dot = c.IndexOf('.');
-            if (name.IndexOf('.') < 0 && dot >= 0 && string.Equals(c.Substring(dot + 1), name, StringComparison.OrdinalIgnoreCase)) return true;
+            string cs, ct; SplitName(c, out cs, out ct);
+            if (!string.Equals(ct, nt, StringComparison.OrdinalIgnoreCase)) continue;
+            if (ns == null || cs == null || string.Equals(cs, ns, StringComparison.OrdinalIgnoreCase)) return true;
+            if (database != null && string.Equals(cs, database + "_" + ns, StringComparison.OrdinalIgnoreCase)) return true;
         }
         return false;
     }

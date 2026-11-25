@@ -16,7 +16,7 @@ You choose it with one line of `eqlmaker.json`; nothing else changes when you sw
 | `eqlserver` | the same, plus applications that reach the server through other database protocols | the above, plus statements of the other protocols |
 | a plugin | anything else | what the plugin writes, see [plugins](plugins.md) |
 
-What each source fills in of the event format is listed in [event format](event-format.md).
+What each source fills in of the event format is listed in [event format](event-format.md). Applications that do not speak PostgreSQL: see [other databases](other-databases.md).
 
 ## `postgres`
 
@@ -62,6 +62,16 @@ no server-wide setting and never restarts the server.
 ```sql
 ALTER SYSTEM SET wal_level = logical;
 ```
+
+**Changed rows without `test_decoding`**
+
+`test_decoding` is an optional module of PostgreSQL; some servers do not have it. With
+`capture.decoding` at `auto` (the default) the source asks the server whether the module is there. If
+it is not, it reads the changed rows with `pgoutput`, which every server has: for each captured
+database it creates a publication `FOR ALL TABLES` and the replication slot with the same name
+(`eqlmaker_` plus random characters), reads the changes in binary form and drops both when the capture
+ends. `eqlmaker reset` drops them after an aborted capture. The recording says in a warning which way was taken. Set
+`capture.decoding` to `test_decoding` or `pgoutput` to force one.
 
 **Configuration**
 
@@ -125,6 +135,7 @@ over HTTP for connections that do not use the PostgreSQL protocol.
 - Changed rows need `wal_level = logical` on the server, as with PostgreSQL.
 
 How it is tested: the automated tests run this source against plain PostgreSQL and a simulated
-statistics port. It was also run once by hand against a server instance (statements of a client
-of another protocol arrived through the trace, a statement over the PostgreSQL protocol through
-the log); that run is not part of the automated tests.
+statistics port. An optional end-to-end test runs it against the package of EQLServer 1.10.0: a
+T-SQL client works through TDS, and the time line holds its batches, its calls, an error and the
+changed rows, see [other databases](other-databases.md). That server has no `test_decoding`
+module, so the changed rows come through `pgoutput`.

@@ -19,7 +19,7 @@ assistant you chose, not by EQLMaker.
 
 ## What about personal data in recordings?
 
-It is not masked in version 0.1. A recording contains the screen video, reference pictures,
+It is not masked in version 0.2. A recording contains the screen video, reference pictures,
 typed text, SQL statements with their parameters and the changed rows; an imported video adds
 sound and transcript. Treat a project folder like the data of the application itself: record on
 test data where you can, do not publish recordings of real data, and delete what you no longer
@@ -99,7 +99,7 @@ database server. See [setup](setup.md).
 English and German, for programs, documentation and the web template. See
 [translating](translating.md) for adding one.
 
-## What are the limits of version 0.1?
+## What are the limits of version 0.2?
 
 - Windows only; PostgreSQL only (plus the adapter named above).
 - No masking of personal data.

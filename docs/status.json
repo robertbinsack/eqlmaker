@@ -1,6 +1,9 @@
 {
-  "version": "0.1.0",
-  "release": { "version": "0.1.0", "date": "2026-11-24" },
+  "version": "0.2.0",
+  "release": {
+    "version": "0.2.0",
+    "date": "2026-11-25"
+  },
   "note": "Single source of the status tables in README*.md and ROADMAP*.md (scripts/update-status.ps1). A feature is 'available' only with at least one named test that exists. 'release' is null until the first release package exists; then { \"version\": \"0.1.0\", \"date\": \"YYYY-MM-DD\" }.",
   "features": [
     {
@@ -16,7 +19,8 @@
       "status": "available",
       "tests": [
         "PipelineTests.SampleEndToEndOnPlainPostgres",
-        "RecordCliTests.StartAndStopWhileSomeoneElseWorks"
+        "RecordCliTests.StartAndStopWhileSomeoneElseWorks",
+        "RecordCliTests.StartTakesLoginsAndDatabaseFromTheCommandLine"
       ],
       "since": "0.1.0",
       "date": "2026-11-24"
@@ -28,15 +32,17 @@
         "de": "Gemessene Datenbankänderungen"
       },
       "description": {
-        "en": "Statements, parameters, transactions and changed rows using PostgreSQL's built-in means – no server-wide changes, no restart",
-        "de": "Anweisungen, Parameter, Transaktionen und geänderte Zeilen mit Bordmitteln von PostgreSQL – nichts wird serverweit umgestellt, kein Neustart"
+        "en": "Statements, parameters, transactions and changed rows using PostgreSQL's built-in means – no server-wide changes, no restart; changed rows also from servers without the module test_decoding (through pgoutput)",
+        "de": "Anweisungen, Parameter, Transaktionen und geänderte Zeilen mit Bordmitteln von PostgreSQL – nichts wird serverweit umgestellt, kein Neustart; geänderte Zeilen auch von Servern ohne das Modul test_decoding (über pgoutput)"
       },
       "status": "available",
       "tests": [
         "PostgresSourceTests.CapturesStatementsParametersErrorsAndChangedRows",
         "PostgresSourceTests.RoleCaptureAndResetOfAnAbortedCapture",
         "LogParserTests.DefaultPrefixStatementsParametersErrors",
-        "TestDecodingTests.InsertUpdateDeleteWithQuotingAndTypes"
+        "TestDecodingTests.InsertUpdateDeleteWithQuotingAndTypes",
+        "PgOutputTests.MessagesAreReadAsTransactionsWithRows",
+        "PgOutputTests.CapturesChangedRowsThroughPgoutputAndCleansUp"
       ],
       "since": "0.1.0",
       "date": "2026-11-24"
@@ -279,8 +285,8 @@
         "de": "Plugin-Schnittstellen"
       },
       "description": {
-        "en": "For event sources, web templates, clone renderers and video layouts, documented",
-        "de": "Für Ereignisquellen, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert"
+        "en": "For event sources, readers, web templates, clone renderers and video layouts, documented",
+        "de": "Für Ereignisquellen, Reader, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert"
       },
       "status": "available",
       "tests": [
@@ -289,7 +295,9 @@
         "PluginTests.WebTemplatePluginIsUsedByGenerate",
         "PluginTests.CloneRendererPluginIsUsedByClone",
         "PluginTests.VideoLayoutPluginIsUsedByVideo",
-        "PluginTests.BrokenManifestsAreRefusedWithTheReason"
+        "PluginTests.BrokenManifestsAreRefusedWithTheReason",
+        "ReaderTests.ReaderPluginWritesTheSameFormatAndIsFoundByFileExtension",
+        "ReaderTests.ReaderPluginNeedsACommandAndAValidResult"
       ],
       "since": "0.1.0",
       "date": "2026-11-24"
@@ -352,6 +360,65 @@
       ],
       "since": "0.1.0",
       "date": "2026-11-24"
+    },
+    {
+      "id": "powerbuilder-reader",
+      "name": {
+        "en": "Read PowerBuilder libraries",
+        "de": "PowerBuilder-Bibliotheken lesen"
+      },
+      "description": {
+        "en": "Built-in reader for the compiled libraries (.pbd, .pbl) of PowerBuilder 5 to 9, without source code: menus, windows, labels, SQL statements and references. The result goes into the specification and shows which tables no recording touched",
+        "de": "Eingebauter Reader für die kompilierten Bibliotheken (.pbd, .pbl) von PowerBuilder 5 bis 9, ohne Quellcode: Menüs, Fenster, Beschriftungen, SQL-Anweisungen und Verweise. Das Ergebnis geht in die Spezifikation und zeigt, welche Tabellen keine Aufnahme berührt hat"
+      },
+      "status": "available",
+      "tests": [
+        "ReaderTests.PowerBuilderReaderReadsObjectsSqlLabelsMenusAndReferences",
+        "ReaderTests.PowerBuilderReaderRefusesUnicodeLibrariesAndOtherFiles",
+        "ReaderTests.FirstLibraryWinsForAnObjectNameThatOccursTwice",
+        "ReaderTests.ReadCommandPicksTheReaderByFileExtensionAndSpecTakesTheResultOver"
+      ],
+      "since": "0.2.0",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "sql-table",
+      "name": {
+        "en": "Statement table and old scenario files",
+        "de": "Anweisungstabelle und alte Szenariodateien"
+      },
+      "description": {
+        "en": "The statements of a recording as the table sql.tsv (the format that tools for replaying statements read; T-SQL batches and calls as tsql-batch and tsql-rpc); scenario files of the earlier recorder are converted; a scenario can name its own logins and databases to capture",
+        "de": "Die Anweisungen einer Aufnahme als Tabelle sql.tsv (das Format, das Werkzeuge zum Abspielen von Anweisungen lesen; T-SQL-Stapel und -Aufrufe als tsql-batch und tsql-rpc); Szenariodateien des früheren Recorders werden umgewandelt; ein Szenario kann eigene Logins und Datenbanken für den Mitschnitt nennen"
+      },
+      "status": "available",
+      "tests": [
+        "ExportTests.SqlTsvHasTheColumnsKindsAndEscapesOfTheReplayFormat",
+        "ExportTests.ExportSqlCommandWritesTheTableOfAnExistingRecording",
+        "ExportTests.ScenarioOfTheEarlierRecorderIsConverted",
+        "ExportTests.ScenarioCaptureObjectReplacesRolesAndDatabasesOfTheConfiguration"
+      ],
+      "since": "0.2.0",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "other-databases",
+      "name": {
+        "en": "Applications on other databases",
+        "de": "Anwendungen auf anderen Datenbanken"
+      },
+      "description": {
+        "en": "Applications that speak SQL Server (TDS) are captured through EQLServer, a separate, optional product that stores in PostgreSQL: batches, calls and changed rows on one time line. Tested with an optional end-to-end test against a running EQLServer 1.10.0; the other protocols are not tested. EQLMaker does not need EQLServer",
+        "de": "Anwendungen, die SQL Server (TDS) sprechen, werden über EQLServer mitgeschnitten, ein eigenes, optionales Produkt, das in PostgreSQL speichert: Stapel, Aufrufe und geänderte Zeilen auf einer Zeitachse. Getestet mit einem optionalen Ende-zu-Ende-Test gegen einen laufenden EQLServer 1.10.0; die anderen Protokolle sind nicht getestet. EQLMaker braucht EQLServer nicht"
+      },
+      "status": "available",
+      "tests": [
+        "ServerTests.TdsStatementsAndChangedRowsOfAnApplicationReachTheTimeline",
+        "tests/eqlserver/run-eqlserver-e2e.ps1: changed rows: insert, update and delete of the customer table",
+        "TimelineTests.TransactionsAreTiedAcrossTheNamesOfAServerThatKeepsSeveralDatabasesInOne"
+      ],
+      "since": "0.2.0",
+      "date": "2026-11-25"
     },
     {
       "id": "screen-elements",
@@ -463,6 +530,21 @@
       "name": {
         "en": "More open sources: MySQL/MariaDB and SQL Server",
         "de": "Weitere offene Quellen: MySQL/MariaDB und SQL Server"
+      },
+      "description": {
+        "en": "Later · no date",
+        "de": "Später · ohne Termin"
+      },
+      "status": "planned",
+      "tests": [],
+      "since": null,
+      "date": null
+    },
+    {
+      "id": "more-readers",
+      "name": {
+        "en": "Readers for more kinds of application files",
+        "de": "Reader für weitere Dateiarten von Anwendungen"
       },
       "description": {
         "en": "Later · no date",

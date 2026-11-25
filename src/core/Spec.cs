@@ -166,6 +166,7 @@ public static class Spec {
         foreach (JO q in spec.Arr("queries")) sb.Append("- " + q.Str("id") + " (" + q.Int("count", 0) + " x, steps " + string.Join(", ", q.Strings("steps").ToArray()) + "): `" + q.Str("shape").Replace("`", "'") + "`\n");
         sb.Append("\n## Tables\n\n| table | read by | written by | operations | columns seen |\n|---|---|---|---|---|\n");
         foreach (JO t in spec.Arr("tables")) sb.Append("| " + t.Str("name") + " | " + string.Join(" ", t.Strings("read_by").ToArray()) + " | " + string.Join(" ", t.Strings("written_by").ToArray()) + " | " + string.Join(" ", t.Strings("operations").ToArray()) + " | " + string.Join(", ", t.Strings("columns_seen").ToArray()) + " |\n");
+        if (spec.Obj("static") != null) Readers.Markdown(sb, spec.Obj("static"));
         if (spec.Arr("open_points").Count > 0) { sb.Append("\n## Open points\n\n"); foreach (var o in spec.Arr("open_points")) sb.Append("- " + o + "\n"); }
         return sb.ToString();
     }
@@ -185,11 +186,13 @@ public static class Spec {
         var manuals = new List<JO>();
         if (Directory.Exists(cfg.Sub("manual"))) { var files = new List<string>(Directory.GetFiles(cfg.Sub("manual"), "*.json")); files.Sort(StringComparer.Ordinal); foreach (var f in files) { var m = Json.ReadFile(f); if (m.Str("format") == "eqlmaker-manual") manuals.Add(m); } }
         var spec = Build(tls, manuals, Path.GetFileName(cfg.Dir));
+        var readers = Readers.Load(cfg);   // static/<reader>/reader.json: what the files of the application say
+        if (readers.Count > 0) spec["static"] = Readers.ForSpec(readers, spec, spec.Arr("open_points"));
         Directory.CreateDirectory(cfg.Sub("spec"));
         Json.WriteFile(cfg.Sub("spec", "spec.json"), spec);
         File.WriteAllText(cfg.Sub("spec", "spec.md"), Markdown(spec), new UTF8Encoding(false));
         return new JO("spec", cfg.Sub("spec", "spec.json"), "readable", cfg.Sub("spec", "spec.md"), "steps", spec.Arr("steps").Count, "masks", spec.Arr("masks").Count, "queries", spec.Arr("queries").Count, "tables", spec.Arr("tables").Count,
-            "manuals", manuals.Count, "open_points", spec.Arr("open_points").Count);
+            "manuals", manuals.Count, "readers", readers.Count, "open_points", spec.Arr("open_points").Count);
     }
 }
 }

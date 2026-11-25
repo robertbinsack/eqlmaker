@@ -43,7 +43,7 @@ eqlmaker help
 ## Aufzeichnen
 
 ```text
-eqlmaker record --scenario <file.json> [--name <n>] [--input real|background] [--no-video] [--capture-database <db>] [--quiet]
+eqlmaker record --scenario <file.json> [--name <n>] [--input real|background] [--no-video] [--capture-database <db>] [--capture-role <roles>] [--quiet]
 eqlmaker record --start [--name <n>] [--no-video] [--no-capture] [--region <r>] [--fps <n>]
 eqlmaker record --stop
 eqlmaker reset
@@ -61,6 +61,7 @@ eqlmaker reset
 | `--region <r>` | mit `--start`: Teil des Bildschirms für das Video: `workarea` (Vorgabe), `screen`, `x,y,w,h` oder ein Muster für den Fenstertitel |
 | `--fps <n>` | mit `--start`: Bilder pro Sekunde (Vorgabe 15) |
 | `--capture-database <db>` | genau diese Datenbank erfassen, was auch immer die Konfiguration nennt |
+| `--capture-role <roles>` | genau die Anweisungen dieser Logins erfassen (kommagetrennt), was auch immer die Konfiguration nennt; zusammen mit `--capture-database` beides |
 | `--quiet` | mit `--scenario`: die Schritte und das Ergebnis nicht ausgeben |
 
 `eqlmaker reset` nimmt zurück, was eine abgebrochene Erfassung auf dem Datenbankserver
@@ -72,7 +73,10 @@ Siehe [Ereignisquellen](sources.md).
 | Befehl | Optionen | Wirkung |
 |---|---|---|
 | `eqlmaker correlate <recording>` | | schreibt `timeline.json` in den Aufnahmeordner |
-| `eqlmaker spec [recording ...]` | | schreibt `spec/spec.json` und `spec/spec.md` aus den genannten Aufnahmen (Vorgabe: alle) |
+| `eqlmaker spec [recording ...]` | | schreibt `spec/spec.json` und `spec/spec.md` aus den genannten Aufnahmen (Vorgabe: alle); übernimmt die Ergebnisse von `read` |
+| `eqlmaker read <Dateien oder Ordner>` | `--reader <name>`, `--out <Ordner>`, `--bundle <Objekte>`, `--max-depth <n>`, `--exclude <regex>`, `--no-raw` | liest die Dateien der Originalanwendung (eingebaut: PowerBuilder-Bibliotheken) nach `static/<Reader>/`; siehe [PowerBuilder-Bibliotheken](powerbuilder.md) |
+| `eqlmaker export-sql <recording>` | `--out <Datei>` | schreibt die Anweisungen einer Aufnahme als Tabelle `sql.tsv` (Vorgabe: im Aufnahmeordner) |
+| `eqlmaker convert-scenario <Datei>` | `--out <Datei>` | wandelt eine Szenariodatei des früheren Recorders um (`sql` wird `capture`); siehe [Fernbedienung](remote-control.md) |
 | `eqlmaker manual <file>` | `--name <n>`: Name im Projekt (Vorgabe: Dateiname) | übernimmt ein Handbuch nach `manual/`; siehe [Handbuch](manual.md) |
 
 ## Geführte Schritte

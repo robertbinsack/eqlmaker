@@ -21,6 +21,9 @@
 .PARAMETER ReleaseDir
   Folder with eqlmaker-windows-x64.zip, its .sha256 file and eqlmaker-version.json (the out folder
   of pack-release.ps1). With it test T18 uses the three files the way a downloader would.
+.PARAMETER PreviousZip
+  The release zip of an earlier version. With it test T21 sets that version up, adds data of its own,
+  copies the new package over it and checks that the data is kept and that the setup runs again.
 .PARAMETER Only
   Run only these tests (ids such as T01, T05). Tests after T01 need the package of T01.
 .PARAMETER KeepFolders
@@ -36,6 +39,7 @@ param(
     [switch]$SeedFirstTest,
     [string]$Psql,
     [string]$ReleaseDir,
+    [string]$PreviousZip,
     [string[]]$Only,
     [switch]$KeepFolders
 )
@@ -60,7 +64,8 @@ $Rt = Join-Path $WorkDir 'runtime'
 $Edb = Join-Path $WorkDir 'edb build'
 $Cpu = Join-Path $WorkDir 'no avx2'
 $Dl = Join-Path $WorkDir 'download'
-$allFolders = @($Main, $Offline, $Partial, $TarCheck, $Rt, $Edb, $Cpu, (Join-Path $Dl 'eqlmaker'))
+$Upd = Join-Path $WorkDir 'update over earlier'
+$allFolders = @($Main, $Upd, $Offline, $Partial, $TarCheck, $Rt, $Edb, $Cpu, (Join-Path $Dl 'eqlmaker'))
 
 function Add-Result([string]$Id, [string]$Test, [bool]$Ok, [string]$EvidenceText, [string]$State) {
     if (-not $State) { $State = if ($Ok) { 'PASS' } else { 'FAIL' } }
@@ -92,11 +97,14 @@ function Invoke-AsUser([string]$Script) {
 function Copy-AsUser([string]$From, [string]$To) {
     Invoke-AsUser "New-Item -ItemType Directory -Force -Path '$(Split-Path -Parent $To)' | Out-Null; Copy-Item -LiteralPath '$From' -Destination '$To' -Force"
 }
-function New-Package([string]$Folder) {
+function New-Package([string]$Folder, [string]$ZipFile = $Zip) {
     if (Test-Path -LiteralPath $Folder) { Remove-Item -LiteralPath $Folder -Recurse -Force }
     Invoke-AsUser "New-Item -ItemType Directory -Force -Path '$Folder' | Out-Null"
-    # unpacked by the restricted user with the tar of Windows
-    $code = Invoke-Restricted "`"$sys\tar.exe`" -xf `"$Zip`" -C `"$Folder`"" $Folder 600
+    Expand-Over $Folder $ZipFile
+}
+# unpacked by the restricted user with the tar of Windows; files that exist are replaced
+function Expand-Over([string]$Folder, [string]$ZipFile = $Zip) {
+    $code = Invoke-Restricted "`"$sys\tar.exe`" -xf `"$ZipFile`" -C `"$Folder`"" $Folder 600
     if ($code -ne 0) { throw "unpacking the release zip into $Folder failed ($code)" }
 }
 function Get-Components([string]$Package) {
@@ -348,6 +356,8 @@ try {
 
     # ------------------------------------------------------------------ T05 optional model
     if (Wants 'T05') {
+        # with -SeedDir the other model comes from there (no network needed)
+        if ($SeedDir -and (Test-Path -LiteralPath (Join-Path $SeedDir 'ggml-base.bin'))) { Copy-AsUser (Join-Path $SeedDir 'ggml-base.bin') (Join-Path $Main 'downloads\ggml-base.bin') }
         $run = Run-Setup 'T05-model-base' $Main '-unattended -lang en -no-selftest -model base'
         $name = (Get-Content -LiteralPath (Join-Path $Main 'tools\whisper\model.txt') -TotalCount 1).Trim()
         $back = Run-Setup 'T05-model-back' $Main '-unattended -lang en -no-selftest -model small-q5_1'
@@ -373,6 +383,7 @@ try {
 
     # ------------------------------------------------------------------ T19 psql on request
     if (Wants 'T19') {
+        Copy-Cache $SeedDir $Main @('psql')
         $run = Run-Setup 'T19-with-psql' $Main '-unattended -lang en -no-selftest -with-psql'
         $named = ($run.Text -match 'readline \(libreadline8\.dll, GPL-3\.0-or-later\)') -and ($run.Text -match 'termcap \(libtermcap-0\.dll, GPL-2\.0-or-later\)')
         $namedAt = $run.Text.IndexOf('-with-psql: psql and the two libraries')
@@ -618,6 +629,50 @@ try {
         Add-Result 'T18b' 'download-and-run sequence: unpack with tar, eqlmaker-setup.cmd in the root, -unattended -offline with a filled cache, network blocked' ($un.Code -eq 0 -and $inRoot -and $run.Code -eq 0) "unpack: exit $($un.Code); eqlmaker-setup.cmd in the root: $inRoot; setup: exit code $($run.Code), $($run.Seconds) s; T18-setup.log"
         Stop-Db $Pkg
     }
+
+    # ------------------------------------------------------------------ T21 update: the new package is copied over an installed earlier one
+    if ((Wants 'T21') -and $PreviousZip) {
+        New-Package $Upd $PreviousZip
+        if ($SeedDir) { Copy-Cache $SeedDir $Upd @('ffmpeg', 'node', 'pg') }
+        Set-DeadProxy
+        try { $first = Run-Setup 'T21-setup-earlier' $Upd '-unattended -lang en' } finally { Reset-Proxy }
+        $oldVersion = (& (Join-Path $Upd 'bin\eqlmaker.exe') version | Select-Object -First 1)
+        # data of the user: a changed project file, a recording, a note, and a row in the database
+        $userScript = @'
+$p = '__UPD__\project'
+$j = Get-Content -Raw -LiteralPath (Join-Path $p 'eqlmaker.json') | ConvertFrom-Json
+$j | Add-Member -NotePropertyName keep -NotePropertyValue 'my setting' -Force
+[IO.File]::WriteAllText((Join-Path $p 'eqlmaker.json'), ($j | ConvertTo-Json -Depth 6), (New-Object Text.UTF8Encoding $false))
+New-Item -ItemType Directory -Force (Join-Path $p 'recordings\kept') | Out-Null
+[IO.File]::WriteAllText((Join-Path $p 'recordings\kept\recording.json'), (@{ format = 'eqlmaker-recording'; name = 'kept' } | ConvertTo-Json -Compress))
+[IO.File]::WriteAllText((Join-Path $p 'notes.txt'), 'written by the user')
+'@
+        Invoke-AsUser $userScript.Replace('__UPD__', $Upd)
+        $rowOk = $true
+        if ($Psql) {
+            $null = Run-Cmd 'T21-db-start' "`"$Upd\eqlmaker-db-start.cmd`"" $Upd
+            $mk = Invoke-Psql $Upd 'postgres' 'postgres' "create table update_keep (v text); insert into update_keep values ('kept')"
+            $rowOk = ($mk.Code -eq 0)
+        }
+        $null = Run-Cmd 'T21-db-stop' "`"$Upd\eqlmaker-db-stop.cmd`"" $Upd
+        $userFiles = @('project\eqlmaker.json', 'project\recordings\kept\recording.json', 'project\notes.txt', 'data\pg\PG_VERSION')
+        $userBefore = $userFiles | ForEach-Object { "$_ " + (Get-FileHash -LiteralPath (Join-Path $Upd $_) -Algorithm SHA256).Hash }
+        Expand-Over $Upd $Zip
+        $userAfter = $userFiles | ForEach-Object { "$_ " + (Get-FileHash -LiteralPath (Join-Path $Upd $_) -Algorithm SHA256).Hash }
+        $newVersion = (& (Join-Path $Upd 'bin\eqlmaker.exe') version | Select-Object -First 1)
+        Add-Result 'T21a' 'the new package copied over the installed earlier one: the files of the user are untouched, the programs are the new version' ($rowOk -and @(Compare-Object $userBefore $userAfter).Count -eq 0 -and $newVersion -ne $oldVersion) "earlier $oldVersion, now $newVersion; files compared: $($userBefore.Count), different: $(@(Compare-Object $userBefore $userAfter).Count); setup of the earlier one: $(Describe-Exit $first)"
+        Set-DeadProxy
+        try { $updRun = Run-Setup 'T21-setup-update' $Upd '-unattended -lang en' } finally { Reset-Proxy }
+        $noDownload = ($updRun.Text -notmatch ': downloading ') -and ($updRun.Text -notmatch 'continuing at')
+        $after2 = $userFiles | ForEach-Object { "$_ " + (Get-FileHash -LiteralPath (Join-Path $Upd $_) -Algorithm SHA256).Hash }
+        Add-Result 'T21b' 'setup after the copy: runs without a download (network blocked), self test passes, the files of the user are still untouched' ($updRun.Code -eq 0 -and $noDownload -and @(Compare-Object $userBefore $after2).Count -eq 0) "$(Describe-Exit $updRun); downloads in the log: $(-not $noDownload); different files: $(@(Compare-Object $userBefore $after2).Count)"
+        if ($Psql) {
+            $null = Run-Cmd 'T21-db-start2' "`"$Upd\eqlmaker-db-start.cmd`"" $Upd
+            $row = Invoke-Psql $Upd 'postgres' 'postgres' 'select v from update_keep'
+            Add-Result 'T21c' 'the database of the user is kept: the table and the row made before the update are there' ($row.Code -eq 0 -and $row.Out -eq 'kept') "exit $($row.Code), result '$($row.Out)'"
+            $null = Run-Cmd 'T21-db-stop2' "`"$Upd\eqlmaker-db-stop.cmd`"" $Upd
+        } else { Add-Result 'T21c' 'the database of the user is kept' $false 'no -Psql given: not tested' 'SKIP' }
+    } elseif (Wants 'T21') { Add-Result 'T21' 'update by copying the new package over an installed earlier one' $false 'no -PreviousZip given: not tested' 'SKIP' }
 
     # ------------------------------------------------------------------ T15 nothing outside the folder changed
     if (Wants 'T15') {

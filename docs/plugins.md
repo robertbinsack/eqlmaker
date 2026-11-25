@@ -3,7 +3,7 @@
 
 # Plugins
 
-EQLMaker can be extended in four places without changing its code:
+EQLMaker can be extended in five places without changing its code:
 
 | Type | Extends | Built in | Example in the repository |
 |---|---|---|---|
@@ -11,6 +11,7 @@ EQLMaker can be extended in four places without changing its code:
 | `web-template` | the starting point that `generate` copies | `default` | `plugins/examples/web-template-minimal` |
 | `clone-renderer` | the page that `clone` makes for each mask | `backdrop` | `plugins/examples/clone-renderer-outline` |
 | `video-layout` | how `video` arranges the two recordings | `side-by-side` | `plugins/examples/video-layout-stacked` |
+| `reader` | what is known about the application from its files | `powerbuilder`, see [PowerBuilder libraries](powerbuilder.md) | `plugins/examples/reader-sql-scripts` |
 
 A plugin is a folder with a file `plugin.json`. EQLMaker looks for plugins in the folders listed
 under `"plugins"` in `eqlmaker.json` (default: the folder `plugins` of the project). Each listed
@@ -20,7 +21,7 @@ folder may be one plugin or may contain several plugin folders.
 { "plugins": ["plugins", "C:\\Shared\\eqlmaker-plugins"] }
 ```
 
-Plugins of the types `source` and `clone-renderer` are separate programs. EQLMaker starts them
+Plugins of the types `source`, `clone-renderer` and `reader` are separate programs. EQLMaker starts them
 and talks to them over standard input and standard output with JSON, one object per line, in UTF-8
 without a byte order mark, whatever the code page of the console is. Read and write the two streams
 as bytes in UTF-8 rather than through the console encoding of your language; a reader should accept
@@ -32,7 +33,7 @@ Every plugin has these keys:
 
 | Key | Meaning |
 |---|---|
-| `type` | `source`, `web-template`, `clone-renderer` or `video-layout` |
+| `type` | `source`, `web-template`, `clone-renderer`, `video-layout` or `reader` |
 | `name` | the name used in the configuration and on the command line; no blanks or slashes |
 | `description` | one sentence for people (optional) |
 
@@ -113,6 +114,40 @@ A renderer must keep the archive read-only: controls with `writes` stay visible 
 - `player` arranges the two videos on the player page: `row` or `column`.
 
 Use it with `eqlmaker video <A> <B> --layout stacked`.
+
+## Reader
+
+```json
+{ "type": "reader", "name": "sql-scripts", "extensions": [".sql"], "command": "powershell -NoProfile -ExecutionPolicy Bypass -File reader.ps1" }
+```
+
+A reader looks at the files of the original application, not at its running, and writes what it
+finds in one format. The built-in reader `powerbuilder` is one, see
+[PowerBuilder libraries](powerbuilder.md). `eqlmaker read <files or folders>` picks the reader by the
+extensions that `plugin.json` lists, or you name it with `--reader`. The program is started once:
+
+1. It reads one line from standard input: `{"action":"read","paths":["..."],"out":"..."}`.
+   `paths` are the files and folders as given, `out` the folder for the result.
+2. It writes `reader.json` into `out` and answers with one line `{"result":{...}}`; the object
+   holds numbers for people (objects, statements). An exit code other than 0 fails the reading.
+
+`reader.json` has this form. `name` and `kind` of an object are required; everything else may be left out:
+
+```json
+{
+  "format": "eqlmaker-static", "version": "0.1", "reader": "sql-scripts",
+  "menus": [ { "name": "m_main", "items": ["Customers", "Invoices"] } ],
+  "objects": [
+    { "name": "w_customer", "kind": "win", "library": "app.pbd",
+      "sql": ["SELECT name FROM customer WHERE id = :id"], "tables": ["customer"],
+      "refs": ["d_customer"], "texts": ["The customer was saved."], "labels": { "name": "Customer name" } }
+  ]
+}
+```
+
+`eqlmaker spec` reads every `static/<reader>/reader.json` of the project: objects of the kind `win`
+become windows (with the labels and tables of the objects they refer to), `tables` are compared with
+what the recordings touched. The example `plugins/examples/reader-sql-scripts` reads `.sql` files.
 
 ## Checking a plugin
 

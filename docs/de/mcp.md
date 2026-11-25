@@ -93,6 +93,8 @@ beginnen.
 | `correlate` | `correlate` | bildet die Zeitachse einer Aufnahme |
 | `spec` | `spec` | leitet die Spezifikation ab |
 | `manual_import` | `manual` | übernimmt ein Handbuch |
+| `read_application` | `read` | liest die Dateien der Originalanwendung nach `static/<Reader>/`; `spec` übernimmt das Ergebnis |
+| `export_sql` | `export-sql` | schreibt die Anweisungen einer Aufnahme als Tabelle `sql.tsv` |
 | `generate` | `generate` | geführter Schritt: bereitet `web/` vor, gibt die Anleitung zurück |
 | `clone` | `clone` | geführter Schritt: bereitet `clone/` vor, gibt die Anleitung zurück |
 | `video` | `video` | zwei Aufnahmen auf einer Zeitachse |

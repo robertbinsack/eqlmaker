@@ -83,7 +83,7 @@ The setup needs no admin rights and writes nothing outside its folder. It downlo
 Node.js, brings the speech recognition, and installs a portable PostgreSQL if you want one. At
 the end it runs a self test. Options, exit codes and limits are in [setup](setup.md).
 
-What was tested: the package of version 0.1.0 on Windows Server 2025, as a user without admin
+What was tested: the package of version 0.2.0 on Windows Server 2025, as a user without admin
 rights, in a fresh folder with a blank and an umlaut in its name, with all downloads, the self
 test with speech recognition, and the removal. Not tested yet: a clean Windows 10 or Windows 11,
 a download through a proxy, and building the package with PowerShell 7. If the setup fails on

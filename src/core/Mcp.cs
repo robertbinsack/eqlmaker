@@ -119,6 +119,7 @@ public class McpServer {
 /// <summary>The remote-control and recording tools.</summary>
 public static class RemoteControl {
     static JO P(params object[] kv) { return new JO(kv); }
+    static List<object> CsvList(string s) { var l = new List<object>(); if (!string.IsNullOrEmpty(s)) foreach (var x in s.Split(',')) if (x.Trim() != "") l.Add(x.Trim()); return l; }
     static JO S(string d) { return McpServer.Prop("string", d); }
     static JO I(string d) { return McpServer.Prop("integer", d); }
     static JO B(string d) { return McpServer.Prop("boolean", d); }
@@ -182,7 +183,8 @@ public static class RemoteControl {
         s.Add("web_eval", "Evaluates JavaScript in the web page and returns the result (JSON).", P("expression", S("JavaScript expression")), R("expression"), delegate (JO a) { return Json.Write(c.Web.Eval(a.Str("expression"))); });
         s.Add("web_reload", "Reloads the web page.", null, null, delegate (JO a) { c.Web.Reload(); return "reloaded"; });
         s.Add("record_start", "Starts a recording: actions, database events of the roles/databases named in the configuration (new sessions: start the application after this call), optional video and reference pictures.",
-            P("name", S("name of the recording (folder name)"), "region", S("real mode: workarea (default), screen, x,y,w,h or a window title pattern"), "fps", I("frames per second (default 15)"), "video", B("record video (default true)"), "capture", B("capture database events (default true)")), null, delegate (JO a) {
+            P("name", S("name of the recording (folder name)"), "region", S("real mode: workarea (default), screen, x,y,w,h or a window title pattern"), "fps", I("frames per second (default 15)"), "video", B("record video (default true)"), "capture", B("capture database events (default true)"), "capture_roles", S("comma-separated login roles to capture instead of the configuration"), "capture_databases", S("comma-separated databases to capture instead of the configuration")), null, delegate (JO a) {
+            c.CaptureOverride = a.Has("capture_roles") || a.Has("capture_databases") ? new JO("roles", CsvList(a.Str("capture_roles")), "databases", CsvList(a.Str("capture_databases"))) : null;
             var r = c.StartRecording(a.Str("name"), a.Str("region"), a.Int("fps", 15), a.Bool("video", true), a.Bool("capture", true));
             return "recording " + r.Name + " -> " + r.Dir;
         });

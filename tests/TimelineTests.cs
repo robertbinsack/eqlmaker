@@ -96,6 +96,22 @@ public static class TimelineTests {
         T.Eq(4, a503.Arr("statements").Count, "explicit block: BEGIN to COMMIT"); T.Eq("100", a503.Str("session"), "session of the block");
     }
 
+    /// <summary>Statements seen in the statement trace of a server name its T-SQL database ("shop"), the changed rows the physical
+    /// one, and a server that keeps several databases in one stores the table as "shop_dbo.customer".</summary>
+    public static void TransactionsAreTiedAcrossTheNamesOfAServerThatKeepsSeveralDatabasesInOne() {
+        string d = T.TempDir("tl-multidb"); Directory.CreateDirectory(d);
+        long t0 = 1795630000000000L; Func<double, long> at = delegate (double sec) { return t0 + (long)(sec * 1000000); };
+        Json.WriteLines(Path.Combine(d, "actions.jsonl"), new List<JO> { new JO("v", "0.1", "seq", 1, "ts", at(0.0), "offset", 0.0, "kind", "launch", "path", "client.exe") });
+        var ev = new List<DbEvent> {
+            new DbEvent { Ts = at(1.0), Offset = 1.0, Kind = "statement", Source = "eqlserver", Via = "trace", Session = "52", User = "app", Database = "shop", Application = "client", Sql = "INSERT INTO dbo.customer (name) VALUES (N'a')" },
+            new DbEvent { Ts = at(1.001), Offset = 1.001, Kind = "transaction", Source = "eqlserver", Via = "replication", Database = "eqlserver", Tx = "9", Tables = new List<string> { "shop_dbo.customer" },
+                Rows = new List<JO> { new JO("table", "shop_dbo.customer", "op", "insert", "new", new JO("id", "1", "name", "a"), "old", null) } } };
+        DbEvent.WriteFile(Path.Combine(d, "events.jsonl"), ev);
+        Json.WriteFile(Path.Combine(d, "recording.json"), new JO("format", "eqlmaker-recording", "version", "0.1", "name", "multidb", "t0_us", t0, "duration", 2.0, "source", "eqlserver"));
+        var tl = Timeline.Build(RecordingData.Load(d)); var a = (JO)tl.Arr("attribution")[0];
+        T.Eq("time+table", a.Str("method"), "tied by time and table although database and table names differ"); T.Eq("52", a.Str("session"), "session of the statement"); T.Eq(1, a.Arr("statements").Count, "the statement");
+    }
+
     public static void TransactionIdsGiveExactTies() {
         var tl = Timeline.Build(RecordingData.Load(MakeRecording(Path.Combine(T.TempDir("tl3"), "rec"), true)));
         foreach (JO a in tl.Arr("attribution")) T.Eq("tx-id", a.Str("method"), "method with ids");

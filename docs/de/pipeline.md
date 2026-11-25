@@ -18,6 +18,7 @@ record -> correlate -> spec -> generate / clone -> video -> verify
 | Zeitachse | `correlate <recording>` | Code, feste Regeln | eine Aufnahme | `recordings/<name>/timeline.json` |
 | Spezifikation | `spec [recording ...]` | Code, feste Regeln | Zeitachsen, `manual/` | `spec/spec.json`, `spec/spec.md` |
 | Handbuch | `manual <file>` | Code | ein Handbuch | `manual/<name>.json`, `manual/<name>.txt` |
+| Anwendungsdateien | `read <files>` | Code | die Dateien der Originalanwendung | `static/<Reader>/` |
 | Webanwendung | `generate` | geführt | `spec/`, `manual/`, eine Web-Vorlage | `web/` mit `GENERATE.md` |
 | Archiv | `clone` | geführt | `spec/`, Referenzbilder | `clone/` mit `CLONE.md` |
 | Vergleichsvideo | `video <A> <B>` | Code | zwei Aufnahmen | `video/<name>/` |
@@ -60,6 +61,7 @@ Verwenden Sie in der Aufnahme des Originals und der nachgebauten Anwendung diese
 | `events.jsonl` | Die Datenbankereignisse im [Ereignisformat](event-format.md) |
 | `video.mp4` | Bildschirmvideo (H.264), wenn Video aufgezeichnet wurde |
 | `sql.vtt` | Die Anweisungen als Untertitel des Videos |
+| `sql.tsv` | Die Anweisungen als Tabelle (Versatz, Zeit, Sitzung, Benutzer, Datenbank, Anwendung, Art, Anweisung), das Format, das Werkzeuge zum Abspielen von Anweisungen lesen; siehe `eqlmaker export-sql` |
 | `viewer.html` | Player-Seite: Video, Bedienhandlungen und Ereignisse nebeneinander. Im Browser öffnen. |
 | `shots/NNNN.png` | Referenzbild des Fensters, aufgenommen mit einer Bedienhandlung |
 | `shots/NNNN.json` | Die Steuerelemente des Fensters in diesem Bild: text, class, x, y, w, h, enabled |

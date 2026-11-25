@@ -1,0 +1,7 @@
+{
+  "type": "reader",
+  "name": "sql-scripts",
+  "description": "Minimal example of a reader: reads .sql script files of an application and lists their statements and the tables they use.",
+  "extensions": [".sql"],
+  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File reader.ps1"
+}

@@ -3,7 +3,7 @@
 
 # Plugins
 
-EQLMaker lässt sich an vier Stellen erweitern, ohne seinen Code zu ändern:
+EQLMaker lässt sich an fünf Stellen erweitern, ohne seinen Code zu ändern:
 
 | Typ | Erweitert | Eingebaut | Beispiel im Repository |
 |---|---|---|---|
@@ -11,6 +11,7 @@ EQLMaker lässt sich an vier Stellen erweitern, ohne seinen Code zu ändern:
 | `web-template` | den Ausgangspunkt, den `generate` kopiert | `default` | `plugins/examples/web-template-minimal` |
 | `clone-renderer` | die Seite, die `clone` für jede Maske erzeugt | `backdrop` | `plugins/examples/clone-renderer-outline` |
 | `video-layout` | wie `video` die beiden Aufnahmen anordnet | `side-by-side` | `plugins/examples/video-layout-stacked` |
+| `reader` | was man über die Anwendung aus ihren Dateien weiß | `powerbuilder`, siehe [PowerBuilder-Bibliotheken](powerbuilder.md) | `plugins/examples/reader-sql-scripts` |
 
 Ein Plugin ist ein Ordner mit einer Datei `plugin.json`. EQLMaker sucht Plugins in den Ordnern,
 die unter `"plugins"` in `eqlmaker.json` stehen (Vorgabe: der Ordner `plugins` des Projekts).
@@ -20,7 +21,7 @@ Jeder genannte Ordner darf ein Plugin sein oder mehrere Plugin-Ordner enthalten.
 { "plugins": ["plugins", "C:\\Shared\\eqlmaker-plugins"] }
 ```
 
-Plugins der Typen `source` und `clone-renderer` sind eigene Programme. EQLMaker startet sie und
+Plugins der Typen `source`, `clone-renderer` und `reader` sind eigene Programme. EQLMaker startet sie und
 spricht mit ihnen über Standardeingabe und Standardausgabe in JSON, ein Objekt je Zeile, in UTF-8
 ohne Byte Order Mark, gleich welche Codepage die Konsole hat. Lies und schreibe die beiden Ströme
 als Bytes in UTF-8 und nicht über die Konsolenkodierung deiner Sprache; ein Leser sollte eine
@@ -33,7 +34,7 @@ Jedes Plugin hat diese Schlüssel:
 
 | Schlüssel | Bedeutung |
 |---|---|
-| `type` | `source`, `web-template`, `clone-renderer` oder `video-layout` |
+| `type` | `source`, `web-template`, `clone-renderer`, `video-layout` oder `reader` |
 | `name` | der Name, der in der Konfiguration und auf der Kommandozeile verwendet wird; keine Leerzeichen oder Schrägstriche |
 | `description` | ein Satz für Menschen (optional) |
 
@@ -117,6 +118,42 @@ nicht bedienbar.
 - `player` ordnet die beiden Videos auf der Player-Seite an: `row` oder `column`.
 
 Verwendung: `eqlmaker video <A> <B> --layout stacked`.
+
+## Reader
+
+```json
+{ "type": "reader", "name": "sql-scripts", "extensions": [".sql"], "command": "powershell -NoProfile -ExecutionPolicy Bypass -File reader.ps1" }
+```
+
+Ein Reader sieht sich die Dateien der Originalanwendung an, nicht ihren Lauf, und schreibt, was er
+findet, in einem Format. Der eingebaute Reader `powerbuilder` ist einer, siehe
+[PowerBuilder-Bibliotheken](powerbuilder.md). `eqlmaker read <Dateien oder Ordner>` wählt den Reader nach den
+Dateiendungen, die `plugin.json` nennt, oder man nennt ihn mit `--reader`. Das Programm wird einmal gestartet:
+
+1. Es liest eine Zeile von der Standardeingabe: `{"action":"read","paths":["..."],"out":"..."}`.
+   `paths` sind die Dateien und Ordner wie angegeben, `out` der Ordner für das Ergebnis.
+2. Es schreibt `reader.json` nach `out` und antwortet mit einer Zeile `{"result":{...}}`; das Objekt
+   enthält Zahlen für Menschen (Objekte, Anweisungen). Ein Rückgabewert ungleich 0 lässt das Lesen
+   fehlschlagen.
+
+`reader.json` hat diese Form. `name` und `kind` eines Objekts sind Pflicht; alles andere darf fehlen:
+
+```json
+{
+  "format": "eqlmaker-static", "version": "0.1", "reader": "sql-scripts",
+  "menus": [ { "name": "m_main", "items": ["Customers", "Invoices"] } ],
+  "objects": [
+    { "name": "w_customer", "kind": "win", "library": "app.pbd",
+      "sql": ["SELECT name FROM customer WHERE id = :id"], "tables": ["customer"],
+      "refs": ["d_customer"], "texts": ["The customer was saved."], "labels": { "name": "Customer name" } }
+  ]
+}
+```
+
+`eqlmaker spec` liest jede `static/<Reader>/reader.json` des Projekts: Objekte der Art `win` werden zu
+Fenstern (mit den Beschriftungen und Tabellen der Objekte, auf die sie verweisen), `tables` werden mit
+dem verglichen, was die Aufnahmen berührt haben. Das Beispiel `plugins/examples/reader-sql-scripts`
+liest `.sql`-Dateien.
 
 ## Ein Plugin prüfen
 

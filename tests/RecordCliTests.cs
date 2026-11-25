@@ -47,5 +47,21 @@ public static class RecordCliTests {
             T.Eq(0, Cli(d, "correlate manual", pw, out o), "correlate works on a recording without actions: " + o);
         }
     }
+
+    /// <summary>The logins and the database can be named on the command line, also for the background recording of --start.</summary>
+    public static void StartTakesLoginsAndDatabaseFromTheCommandLine() {
+        using (var db = new TestDb()) {
+            var ci = PgConnInfo.Parse(T.Pg); string d = T.TempDir("record-cli-capture"), o;
+            Json.WriteFile(Path.Combine(d, Config.FileName), new JO("source", "postgres", "connection", "host=" + ci.Host + " port=" + ci.Port + " user=" + ci.User + " dbname=" + ci.Database));
+            string pw = ci.ResolvePassword();
+            T.Eq(0, Cli(d, "record --start --no-video --name named --capture-database " + db.Database + " --capture-role " + db.Role, pw, out o), "start: " + o);
+            using (var c = new PgClient(db.App)) { c.Exec("CREATE TABLE note (id serial PRIMARY KEY, body text)"); c.Exec("SELECT pg_sleep(1.0)"); c.Query("INSERT INTO note (body) VALUES ($1)", "named on the command line"); }
+            T.Eq(0, Cli(d, "record --stop --json", pw, out o), "stop: " + o);
+            var rec = RecordingData.Load(Path.Combine(d, "recordings", "named"));
+            var cap = rec.Manifest.Obj("capture");
+            T.Eq(db.Database, string.Join(",", cap.Strings("databases").ToArray()), "database of the recording"); T.Eq(db.Role, string.Join(",", cap.Strings("roles").ToArray()), "login of the recording");
+            T.True(rec.Events.Exists(delegate (DbEvent e) { return e.Params != null && e.Params.Count > 0 && e.Params[0] == "named on the command line"; }), "statement captured");
+        }
+    }
 }
 }

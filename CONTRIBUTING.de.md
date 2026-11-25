@@ -38,6 +38,7 @@ wird als übersprungen gemeldet, mit dem Grund. Damit alles läuft, brauchen die
 | FFmpeg für die Videotests | `ffmpeg` im `PATH`, oder sein Pfad in `EQLMAKER_TEST_FFMPEG` |
 | Ein Spracherkennungsprogramm für den Sprachtest | Pfad eines `whisper-cli.exe` in `EQLMAKER_TRANSCRIBE` (das Release-Paket enthält eines) |
 | Microsoft Edge oder Chrome | für die Tests, die eine Webseite bedienen; Edge gehört zu Windows |
+| Das Paket eines Datenbankservers, der in PostgreSQL speichert, für den optionalen Ende-zu-Ende-Test von [Anwendungen auf anderen Datenbanken](docs/de/other-databases.md) | ein laufender Server; seine Ports und, nur in der Umgebung, seine beiden Kennwörter in den Variablen `EQLMAKER_E2E_*` aus der [Beschreibung des Tests](docs/de/other-databases.md); der Test installiert, startet und stoppt nichts |
 
 Die Tests der Web-Vorlage und der Browser-Variante des Beispiels laufen mit Node.js ab
 Version 18:

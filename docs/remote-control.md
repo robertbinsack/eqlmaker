@@ -99,7 +99,7 @@ scenario. Complete examples: `examples/sample-app/scenarios/desktop.json` and `w
 | `name` | name of the recording | file name of the scenario |
 | `input` | `real` or `background` | from the configuration |
 | `video` | record video | `true` |
-| `capture` | capture database events | `true` |
+| `capture` | capture database events: `true`, `false`, or an object `{"roles": [...], "databases": [...]}` naming the logins and databases of this scenario instead of those of the configuration | `true` |
 | `fps` | frames per second of the video | 15 |
 | `region` | `real` mode: `workarea`, `screen`, `x,y,w,h` or a window title pattern | `workarea` |
 | `shots` | reference pictures and control lists with the actions | `true` |
@@ -107,6 +107,9 @@ scenario. Complete examples: `examples/sample-app/scenarios/desktop.json` and `w
 | `typeDelay` | pause between typed characters in milliseconds | 55 |
 | `closeAtEnd` | close the programs the scenario started | `false` |
 | `steps` | the steps | required |
+
+A scenario file of the earlier recorder names them as `"sql": {"roles": [...], "databases": [...]}`;
+`eqlmaker convert-scenario <file>` turns that into `capture`, everything else is the same in both.
 
 Without a `record` step the whole scenario is recorded, and the capture starts before the first
 step, so that a program started by the scenario is captured from its first statement.
@@ -137,6 +140,7 @@ Each step is an object with one of these keys.
 | `webclick` | element query | | clicks an element of the page |
 | `webdclick` | element query | | double click |
 | `webwait` | element query | `timeout` inside the query (ms, default 15000) | waits until the element exists |
+| `webmove` | element query | `ms` | moves the mouse to the element without clicking (`real` mode) |
 | `webfill` | element query with `value` | `clear` inside the query (default `true`) | clicks into a field and types a value |
 | `webeval` | JavaScript expression | | evaluates it in the page |
 | `screenshot` | file name | | writes a picture of the current window; a relative name lands in the recording folder |

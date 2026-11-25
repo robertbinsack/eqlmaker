@@ -52,6 +52,7 @@ Schritte legen diese Unterordner an:
 | `capture.roles` | Anmelderollen, deren Anweisungen erfasst werden | keine |
 | `capture.databases` | Datenbanken, deren Anweisungen und geänderte Zeilen erfasst werden. Rollen, Datenbanken oder beides nennen. | keine |
 | `capture.changes` | geänderte Zeilen erfassen (braucht `wal_level = logical` auf dem Server) | `true` |
+| `capture.decoding` | Ausgabe-Plugin für geänderte Zeilen: `auto` (`test_decoding`, oder `pgoutput`, wenn dem Server das Modul fehlt), `test_decoding` oder `pgoutput` | `auto` |
 | `capture.logFile` | Pfad des Serverprotokolls, wenn der Server es nicht über den Logging Collector schreibt | – |
 | `eqlserver.statsPort` | nur für die Quelle `eqlserver`: der Statistik-Port für die Anweisungsverfolgung; 0 = nicht benutzt. Ein Abschnitt mit dem Namen der Quelle enthält die Einstellungen dieser Quelle; ein Quellen-Plugin erhält seinen Abschnitt auf dieselbe Weise. | 0 |
 | `input` | wie Programme bedient werden: `real` oder `background`. Siehe [Fernbedienung](remote-control.md). | `real` |

@@ -23,6 +23,8 @@ public class Recording {
     public Rectangle Region; public int Fps = 15; public bool Video = true, Capture = true;
     public FramePainter Painter;   // background mode: frames painted by the window or the browser
     public IEventSource Source; public ScreenRecorder Rec; public long T0Us; public bool Running;
+    /// <summary>Roles and databases to capture instead of those of the configuration (scenario key "capture" as object).</summary>
+    public JO CaptureOverride;
     public List<Chapter> Chapters = new List<Chapter>(); public List<JO> Actions = new List<JO>();
     public string Input = "real";
     int shots; readonly object gate = new object();
@@ -32,11 +34,11 @@ public class Recording {
 
     public void Start() {
         Directory.CreateDirectory(Dir);
-        foreach (var f in new[] { "events.jsonl", "actions.jsonl", "recording.json", "video.mp4", "sql.vtt", "viewer.html" }) { string p = Path.Combine(Dir, f); if (File.Exists(p)) File.Delete(p); }
+        foreach (var f in new[] { "events.jsonl", "actions.jsonl", "recording.json", "video.mp4", "sql.vtt", "sql.tsv", "viewer.html" }) { string p = Path.Combine(Dir, f); if (File.Exists(p)) File.Delete(p); }
         if (Directory.Exists(Path.Combine(Dir, "shots"))) Directory.Delete(Path.Combine(Dir, "shots"), true);
         if (Capture) {
             Source = Cfg.CreateSource();
-            var o = Cfg.Capture(); o.StateFile = StateFile;
+            var o = Cfg.Capture(CaptureOverride); o.StateFile = StateFile;
             Source.Start(o);
         }
         if (Video) {
@@ -104,6 +106,7 @@ public class Recording {
             v.Append((i + 1) + "\n" + Vtt(s) + " --> " + Vtt(end) + "\n" + Regex.Replace(txt.Replace("-->", "->"), "\n\\s*\n", "\n") + "\n\n");   // a blank line would end the cue
         }
         File.WriteAllText(Path.Combine(Dir, "sql.vtt"), v.ToString(), new UTF8Encoding(false));
+        File.WriteAllText(Path.Combine(Dir, "sql.tsv"), SqlExport.Tsv(events), new UTF8Encoding(false));
 
         var ch = new List<object>();
         for (int i = 0; i < Chapters.Count; i++) ch.Add(new JO("start", Math.Round(Chapters[i].Start, 3), "end", Math.Round(i + 1 < Chapters.Count ? Chapters[i + 1].Start : duration, 3), "caption", Chapters[i].Caption));
@@ -121,12 +124,12 @@ public class Recording {
         man["video"] = Rec != null ? "video.mp4" : null; man["fps"] = Rec != null ? (object)Fps : null; man["frames"] = Rec != null ? (object)Rec.Frames : null;
         man["region"] = Rec != null ? new List<object> { Region.X, Region.Y, Region.Width, Region.Height } : null;
         man["source"] = Source != null ? Source.Name : null;
-        man["capture"] = Source != null ? new JO("roles", Cfg.Capture().Roles, "databases", Cfg.Capture().Databases, "changes", info.Str("changes"), "fields", info["fields"],
+        man["capture"] = Source != null ? new JO("roles", Cfg.Capture(CaptureOverride).Roles, "databases", Cfg.Capture(CaptureOverride).Databases, "changes", info.Str("changes"), "fields", info["fields"],
             "server_minus_local_us", info.Long("server_minus_local_us", 0), "server_version", info.Str("server_version"), "trace", info.Str("trace")) : null;
         man["chapters"] = ch;
         man["counts"] = new JO("actions", Actions.Count, "statements", stm.Count - errors, "errors", errors, "transactions", tx, "shots", shots);
         man["warnings"] = warnings;
-        man["files"] = new JO("events", "events.jsonl", "actions", "actions.jsonl", "subtitles", "sql.vtt", "viewer", "viewer.html");
+        man["files"] = new JO("events", "events.jsonl", "actions", "actions.jsonl", "subtitles", "sql.vtt", "sql_table", "sql.tsv", "viewer", "viewer.html");
         Json.WriteFile(Path.Combine(Dir, "recording.json"), man);
 
         // viewer with the data inlined
@@ -343,6 +346,12 @@ public class Controller {
         else { Desktop.RequireVisible(); Desktop.Move((int)p[0], (int)p[1], MoveMs); Thread.Sleep(120); ts = Clock.NowUs(); Desktop.Click("left", dbl); Thread.Sleep(250); }
         Act(new JO("ts", ts, "kind", "web_click", "target", Target(q)));
     }
+    /// <summary>Moves the mouse to a web element without clicking (real mode; in background mode there is no mouse).</summary>
+    public void WebMove(JO q, int ms) {
+        var p = Web.Locate(q, q.Int("timeout", 10000));
+        if (Background) return;
+        Desktop.RequireVisible(); Desktop.Move((int)p[0], (int)p[1], ms < 0 ? MoveMs : ms); Thread.Sleep(120);
+    }
     public void WebFill(JO q, string value, bool clear) {
         var p = Web.Locate(q, q.Int("timeout", 10000));
         long ts = Clock.NowUs();
@@ -371,10 +380,13 @@ public class Controller {
         return Rectangle.Intersect(new Rectangle(w.X, w.Y, w.W, w.H), Desktop.WorkArea());
     }
 
+    /// <summary>Roles and databases to capture instead of the configuration, for the next recordings.</summary>
+    public JO CaptureOverride;
+
     public Recording StartRecording(string name, string region, int fps, bool video, bool capture) {
         if (Rec != null && Rec.Running) throw new Exception("a recording is already running: " + Rec.Name);
         if (string.IsNullOrEmpty(name)) name = "recording-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
-        var r = new Recording { Cfg = Cfg, Name = name, Dir = Path.Combine(Cfg.RecordingsDir, name), Fps = fps > 0 ? fps : 15, Video = video, Capture = capture, Input = Input };
+        var r = new Recording { Cfg = Cfg, Name = name, Dir = Path.Combine(Cfg.RecordingsDir, name), Fps = fps > 0 ? fps : 15, Video = video, Capture = capture, Input = Input, CaptureOverride = CaptureOverride };
         if (video) {
             if (Background) {
                 // frames are painted by the current window, or by the browser page
@@ -424,7 +436,10 @@ public static class Scenario {
         var sc = Json.ParseObject(text);
         string baseDir = Path.GetDirectoryName(Path.GetFullPath(file));
         string name = !string.IsNullOrEmpty(nameOverride) ? nameOverride : sc.Str("name") ?? Path.GetFileNameWithoutExtension(file);
-        bool video = sc.Bool("video", true) && !c.NoVideo, capture = sc.Bool("capture", true);
+        var capObj = sc.Obj("capture");
+        bool video = sc.Bool("video", true) && !c.NoVideo, capture = capObj != null || sc.Bool("capture", true);
+        if (capObj != null) c.CaptureOverride = capObj;
+        if (sc.Has("sql") && !sc.Has("capture")) c.LogLine("note: the scenario has the key \"sql\" of the earlier recorder; EQLMaker reads \"capture\" (run: eqlmaker convert-scenario " + Path.GetFileName(file) + ")");
         string region = sc.Str("region", "workarea");
         int fps = sc.Int("fps", 15);
         if (sc.Has("input") && !c.InputForced) c.Input = sc.Str("input");
@@ -524,6 +539,7 @@ public static class Scenario {
         else if (s.Has("webreload")) c.Web.Reload();
         else if (s.Has("webclick")) c.WebClick(Q(s["webclick"]), false);
         else if (s.Has("webdclick")) c.WebClick(Q(s["webdclick"]), true);
+        else if (s.Has("webmove")) { var q = Q(s["webmove"]); c.WebMove(q, moveMs); }
         else if (s.Has("webfill")) { var q = Q(s["webfill"]); c.WebFill(q, q.Str("value", ""), q.Bool("clear", true)); }
         else if (s.Has("webwait")) { var q = Q(s["webwait"]); c.Web.Locate(q, q.Int("timeout", 15000)); }
         else if (s.Has("webeval")) c.Web.Eval(s.Str("webeval"));

@@ -93,6 +93,8 @@ public class CaptureOptions {
     public List<string> Roles = new List<string>(), Databases = new List<string>();
     /// <summary>Also capture changed rows (needs logical decoding on the server).</summary>
     public bool Changes = true;
+    /// <summary>Output plugin for changed rows: "auto" (test_decoding, and pgoutput when the server lacks that module), "test_decoding" or "pgoutput".</summary>
+    public string Decoding = "auto";
     /// <summary>Path of the server log when the server does not use its logging collector.</summary>
     public string LogFile = "";
     /// <summary>Settings of the chosen source (section named like the source in the configuration).</summary>

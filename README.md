@@ -22,11 +22,13 @@
 
 <!-- docs/media/demo.gif : die Demo-Animation folgt mit der ersten Veröffentlichung (erzeugt von scripts/demo/make-demo.ps1) -->
 
-EQLMaker schaut bei der Bedienung zu, misst, was dabei in der Datenbank geschieht, und liest das Handbuch. Daraus entsteht die Grundlage für einen Nachbau, der sich mit Vergleichstests belegen lässt.
+**EQLMaker ist das offene Werkzeug, um Altanwendungen mit KI abzulösen.** Es **schaut zu**, wenn das alte Programm bedient wird, **misst**, was es dabei in der Datenbank tut, auf derselben Zeitachse, **versteht** es aus Handbuch, Video mit Erklärung und den Dateien der Anwendung, **bereitet den Nachbau** für einen KI-Assistenten vor und **belegt** ihn: Vergleichstests zeigen, ob der Nachbau dasselbe zeigt und dieselben Daten ändert wie das Original.
+
+Die Nachbau-Schritte sind geführt, nicht vollautomatisch: Ein KI-Assistent baut, EQLMaker bereitet seine Arbeit vor und prüft das Ergebnis.
 
 <!-- status:begin release -->
 > [!NOTE]
-> **Stand:** Version 0.1.0 wurde am 2026-11-24 veröffentlicht. Das Windows-Paket liegt auf der [Release-Seite](https://github.com/robertbinsack/eqlmaker/releases/latest); die Tabelle unter [Funktionen](README.md#funktionen) nennt die Tests dahinter. Siehe [Schnellstart](README.md#schnellstart).
+> **Stand:** Version 0.2.0 wurde am 2026-11-25 veröffentlicht. Das Windows-Paket liegt auf der [Release-Seite](https://github.com/robertbinsack/eqlmaker/releases/latest); die Tabelle unter [Funktionen](README.md#funktionen) nennt die Tests dahinter. Siehe [Schnellstart](README.md#schnellstart).
 <!-- status:end -->
 
 ---
@@ -41,6 +43,7 @@ EQLMaker sammelt das Wissen, das in einer laufenden Anwendung steckt, ohne ihren
 
 - Jemand bedient das alte Programm wie gewohnt. EQLMaker **zeichnet auf**, was auf dem Bildschirm geschieht, und **misst** gleichzeitig, welche Daten die Anwendung in der Datenbank liest und ändert.
 - Dazu kommen das **Handbuch** und auf Wunsch ein **Video mit gesprochener Erklärung**.
+- Wer die **Dateien der Anwendung** hat, kann sie lesen lassen: Der eingebaute Reader für PowerBuilder-Bibliotheken listet Menüs, Fenster, Beschriftungen und jede SQL-Anweisung, auch von Funktionen, die niemand aufgenommen hat. Reader für andere Dateiarten werden auf dieselbe Weise angeschlossen.
 - Alles landet auf einer gemeinsamen **Zeitachse**: dieser Klick, diese Maske, diese Änderung in der Datenbank, dieser Satz im Handbuch.
 - Aus der Zeitachse entsteht eine **Spezifikation**. Mit ihr baut ein angeschlossener KI-Assistent die Anwendung als moderne Webanwendung nach. EQLMaker liefert Vorlage und Anleitung und prüft danach mit **Vergleichstests**, ob der Nachbau dasselbe zeigt und dieselben Daten ändert wie das Original.
 
@@ -115,17 +118,17 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 
 ## Funktionen
 
-### Version 0.1
+### Version 0.2
 
 <!-- status:begin summary -->
-18 von 18 Funktionen der Version 0.1 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
+21 von 21 Funktionen der Version 0.2 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
 <!-- status:end -->
 
 <!-- status:begin features -->
 | Funktion | Beschreibung | Stand | Test |
 |---|---|---|---|
-| Bedienung aufzeichnen | Windows-Programme und Browser-Anwendungen: Bildschirmvideo, dazu jede Bedienhandlung mit Zeit, Fenster und Steuerelement, wenn EQLMaker das Programm bedient (Szenariodatei oder MCP-Client); Video und Datenbankereignisse auch, während ein Mensch von Hand arbeitet | verfügbar · getestet | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`RecordCliTests.StartAndStopWhileSomeoneElseWorks` |
-| Gemessene Datenbankänderungen | Anweisungen, Parameter, Transaktionen und geänderte Zeilen mit Bordmitteln von PostgreSQL – nichts wird serverweit umgestellt, kein Neustart | verfügbar · getestet | `PostgresSourceTests.CapturesStatementsParametersErrorsAndChangedRows`<br>`PostgresSourceTests.RoleCaptureAndResetOfAnAbortedCapture`<br>`LogParserTests.DefaultPrefixStatementsParametersErrors`<br>`TestDecodingTests.InsertUpdateDeleteWithQuotingAndTypes` |
+| Bedienung aufzeichnen | Windows-Programme und Browser-Anwendungen: Bildschirmvideo, dazu jede Bedienhandlung mit Zeit, Fenster und Steuerelement, wenn EQLMaker das Programm bedient (Szenariodatei oder MCP-Client); Video und Datenbankereignisse auch, während ein Mensch von Hand arbeitet | verfügbar · getestet | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`RecordCliTests.StartAndStopWhileSomeoneElseWorks`<br>`RecordCliTests.StartTakesLoginsAndDatabaseFromTheCommandLine` |
+| Gemessene Datenbankänderungen | Anweisungen, Parameter, Transaktionen und geänderte Zeilen mit Bordmitteln von PostgreSQL – nichts wird serverweit umgestellt, kein Neustart; geänderte Zeilen auch von Servern ohne das Modul test_decoding (über pgoutput) | verfügbar · getestet | `PostgresSourceTests.CapturesStatementsParametersErrorsAndChangedRows`<br>`PostgresSourceTests.RoleCaptureAndResetOfAnAbortedCapture`<br>`LogParserTests.DefaultPrefixStatementsParametersErrors`<br>`TestDecodingTests.InsertUpdateDeleteWithQuotingAndTypes`<br>`PgOutputTests.MessagesAreReadAsTransactionsWithRows`<br>`PgOutputTests.CapturesChangedRowsThroughPgoutputAndCleansUp` |
 | Offenes Ereignisformat | Datenbankzugriffe als JSON Lines, dokumentiert, Version 0.1 | verfügbar · getestet | `EventFormatTests.FileRoundTripWithAllFields`<br>`EventFormatTests.NewerMajorVersionIsRefused`<br>`EventFormatTests.SortIsStable` |
 | Handbuch einlesen | PDF, HTML, DOCX, Text oder Markdown; Kapitel werden mit Masken verknüpft | verfügbar · getestet | `ManualTests.PdfCompressedWithCharacterMapAndObjectStream`<br>`ManualTests.PdfPrintedByABrowser`<br>`ManualTests.Docx`<br>`ManualTests.Html`<br>`ManualTests.MarkdownAndTheSampleHandbook`<br>`ManualTests.PlainText`<br>`ManualTests.RunWritesIntoTheProjectAndSpecLinksIt` |
 | Zeitstempel-Leiste | Kleines Programm, das Datum und Uhrzeit mit Millisekunden über allen Fenstern zeigt | verfügbar · getestet | `TimecodeTests.OverlayProgramRendersTheSameStrip`<br>`TimecodeTests.ScaledAndCompressedFramesAreRead`<br>`TimecodeTests.DamagedPatternFallsBackToTheDigits` |
@@ -138,10 +141,13 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 | Vergleichstests | Bildvergleich und Vergleich der gemessenen Datenbankänderungen zweier Aufnahmen | verfügbar · getestet | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
 | Vergleichsvideo mit Player | Original und Nachbau auf einer Zeitachse | verfügbar · getestet | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |
 | MCP-Server und Kommandozeile | Dieselben Schritte als Werkzeuge für jeden MCP-Client und als Befehle | verfügbar · getestet | `McpTests.ProtocolToolsAndPrompts`<br>`PipelineTests.CommandLineReportsUnknownCommandsAndMissingArguments` |
-| Plugin-Schnittstellen | Für Ereignisquellen, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert | verfügbar · getestet | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason` |
+| Plugin-Schnittstellen | Für Ereignisquellen, Reader, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert | verfügbar · getestet | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason`<br>`ReaderTests.ReaderPluginWritesTheSameFormatAndIsFoundByFileExtension`<br>`ReaderTests.ReaderPluginNeedsACommandAndAValidResult` |
 | Beispielanwendung mit Ende-zu-Ende-Lauf | Eine eigene Beispielanwendung als Windows-Programm und im Browser; `eqlmaker sample` durchläuft den ganzen Ablauf auf reinem PostgreSQL und findet die absichtlichen Fehler | verfügbar · getestet | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter`<br>`examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax` |
 | Deutsch und Englisch | Programme, Dokumentation und Web-Vorlage in beiden Sprachen | verfügbar · getestet | `I18nTests.TranslationsHaveTheSameKeysAndPlaceholders`<br>`I18nTests.GermanIsUsedWhenAskedFor`<br>`I18nTests.EnglishFileIsTheExportOfTheCode`<br>`src/templates/web/test/template.test.js: languages: English and German resources have the same keys` |
 | Einrichtung ohne Adminrechte | Eine Batchdatei richtet alles im eigenen Ordner ein: kein Installer, keine Registry, kein Dienst. Getestet mit dem veröffentlichten Paket als Benutzer ohne Adminrechte unter Windows Server 2025; nicht getestet auf einem frischen Windows 10 oder 11. Die Tests des Pakets laufen lokal vor einer Veröffentlichung, nicht in den automatischen Prüfungen des Repositorys | verfügbar · getestet | `scripts/setup/tests/test-setup.ps1: the setup process is not elevated (restricted token, evidence taken inside the run)`<br>`scripts/setup/tests/test-setup.ps1: eqlmaker-setup.cmd -unattended as ordinary user: downloads, default PostgreSQL without psql, self test with speech and logical decoding`<br>`scripts/setup/tests/test-setup.ps1: registry autostart and uninstall keys, PATH, environment, services, firewall rules, scheduled tasks: nothing added, removed or changed by the package`<br>`scripts/setup/tests/test-setup.ps1: remove: after eqlmaker-db-stop.cmd the folders can be deleted completely by the ordinary user` |
+| PowerBuilder-Bibliotheken lesen | Eingebauter Reader für die kompilierten Bibliotheken (.pbd, .pbl) von PowerBuilder 5 bis 9, ohne Quellcode: Menüs, Fenster, Beschriftungen, SQL-Anweisungen und Verweise. Das Ergebnis geht in die Spezifikation und zeigt, welche Tabellen keine Aufnahme berührt hat | verfügbar · getestet | `ReaderTests.PowerBuilderReaderReadsObjectsSqlLabelsMenusAndReferences`<br>`ReaderTests.PowerBuilderReaderRefusesUnicodeLibrariesAndOtherFiles`<br>`ReaderTests.FirstLibraryWinsForAnObjectNameThatOccursTwice`<br>`ReaderTests.ReadCommandPicksTheReaderByFileExtensionAndSpecTakesTheResultOver` |
+| Anweisungstabelle und alte Szenariodateien | Die Anweisungen einer Aufnahme als Tabelle sql.tsv (das Format, das Werkzeuge zum Abspielen von Anweisungen lesen; T-SQL-Stapel und -Aufrufe als tsql-batch und tsql-rpc); Szenariodateien des früheren Recorders werden umgewandelt; ein Szenario kann eigene Logins und Datenbanken für den Mitschnitt nennen | verfügbar · getestet | `ExportTests.SqlTsvHasTheColumnsKindsAndEscapesOfTheReplayFormat`<br>`ExportTests.ExportSqlCommandWritesTheTableOfAnExistingRecording`<br>`ExportTests.ScenarioOfTheEarlierRecorderIsConverted`<br>`ExportTests.ScenarioCaptureObjectReplacesRolesAndDatabasesOfTheConfiguration` |
+| Anwendungen auf anderen Datenbanken | Anwendungen, die SQL Server (TDS) sprechen, werden über EQLServer mitgeschnitten, ein eigenes, optionales Produkt, das in PostgreSQL speichert: Stapel, Aufrufe und geänderte Zeilen auf einer Zeitachse. Getestet mit einem optionalen Ende-zu-Ende-Test gegen einen laufenden EQLServer 1.10.0; die anderen Protokolle sind nicht getestet. EQLMaker braucht EQLServer nicht | verfügbar · getestet | `ServerTests.TdsStatementsAndChangedRowsOfAnApplicationReachTheTimeline`<br>`tests/eqlserver/run-eqlserver-e2e.ps1: changed rows: insert, update and delete of the customer table`<br>`TimelineTests.TransactionsAreTiedAcrossTheNamesOfAServerThatKeepsSeveralDatabasesInOne` |
 <!-- status:end -->
 
 „Verfügbar“ heißt: gebaut und durch die genannten Tests dieses Repositorys belegt. Wie eine Funktion dorthin kommt, steht in [CONTRIBUTING.de.md](CONTRIBUTING.de.md); die einzige Quelle dieser Tabelle ist [docs/status.json](docs/status.json).
@@ -165,7 +171,7 @@ Deshalb gehören selten benutzte Funktionen und Fehlerfälle in die Aufnahme, un
 
 Die Nachbau-Schritte sind **geführt, nicht vollautomatisch**: EQLMaker erzeugt den Code nicht selbst, sondern bereitet die Arbeit eines KI-Assistenten vor und prüft sie.
 
-Weitere Grenzen der Version 0.1: Sie läuft nur unter Windows. Bedienhandlungen werden aufgezeichnet, wenn EQLMaker das Programm bedient (Szenariodatei oder MCP-Client); arbeitet ein Mensch von Hand, enthält die Aufnahme das Video und die Datenbankereignisse. Personenbezogene Daten in Aufnahmen werden nicht maskiert. Die vollständige Liste steht in den [häufigen Fragen](docs/de/faq.md).
+Weitere Grenzen der Version 0.2: Sie läuft nur unter Windows. Bedienhandlungen werden aufgezeichnet, wenn EQLMaker das Programm bedient (Szenariodatei oder MCP-Client); arbeitet ein Mensch von Hand, enthält die Aufnahme das Video und die Datenbankereignisse. Personenbezogene Daten in Aufnahmen werden nicht maskiert. Die vollständige Liste steht in den [häufigen Fragen](docs/de/faq.md).
 
 ## Schnellstart
 
@@ -227,6 +233,7 @@ Weitere Grenzen der Version 0.1: Sie läuft nur unter Windows. Bedienhandlungen 
 | [Befehlsreferenz](docs/de/cli.md) · [MCP-Server](docs/de/mcp.md) | Jeder Befehl, jede Option, jedes Werkzeug |
 | [Geführte Schritte](docs/de/guided-steps.md) · [Vergleichstests](docs/de/verify.md) | Was EQLMaker vorbereitet, was Assistent oder Mensch tun, wie geprüft wird |
 | [Beispielanwendung](docs/de/sample-app.md) | Das Beispiel, seine verborgenen Regeln und was die Zahlen bedeuten |
+| [Anwendungen auf anderen Datenbanken](docs/de/other-databases.md) · [PowerBuilder-Bibliotheken](docs/de/powerbuilder.md) | Das Prinzip und die Schritte für SQL Server, MySQL und andere; die Bibliotheken einer PowerBuilder-Anwendung lesen |
 | [Alle Seiten](docs/de/index.md) | Übersicht der Dokumentation, auf Deutsch und Englisch |
 
 ## Für wen – und was die Allgemeinheit davon hat
@@ -246,6 +253,9 @@ Alte Fachprogramme sind ein stilles Risiko. Das Wissen über sie steckt in den K
   - [x] Ende-zu-Ende-Lauf mit einer eigenen Beispielanwendung auf reinem PostgreSQL
   - [x] Quellcode veröffentlichen
   - [x] Erste Veröffentlichung als Windows-Paket
+  - [x] Release 0.2 als Windows-Paket
+  - [x] Reader-Plugin-Stelle mit dem PowerBuilder-Reader (0.2)
+  - [x] Anwendungen auf SQL Server (TDS) über einen Server, der in PostgreSQL speichert, getestet mit EQLServer 1.10.0 (0.2)
 - **Ab Juni 2027 · geplant**
   - [ ] Bildschirmelemente erkennen und mit Datenänderungen verknüpfen
   - [ ] Live-Dialog per Text, später per Sprache
@@ -256,6 +266,7 @@ Alte Fachprogramme sind ein stilles Risiko. Das Wissen über sie steckt in den K
 - **Später · ohne Termin**
   - [ ] Ereignisformat als eigenständige Spezifikation 1.0 für andere Werkzeuge
   - [ ] Weitere offene Quellen: MySQL/MariaDB und SQL Server
+  - [ ] Reader für weitere Dateiarten von Anwendungen (zum Beispiel die Formulare in einem Delphi-Programm)
   - [ ] Barrierefreiheit der erzeugten Webanwendungen (WCAG 2.1 AA)
   - [ ] Vorlagen-Galerie für Beitragende
 
@@ -277,7 +288,22 @@ EQLMaker ersetzt keinen dieser Ansätze – es verbindet etwas, das sie getrennt
 
 ## Weitere Datenbanken
 
-EQLMaker läuft vollständig mit einem normalen **PostgreSQL** und erreicht damit Anwendungen, die PostgreSQL sprechen. Für Anwendungen auf anderen Datenbankservern lässt sich PostgreSQL durch [EQLServer](https://eqlserver.de) ersetzen; die Konfiguration bleibt gleich. EQLServer ist ein kommerzielles Produkt desselben Autors und **kein Teil von EQLMaker**. Kein Teil von EQLMaker setzt EQLServer voraus.
+EQLMaker läuft vollständig mit einem normalen **PostgreSQL** und erreicht damit Anwendungen, die PostgreSQL sprechen. Anwendungen, die SQL Server, MySQL/MariaDB, Oracle, SQLite, Firebird/InterBase, SAP SQL Anywhere, Advantage, Informix, Access oder SAP/Sybase ASE sprechen, brauchen einen Server, der sie unverändert annimmt und in PostgreSQL speichert, damit EQLMaker ihre Transaktionen sieht. [EQLServer](https://eqlserver.com) ist ein solcher Server: ein kommerzielles Produkt desselben Autors, optional und **kein Teil von EQLMaker**. EQLMaker braucht ihn nicht. Getestet ist bisher SQL Server (TDS) mit EQLServer 1.10.0; die Schritte, eine Beispielkonfiguration und was nicht getestet ist, stehen unter [Anwendungen auf anderen Datenbanken](docs/de/other-databases.md). Ohne jeden Datenbankzugriff arbeitet EQLMaker weiter mit Bildschirm, Video und Handbuch, der Vergleich der Daten ist dann aber nicht möglich.
+
+## Erste Aufgaben für Beitragende
+
+Jede Aufgabe unten ist ein Plugin oder ein Dokument und braucht keine Änderung am Kern. Man beginnt beim Beispiel daneben; gebaut wird mit `build.cmd`, getestet mit `bin\eqlmaker-tests.exe`.
+
+| Aufgabe | Wo anfangen |
+|---|---|
+| Ein **Reader** für die Dateien einer anderen Art von Anwendung (zum Beispiel die Formulare in einem Delphi-Programm, Access-Formulare): Menüs, Masken, Beschriftungen, SQL | `plugins/examples/reader-sql-scripts`, [Plugins](docs/de/plugins.md) |
+| Eine **Ereignisquelle** für eine andere Datenbank oder ihr Protokoll (zum Beispiel das allgemeine Protokoll von MySQL, Extended Events von SQL Server) | `plugins/examples/source-jsonl-file`, [Ereignisformat](docs/de/event-format.md) |
+| Eine **Web-Vorlage** in einem anderen Framework | `plugins/examples/web-template-minimal` |
+| Ein **Klon-Renderer** oder ein **Videolayout** | `plugins/examples/clone-renderer-outline`, `plugins/examples/video-layout-stacked` |
+| Eine weitere **Sprache** für Programme und Dokumentation | [Übersetzen](docs/de/translating.md) |
+| Das Windows-Paket auf einem frischen Windows 10 oder 11 testen und berichten, was auffällt | [ROADMAP.de.md](ROADMAP.de.md) |
+
+**Ein Plugin in fünf Schritten:** einen Beispielordner aus `plugins/examples` kopieren; `plugin.json` anpassen (Typ, Name, Befehl); das Programm schreiben, in beliebiger Sprache: Es liest eine JSON-Zeile von der Standardeingabe und schreibt JSON auf die Standardausgabe; den Ordner unter `"plugins"` in `eqlmaker.json` eintragen und mit `eqlmaker read`, `eqlmaker record` oder `eqlmaker generate` ausprobieren; als Pull Request mit einem Test einreichen, siehe [CONTRIBUTING.de.md](CONTRIBUTING.de.md).
 
 ## Mitmachen und Lizenz
 

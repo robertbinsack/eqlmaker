@@ -81,6 +81,9 @@ public static class Pipeline {
         switch (cmd) {
             case "correlate": return Correlate(cfg, a.Need(0, "recording"));
             case "spec": return Spec.Run(cfg, a.Pos);
+            case "read": return Readers.Run(cfg, a.Opt.Str("reader"), a.Pos, a.Opt.Str("out"), Csv(a.Opt.Str("bundle")), a.Opt.Int("max-depth", 3), a.Opt.Str("exclude"), a.Opt.Bool("no-raw", false));
+            case "export-sql": return SqlExport.Run(cfg, a.Need(0, "recording"), a.Opt.Str("out"));
+            case "convert-scenario": return SqlExport.ConvertScenario(a.Need(0, "scenario file"), a.Opt.Str("out"));
             case "manual": return ManualImport.Run(cfg, a.Need(0, "file"), a.Opt.Str("name"));
             case "generate": return Guided.Generate(cfg, a.Opt.Str("template"), a.Opt.Bool("force", false));
             case "clone": return Guided.Clone(cfg, a.Opt.Str("renderer"), a.Opt.Bool("force", false));
@@ -126,6 +129,11 @@ public static class Pipeline {
             new JO("recording", S("name of the recording")), new[] { "recording" }, delegate (JO a) { return Correlate(cfg, a.Str("recording")); });
         s.Add("spec", "Pipeline step 3. Derives the specification (steps, masks, statement shapes, tables read and written, links to the manual) from the time lines by fixed rules. Writes spec/spec.json and spec/spec.md.",
             new JO("recordings", S("comma-separated recordings (default: all of the project)")), null, delegate (JO a) { return Spec.Run(cfg, Csv(a.Str("recordings"))); });
+        s.Add("read_application", "Reads the files of the original application (built in: PowerBuilder libraries .pbd/.pbl; others through reader plugins) and writes menus, windows, labels, SQL statements and the tables they use to static/<reader>/reader.json; 'spec' takes the result over. The files are only read.",
+            new JO("paths", S("comma-separated files or folders of the application, in the order of its library list"), "reader", S("reader name (default: by file extension)"), "bundle", S("comma-separated start objects for bundles (what an object uses)"), "out", S("output folder (default: static/<reader>)")), new[] { "paths" },
+            delegate (JO a) { return Readers.Run(cfg, a.Str("reader"), Csv(a.Str("paths")), a.Str("out"), Csv(a.Str("bundle")), a.Int("max_depth", 3), a.Str("exclude"), a.Bool("no_raw", false)); });
+        s.Add("export_sql", "Writes the statements of a recording as a tab-separated table (sql.tsv): offset, time, session, user, database, application, kind, statement. Kinds tsql-batch and tsql-rpc are statements that came through the statement trace of the server.",
+            new JO("recording", S("name of the recording"), "out", S("file to write (default: sql.tsv in the recording folder)")), new[] { "recording" }, delegate (JO a) { return SqlExport.Run(cfg, a.Str("recording"), a.Str("out")); });
         s.Add("manual_import", "Takes the manual of the original program over as project context (PDF, HTML, DOCX, TXT, Markdown): text and chapters; 'spec' links chapters to masks and steps.",
             new JO("file", S("path of the manual"), "name", S("name in the project (default: file name)")), new[] { "file" }, delegate (JO a) { return ManualImport.Run(cfg, a.Str("file"), a.Str("name")); });
         s.Add("generate", "Pipeline step 4, a guided step: prepares the folder 'web' from a web template, puts the specification next to it and returns the instructions. You build the application; verify_db checks it. Not an automatic generator.",

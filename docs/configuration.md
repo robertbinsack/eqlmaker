@@ -52,6 +52,7 @@ sub-folders:
 | `capture.roles` | login roles whose statements are captured | none |
 | `capture.databases` | databases whose statements and changed rows are captured. Name roles, databases or both. | none |
 | `capture.changes` | capture changed rows (needs `wal_level = logical` on the server) | `true` |
+| `capture.decoding` | output plugin for changed rows: `auto` (`test_decoding`, or `pgoutput` when the server lacks that module), `test_decoding` or `pgoutput` | `auto` |
 | `capture.logFile` | path of the server log, when the server does not write it through the logging collector | – |
 | `eqlserver.statsPort` | only for the source `eqlserver`: the statistics port for the statement trace; 0 = not used. A section named like the source holds the settings of that source; a source plugin gets its section the same way. | 0 |
 | `input` | how programs are operated: `real` or `background`. See [remote control](remote-control.md). | `real` |

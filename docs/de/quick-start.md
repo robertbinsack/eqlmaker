@@ -85,7 +85,7 @@ FFmpeg und Node.js herunter, bringt die Spracherkennung mit und installiert auf 
 portables PostgreSQL. Am Ende läuft ein Selbsttest. Optionen, Rückgabewerte und Grenzen stehen
 unter [Einrichtung](setup.md).
 
-Was getestet wurde: das Paket der Version 0.1.0 unter Windows Server 2025, als Benutzer ohne
+Was getestet wurde: das Paket der Version 0.2.0 unter Windows Server 2025, als Benutzer ohne
 Adminrechte, in einem frischen Ordner mit Leerzeichen und Umlaut im Namen, mit allen Downloads,
 dem Selbsttest mit Spracherkennung und dem Entfernen. Noch nicht getestet: ein frisches
 Windows 10 oder Windows 11, ein Download über einen Proxy und der Bau des Pakets mit

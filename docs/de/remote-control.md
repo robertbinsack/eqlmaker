@@ -103,7 +103,7 @@ das Szenario ab. Vollständige Beispiele: `examples/sample-app/scenarios/desktop
 | `name` | Name der Aufnahme | Dateiname des Szenarios |
 | `input` | `real` oder `background` | aus der Konfiguration |
 | `video` | Video aufzeichnen | `true` |
-| `capture` | Datenbankereignisse erfassen | `true` |
+| `capture` | Datenbankereignisse erfassen: `true`, `false` oder ein Objekt `{"roles": [...], "databases": [...]}`, das die Logins und Datenbanken dieses Szenarios statt der der Konfiguration nennt | `true` |
 | `fps` | Bilder pro Sekunde des Videos | 15 |
 | `region` | Modus `real`: `workarea`, `screen`, `x,y,w,h` oder ein Muster für den Fenstertitel | `workarea` |
 | `shots` | Referenzbilder und Steuerelementlisten zu den Bedienhandlungen | `true` |
@@ -111,6 +111,9 @@ das Szenario ab. Vollständige Beispiele: `examples/sample-app/scenarios/desktop
 | `typeDelay` | Pause zwischen getippten Zeichen in Millisekunden | 55 |
 | `closeAtEnd` | die vom Szenario gestarteten Programme schließen | `false` |
 | `steps` | die Schritte | erforderlich |
+
+Eine Szenariodatei des früheren Recorders nennt sie `"sql": {"roles": [...], "databases": [...]}`;
+`eqlmaker convert-scenario <Datei>` macht daraus `capture`, alles andere ist in beiden gleich.
 
 Ohne einen Schritt `record` wird das ganze Szenario aufgezeichnet, und die Erfassung beginnt vor
 dem ersten Schritt, sodass ein vom Szenario gestartetes Programm ab seiner ersten Anweisung
@@ -142,6 +145,7 @@ Jeder Schritt ist ein Objekt mit einem dieser Schlüssel.
 | `webclick` | Abfrage eines Elements | | klickt ein Element der Seite an |
 | `webdclick` | Abfrage eines Elements | | Doppelklick |
 | `webwait` | Abfrage eines Elements | `timeout` in der Abfrage (ms, Vorgabe 15000) | wartet, bis das Element existiert |
+| `webmove` | Abfrage eines Elements | `ms` | bewegt die Maus zum Element, ohne zu klicken (Modus `real`) |
 | `webfill` | Abfrage eines Elements mit `value` | `clear` in der Abfrage (Vorgabe `true`) | klickt in ein Feld und tippt einen Wert ein |
 | `webeval` | JavaScript-Ausdruck | | wertet ihn in der Seite aus |
 | `screenshot` | Dateiname | | schreibt ein Bild des aktuellen Fensters; ein relativer Name landet im Aufnahmeordner |

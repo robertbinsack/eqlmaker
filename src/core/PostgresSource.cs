@@ -256,7 +256,7 @@ public class PostgresSource : IEventSource {
     protected List<string> warnings = new List<string>();
     string logFile, localLog; long logStart; Regex lineRegex; int tzOffset; bool strict, messagesSwitched;
     readonly Dictionary<int, string[]> sessions = new Dictionary<int, string[]>();   // pid -> user, database, application, "1" when captured
-    readonly List<string[]> slots = new List<string[]>();   // database, slot name
+    readonly List<string[]> slots = new List<string[]>();   // database, slot name (also the name of the publication), output plugin
     Thread poller; volatile bool stop; PgClient pollClient;
     public const string AppName = "eqlmaker";
 
@@ -282,7 +282,7 @@ public class PostgresSource : IEventSource {
 
     void WriteState() {
         if (string.IsNullOrEmpty(opt.StateFile)) return;
-        var sl = new List<object>(); foreach (var s in slots) sl.Add(new JO("database", s[0], "slot", s[1]));
+        var sl = new List<object>(); foreach (var s in slots) sl.Add(new JO("database", s[0], "slot", s[1], "plugin", s[2]));
         Json.WriteFile(opt.StateFile, new JO("source", Name, "connection", conn.ToString(), "roles", opt.Roles, "databases", opt.Databases, "lc_messages", messagesSwitched, "slots", sl));
     }
 
@@ -350,10 +350,39 @@ public class PostgresSource : IEventSource {
         if (dbs.Count == 0) dbs.Add(conn.Database);
         foreach (var d in dbs) {
             string slot = "eqlmaker_" + Guid.NewGuid().ToString("N").Substring(0, 12);
+            string plugin = opt.Decoding == "pgoutput" ? "pgoutput" : "test_decoding";
+            // asked before, so that a server without the module does not log an error of this tool
+            if (opt.Decoding == "auto" && !HasModule(c, "test_decoding")) plugin = "pgoutput";
+            bool noModule = plugin == "pgoutput" && opt.Decoding == "auto";
             try {
-                using (var dc = Open(d)) dc.Query("SELECT pg_create_logical_replication_slot($1, 'test_decoding')", slot);
-                slots.Add(new[] { d, slot });
+                try { CreateSlot(d, slot, plugin); if (noModule) warnings.Add("the server has no test_decoding module: changed rows of database " + d + " are read with pgoutput through a publication named " + slot + ", dropped when the capture ends"); }
+                catch (PgException e) {
+                    // test_decoding is an optional module: servers without it are read through pgoutput, which every server has
+                    if (opt.Decoding != "auto" || plugin != "test_decoding" || e.Message.IndexOf("test_decoding", StringComparison.Ordinal) < 0) throw;
+                    plugin = "pgoutput"; CreateSlot(d, slot, plugin);
+                    warnings.Add("the server has no test_decoding module: changed rows of database " + d + " are read with pgoutput through a publication named " + slot + ", dropped when the capture ends");
+                }
+                slots.Add(new[] { d, slot, plugin });
+                info["decoding"] = plugin;
             } catch (Exception e) { warnings.Add("changed rows of database " + d + " are not captured: " + e.Message); }
+        }
+    }
+
+    /// <summary>False only when the library directory of the server can be listed and has no such module.</summary>
+    static bool HasModule(PgClient c, string name) {
+        try {
+            string dir = c.Scalar("SELECT setting FROM pg_config WHERE name = 'PKGLIBDIR'");
+            if (string.IsNullOrEmpty(dir)) return true;
+            foreach (var row in c.Query("SELECT pg_ls_dir($1)", dir).Rows) if (row[0].StartsWith(name + ".", StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
+        } catch { return true; }
+    }
+
+    void CreateSlot(string database, string slot, string plugin) {
+        using (var dc = Open(database)) {
+            if (plugin == "pgoutput") dc.Exec("CREATE PUBLICATION " + PgClient.Ident(slot) + " FOR ALL TABLES");
+            try { dc.Query("SELECT pg_create_logical_replication_slot($1, $2)", slot, plugin); }
+            catch { if (plugin == "pgoutput") { try { dc.Exec("DROP PUBLICATION IF EXISTS " + PgClient.Ident(slot)); } catch { } } throw; }
         }
     }
 
@@ -443,10 +472,18 @@ public class PostgresSource : IEventSource {
         foreach (var s in slots) {
             try {
                 using (var dc = Open(s[0])) {
-                    var r = dc.Query("SELECT data FROM pg_logical_slot_get_changes($1, NULL, NULL, 'include-xids', '1', 'include-timestamp', '1', 'skip-empty-xacts', '1')", s[1]);
-                    var lines = new List<string>(); foreach (var row in r.Rows) lines.Add(row[0]);
-                    list.AddRange(TestDecoding.ToEvents(lines, Name, s[0]));
-                    dc.Query("SELECT pg_drop_replication_slot($1)", s[1]);
+                    if (s[2] == "pgoutput") {
+                        var r = dc.Query("SELECT data FROM pg_logical_slot_get_binary_changes($1, NULL, NULL, 'proto_version', '1', 'publication_names', $2)", s[1], s[1]);
+                        var msgs = new List<byte[]>(); foreach (var row in r.Rows) msgs.Add(PgOutput.FromHex(row[0]));
+                        list.AddRange(PgOutput.ToEvents(msgs, Name, s[0]));
+                        dc.Query("SELECT pg_drop_replication_slot($1)", s[1]);
+                        dc.Exec("DROP PUBLICATION IF EXISTS " + PgClient.Ident(s[1]));
+                    } else {
+                        var r = dc.Query("SELECT data FROM pg_logical_slot_get_changes($1, NULL, NULL, 'include-xids', '1', 'include-timestamp', '1', 'skip-empty-xacts', '1')", s[1]);
+                        var lines = new List<string>(); foreach (var row in r.Rows) lines.Add(row[0]);
+                        list.AddRange(TestDecoding.ToEvents(lines, Name, s[0]));
+                        dc.Query("SELECT pg_drop_replication_slot($1)", s[1]);
+                    }
                 }
             } catch (Exception e) { warnings.Add("changed rows of database " + s[0] + " could not be read: " + e.Message); }
         }
@@ -475,7 +512,10 @@ public class PostgresSource : IEventSource {
             var r = c.Exec("SELECT database, slot_name FROM pg_replication_slots WHERE slot_name LIKE 'eqlmaker\\_%' AND NOT active");
             foreach (var row in r.Rows) if (!drop.Exists(delegate (string[] x) { return x[1] == row[1]; })) drop.Add(new[] { row[0], row[1] });
         }
-        foreach (var s in drop) { try { using (var dc = Open(s[0])) dc.Query("SELECT pg_drop_replication_slot($1)", s[1]); } catch { } }
+        foreach (var s in drop) {
+            try { using (var dc = Open(s[0])) { dc.Query("SELECT pg_drop_replication_slot($1)", s[1]); } } catch { }
+            try { using (var dc = Open(s[0])) dc.Exec("DROP PUBLICATION IF EXISTS " + PgClient.Ident(s[1])); } catch { }
+        }
         if (!string.IsNullOrEmpty(options.StateFile)) { try { File.Delete(options.StateFile); } catch { } }
     }
 }

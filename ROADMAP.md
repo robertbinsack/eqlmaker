@@ -10,20 +10,20 @@ that proves it. The roadmap is a plan, not a commitment.
 
 <!-- status:begin release -->
 > [!NOTE]
-> **Status:** Version 0.1.0 was released on 2026-11-24. The Windows package is on the [release page](https://github.com/robertbinsack/eqlmaker/releases/latest); the table under [Features](README.en.md#features) names the tests behind it. See [Quick start](README.en.md#quick-start).
+> **Status:** Version 0.2.0 was released on 2026-11-25. The Windows package is on the [release page](https://github.com/robertbinsack/eqlmaker/releases/latest); the table under [Features](README.en.md#features) names the tests behind it. See [Quick start](README.en.md#quick-start).
 <!-- status:end -->
 
-## Available and tested (v0.1)
+## Available and tested (v0.2)
 
 <!-- status:begin summary -->
-18 of 18 features of version 0.1 are available and tested, 0 in development. The test column names the tests of the repository that prove each feature.
+21 of 21 features of version 0.2 are available and tested, 0 in development. The test column names the tests of the repository that prove each feature.
 <!-- status:end -->
 
 <!-- status:begin available -->
 | Feature | Description | Since | Test |
 |---|---|---|---|
-| Record usage | Windows programs and browser applications: screen video, and every user action with time, window and control when EQLMaker operates the program (scenario file or MCP client); video and database events also while a person works by hand | 0.1.0 | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`RecordCliTests.StartAndStopWhileSomeoneElseWorks` |
-| Measured database changes | Statements, parameters, transactions and changed rows using PostgreSQL's built-in means – no server-wide changes, no restart | 0.1.0 | `PostgresSourceTests.CapturesStatementsParametersErrorsAndChangedRows`<br>`PostgresSourceTests.RoleCaptureAndResetOfAnAbortedCapture`<br>`LogParserTests.DefaultPrefixStatementsParametersErrors`<br>`TestDecodingTests.InsertUpdateDeleteWithQuotingAndTypes` |
+| Record usage | Windows programs and browser applications: screen video, and every user action with time, window and control when EQLMaker operates the program (scenario file or MCP client); video and database events also while a person works by hand | 0.1.0 | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`RecordCliTests.StartAndStopWhileSomeoneElseWorks`<br>`RecordCliTests.StartTakesLoginsAndDatabaseFromTheCommandLine` |
+| Measured database changes | Statements, parameters, transactions and changed rows using PostgreSQL's built-in means – no server-wide changes, no restart; changed rows also from servers without the module test_decoding (through pgoutput) | 0.1.0 | `PostgresSourceTests.CapturesStatementsParametersErrorsAndChangedRows`<br>`PostgresSourceTests.RoleCaptureAndResetOfAnAbortedCapture`<br>`LogParserTests.DefaultPrefixStatementsParametersErrors`<br>`TestDecodingTests.InsertUpdateDeleteWithQuotingAndTypes`<br>`PgOutputTests.MessagesAreReadAsTransactionsWithRows`<br>`PgOutputTests.CapturesChangedRowsThroughPgoutputAndCleansUp` |
 | Open event format | Database accesses as JSON Lines, documented, version 0.1 | 0.1.0 | `EventFormatTests.FileRoundTripWithAllFields`<br>`EventFormatTests.NewerMajorVersionIsRefused`<br>`EventFormatTests.SortIsStable` |
 | Read the manual | PDF, HTML, DOCX, text or Markdown; chapters are linked to screens | 0.1.0 | `ManualTests.PdfCompressedWithCharacterMapAndObjectStream`<br>`ManualTests.PdfPrintedByABrowser`<br>`ManualTests.Docx`<br>`ManualTests.Html`<br>`ManualTests.MarkdownAndTheSampleHandbook`<br>`ManualTests.PlainText`<br>`ManualTests.RunWritesIntoTheProjectAndSpecLinksIt` |
 | Timestamp overlay | Small program showing date and time with milliseconds on top of all windows | 0.1.0 | `TimecodeTests.OverlayProgramRendersTheSameStrip`<br>`TimecodeTests.ScaledAndCompressedFramesAreRead`<br>`TimecodeTests.DamagedPatternFallsBackToTheDigits` |
@@ -36,10 +36,13 @@ that proves it. The roadmap is a plan, not a commitment.
 | Comparison tests | Visual comparison and comparison of measured database changes between two recordings | 0.1.0 | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
 | Comparison video with player | Original and rebuild on one timeline | 0.1.0 | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |
 | MCP server and CLI | The same steps as tools for any MCP client and as commands | 0.1.0 | `McpTests.ProtocolToolsAndPrompts`<br>`PipelineTests.CommandLineReportsUnknownCommandsAndMissingArguments` |
-| Plugin interfaces | For event sources, web templates, clone renderers and video layouts, documented | 0.1.0 | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason` |
+| Plugin interfaces | For event sources, readers, web templates, clone renderers and video layouts, documented | 0.1.0 | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason`<br>`ReaderTests.ReaderPluginWritesTheSameFormatAndIsFoundByFileExtension`<br>`ReaderTests.ReaderPluginNeedsACommandAndAValidResult` |
 | Sample application with end-to-end run | An own sample application as Windows program and in the browser; `eqlmaker sample` runs the whole pipeline on plain PostgreSQL and finds the deliberate defects | 0.1.0 | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter`<br>`examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax` |
 | German and English | Programs, documentation and web template in both languages | 0.1.0 | `I18nTests.TranslationsHaveTheSameKeysAndPlaceholders`<br>`I18nTests.GermanIsUsedWhenAskedFor`<br>`I18nTests.EnglishFileIsTheExportOfTheCode`<br>`src/templates/web/test/template.test.js: languages: English and German resources have the same keys` |
 | Setup without admin rights | One batch file sets everything up in its own folder: no installer, no registry, no service. Tested with the released package as a user without admin rights on Windows Server 2025; not tested on a clean Windows 10 or 11. The tests of the package run locally before a release, not in the automatic checks of the repository | 0.1.0 | `scripts/setup/tests/test-setup.ps1: the setup process is not elevated (restricted token, evidence taken inside the run)`<br>`scripts/setup/tests/test-setup.ps1: eqlmaker-setup.cmd -unattended as ordinary user: downloads, default PostgreSQL without psql, self test with speech and logical decoding`<br>`scripts/setup/tests/test-setup.ps1: registry autostart and uninstall keys, PATH, environment, services, firewall rules, scheduled tasks: nothing added, removed or changed by the package`<br>`scripts/setup/tests/test-setup.ps1: remove: after eqlmaker-db-stop.cmd the folders can be deleted completely by the ordinary user` |
+| Read PowerBuilder libraries | Built-in reader for the compiled libraries (.pbd, .pbl) of PowerBuilder 5 to 9, without source code: menus, windows, labels, SQL statements and references. The result goes into the specification and shows which tables no recording touched | 0.2.0 | `ReaderTests.PowerBuilderReaderReadsObjectsSqlLabelsMenusAndReferences`<br>`ReaderTests.PowerBuilderReaderRefusesUnicodeLibrariesAndOtherFiles`<br>`ReaderTests.FirstLibraryWinsForAnObjectNameThatOccursTwice`<br>`ReaderTests.ReadCommandPicksTheReaderByFileExtensionAndSpecTakesTheResultOver` |
+| Statement table and old scenario files | The statements of a recording as the table sql.tsv (the format that tools for replaying statements read; T-SQL batches and calls as tsql-batch and tsql-rpc); scenario files of the earlier recorder are converted; a scenario can name its own logins and databases to capture | 0.2.0 | `ExportTests.SqlTsvHasTheColumnsKindsAndEscapesOfTheReplayFormat`<br>`ExportTests.ExportSqlCommandWritesTheTableOfAnExistingRecording`<br>`ExportTests.ScenarioOfTheEarlierRecorderIsConverted`<br>`ExportTests.ScenarioCaptureObjectReplacesRolesAndDatabasesOfTheConfiguration` |
+| Applications on other databases | Applications that speak SQL Server (TDS) are captured through EQLServer, a separate, optional product that stores in PostgreSQL: batches, calls and changed rows on one time line. Tested with an optional end-to-end test against a running EQLServer 1.10.0; the other protocols are not tested. EQLMaker does not need EQLServer | 0.2.0 | `ServerTests.TdsStatementsAndChangedRowsOfAnApplicationReachTheTimeline`<br>`tests/eqlserver/run-eqlserver-e2e.ps1: changed rows: insert, update and delete of the customer table`<br>`TimelineTests.TransactionsAreTiedAcrossTheNamesOfAServerThatKeepsSeveralDatabasesInOne` |
 <!-- status:end -->
 
 The tests named `Class.Method` belong to `bin\eqlmaker-tests.exe` (sources in `tests/`); the
@@ -50,11 +53,14 @@ package before a release. How to run them: [CONTRIBUTING.md](CONTRIBUTING.md).
 ## In development
 
 <!-- status:begin in-development -->
-Nothing of version 0.1 is in development at the moment: every feature of the list above is available.
+Nothing of version 0.2 is in development at the moment: every feature of the list above is available.
 <!-- status:end -->
 
-Version 0.1.0 is released as a Windows package (`eqlmaker-windows-x64.zip` with checksum). The
-package of this release was built and tested locally on Windows Server 2025. Next steps:
+Version 0.2.0 is released as a Windows package (`eqlmaker-windows-x64.zip` with checksum). The
+package of this release was built and tested locally on Windows Server 2025, as was the update of
+an installed 0.1.0 by copying over it. Version 0.2.0 adds the
+reader plugin point with the PowerBuilder reader, the statement table `sql.tsv`, changed rows through
+`pgoutput` and the test with EQLServer for applications on other databases. Next steps:
 
 - Test the package on a clean Windows 10 and a clean Windows 11.
 - Test the download through a proxy.
@@ -75,6 +81,7 @@ package of this release was built and tested locally on Windows Server 2025. Nex
 - **Later · no date**
   - [ ] Event format as a standalone specification 1.0 for other tools
   - [ ] More open sources: MySQL/MariaDB and SQL Server
+  - [ ] Readers for more kinds of application files
   - [ ] Accessibility of generated web apps (WCAG 2.1 AA)
   - [ ] Template gallery for contributors
 <!-- status:end -->
@@ -85,4 +92,4 @@ no code. Funding is being applied for; there is no commitment yet.
 The items "later" have no date. Among them: sources for MySQL/MariaDB and SQL Server need a way
 to measure changed rows on those servers; until then, applications on other database servers can
 be reached by replacing PostgreSQL with EQLServer, a commercial product by the same author that
-is not part of EQLMaker (see the README, "Other databases").
+is not part of EQLMaker (see [Applications on other databases](docs/other-databases.md)).

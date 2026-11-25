@@ -20,7 +20,7 @@ Wohin der Assistent das sendet, entscheidet der Assistent, den Sie gewählt habe
 
 ## Was ist mit personenbezogenen Daten in Aufnahmen?
 
-Sie werden in Version 0.1 nicht maskiert. Eine Aufnahme enthält das Bildschirmvideo,
+Sie werden in Version 0.2 nicht maskiert. Eine Aufnahme enthält das Bildschirmvideo,
 Referenzbilder, getippten Text, SQL-Anweisungen mit ihren Parametern und die geänderten Zeilen;
 ein importiertes Video bringt Ton und Transkript dazu. Behandeln Sie einen Projektordner wie die
 Daten der Anwendung selbst: Zeichnen Sie nach Möglichkeit auf Testdaten auf, veröffentlichen Sie
@@ -102,7 +102,7 @@ Superuser des Datenbankservers. Siehe [Einrichtung](setup.md).
 Englisch und Deutsch, für Programme, Dokumentation und die Web-Vorlage. Wie man eine hinzufügt,
 steht unter [Übersetzen](translating.md).
 
-## Was sind die Grenzen der Version 0.1?
+## Was sind die Grenzen der Version 0.2?
 
 - Nur Windows; nur PostgreSQL (dazu der oben genannte Adapter).
 - Keine Maskierung personenbezogener Daten.

@@ -17,6 +17,7 @@ record -> correlate -> spec -> generate / clone -> video -> verify
 | Time line | `correlate <recording>` | code, fixed rules | a recording | `recordings/<name>/timeline.json` |
 | Specification | `spec [recording ...]` | code, fixed rules | time lines, `manual/` | `spec/spec.json`, `spec/spec.md` |
 | Manual | `manual <file>` | code | a manual | `manual/<name>.json`, `manual/<name>.txt` |
+| Application files | `read <files>` | code | the files of the original application | `static/<reader>/` |
 | Web application | `generate` | guided | `spec/`, `manual/`, a web template | `web/` with `GENERATE.md` |
 | Archive | `clone` | guided | `spec/`, reference pictures | `clone/` with `CLONE.md` |
 | Comparison video | `video <A> <B>` | code | two recordings | `video/<name>/` |
@@ -57,6 +58,7 @@ of the original and of the rebuilt application.
 | `events.jsonl` | The database events in the [event format](event-format.md) |
 | `video.mp4` | Screen video (H.264), when video was recorded |
 | `sql.vtt` | The statements as subtitles of the video |
+| `sql.tsv` | The statements as a table (offset, time, session, user, database, application, kind, statement), the format that tools for replaying statements read; see `eqlmaker export-sql` |
 | `viewer.html` | Player page: video, actions and events side by side. Open it in a browser. |
 | `shots/NNNN.png` | Reference picture of the window, taken with an action |
 | `shots/NNNN.json` | The controls of the window in that picture: text, class, x, y, w, h, enabled |

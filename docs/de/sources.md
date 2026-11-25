@@ -17,7 +17,7 @@ nichts:
 | `eqlserver` | dasselbe, dazu Anwendungen, die den Server über andere Datenbankprotokolle erreichen | das Obige, dazu Anweisungen der anderen Protokolle |
 | ein Plugin | alles andere | was das Plugin schreibt, siehe [Plugins](plugins.md) |
 
-Was jede Quelle vom Ereignisformat füllt, steht unter [Ereignisformat](event-format.md).
+Was jede Quelle vom Ereignisformat füllt, steht unter [Ereignisformat](event-format.md). Anwendungen, die nicht PostgreSQL sprechen: siehe [andere Datenbanken](other-databases.md).
 
 ## `postgres`
 
@@ -64,6 +64,17 @@ keine serverweite Einstellung und startet den Server nie neu.
 ```sql
 ALTER SYSTEM SET wal_level = logical;
 ```
+
+**Geänderte Zeilen ohne `test_decoding`**
+
+`test_decoding` ist ein optionales Modul von PostgreSQL; manche Server haben es nicht. Steht
+`capture.decoding` auf `auto` (Vorgabe), fragt die Quelle den Server, ob das Modul da ist. Wenn nicht,
+liest sie die geänderten Zeilen mit `pgoutput`, das jeder Server hat: Für jede mitgeschnittene
+Datenbank legt sie eine Publikation `FOR ALL TABLES` und den Replikations-Slot gleichen Namens an
+(`eqlmaker_` plus Zufallszeichen), liest die Änderungen in binärer Form und löscht beides, wenn der
+Mitschnitt endet. `eqlmaker reset` löscht sie nach einem abgebrochenen Mitschnitt. Die Aufnahme nennt
+in einer Warnung, welcher Weg genommen wurde. Mit `capture.decoding` auf `test_decoding` oder
+`pgoutput` lässt sich einer erzwingen.
 
 **Konfiguration**
 
@@ -131,7 +142,8 @@ HTTP für Verbindungen anbietet, die nicht das PostgreSQL-Protokoll nutzen.
 - Geänderte Zeilen brauchen `wal_level = logical` auf dem Server, wie bei PostgreSQL.
 
 Wie es getestet ist: Die automatischen Tests lassen diese Quelle gegen reines PostgreSQL und
-einen nachgestellten Statistik-Port laufen. Sie lief außerdem einmal von Hand gegen eine
-Serverinstanz (Anweisungen eines Clients eines anderen Protokolls kamen über die Verfolgung an,
-eine Anweisung über das PostgreSQL-Protokoll über das Protokoll des Servers); dieser Lauf ist
-nicht Teil der automatischen Tests.
+einen nachgestellten Statistik-Port laufen. Ein optionaler Ende-zu-Ende-Test lässt sie gegen das
+Paket von EQLServer 1.10.0 laufen: Ein T-SQL-Client arbeitet über TDS, und die Zeitachse enthält
+seine Stapel, seine Aufrufe, einen Fehler und die geänderten Zeilen, siehe
+[andere Datenbanken](other-databases.md). Dieser Server hat kein Modul `test_decoding`, die
+geänderten Zeilen kommen daher über `pgoutput`.

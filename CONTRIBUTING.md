@@ -37,6 +37,7 @@ reported as skipped, with the reason. To run everything, give the tests:
 | FFmpeg for the video tests | `ffmpeg` on the `PATH`, or its path in `EQLMAKER_TEST_FFMPEG` |
 | A speech recogniser for the speech test | path of a `whisper-cli.exe` in `EQLMAKER_TRANSCRIBE` (the release package has one) |
 | Microsoft Edge or Chrome | for the tests that operate a web page; Edge is part of Windows |
+| The package of a database server that stores in PostgreSQL, for the optional end-to-end test of [applications on other databases](docs/other-databases.md) | a running server; its ports and, only in the environment, its two passwords in the variables `EQLMAKER_E2E_*` named in the [description of the test](docs/other-databases.md); the test installs, starts and stops nothing |
 
 The tests of the web template and of the browser variant of the sample run with Node.js 18 or
 later:

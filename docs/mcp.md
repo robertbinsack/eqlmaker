@@ -92,6 +92,8 @@ afterwards.
 | `correlate` | `correlate` | builds the time line of a recording |
 | `spec` | `spec` | derives the specification |
 | `manual_import` | `manual` | takes a manual over |
+| `read_application` | `read` | reads the files of the original application into `static/<reader>/`; `spec` takes the result over |
+| `export_sql` | `export-sql` | writes the statements of a recording as the table `sql.tsv` |
 | `generate` | `generate` | guided step: prepares `web/`, returns the instructions |
 | `clone` | `clone` | guided step: prepares `clone/`, returns the instructions |
 | `video` | `video` | two recordings on one time axis |

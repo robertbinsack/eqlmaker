@@ -43,7 +43,7 @@ eqlmaker help
 ## Record
 
 ```text
-eqlmaker record --scenario <file.json> [--name <n>] [--input real|background] [--no-video] [--capture-database <db>] [--quiet]
+eqlmaker record --scenario <file.json> [--name <n>] [--input real|background] [--no-video] [--capture-database <db>] [--capture-role <roles>] [--quiet]
 eqlmaker record --start [--name <n>] [--no-video] [--no-capture] [--region <r>] [--fps <n>]
 eqlmaker record --stop
 eqlmaker reset
@@ -61,6 +61,7 @@ eqlmaker reset
 | `--region <r>` | with `--start`: part of the screen for the video: `workarea` (default), `screen`, `x,y,w,h` or a window title pattern |
 | `--fps <n>` | with `--start`: frames per second (default 15) |
 | `--capture-database <db>` | capture exactly this database, whatever the configuration names |
+| `--capture-role <roles>` | capture exactly the statements of these logins (comma-separated), whatever the configuration names; with `--capture-database` both |
 | `--quiet` | with `--scenario`: do not print the steps and the result |
 
 `eqlmaker reset` undoes what an aborted capture left on the database server: the logging
@@ -71,7 +72,10 @@ settings of roles and databases, and replication slots. See [event sources](sour
 | Command | Options | Does |
 |---|---|---|
 | `eqlmaker correlate <recording>` | | writes `timeline.json` into the recording folder |
-| `eqlmaker spec [recording ...]` | | writes `spec/spec.json` and `spec/spec.md` from the named recordings (default: all) |
+| `eqlmaker spec [recording ...]` | | writes `spec/spec.json` and `spec/spec.md` from the named recordings (default: all); takes in the results of `read` |
+| `eqlmaker read <files or folders>` | `--reader <name>`, `--out <folder>`, `--bundle <objects>`, `--max-depth <n>`, `--exclude <regex>`, `--no-raw` | reads the files of the original application (built in: PowerBuilder libraries) into `static/<reader>/`; see [PowerBuilder libraries](powerbuilder.md) |
+| `eqlmaker export-sql <recording>` | `--out <file>` | writes the statements of a recording as the table `sql.tsv` (default: in the recording folder) |
+| `eqlmaker convert-scenario <file>` | `--out <file>` | converts a scenario file of the earlier recorder (`sql` becomes `capture`); see [remote control](remote-control.md) |
 | `eqlmaker manual <file>` | `--name <n>`: name in the project (default: file name) | takes a manual over into `manual/`; see [manual](manual.md) |
 
 ## Guided steps

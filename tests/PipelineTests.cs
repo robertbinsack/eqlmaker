@@ -42,7 +42,7 @@ public static class PluginTests {
     public static void ExamplesAreValidAndOfEveryType() {
         var list = Plugin.LoadAll(new[] { Path.Combine(T.RepoRoot, "plugins", "examples") });
         var types = list.ConvertAll(delegate (Plugin p) { return p.Type + ":" + p.Name; }); types.Sort(StringComparer.Ordinal);
-        T.Eq("clone-renderer:outline,source:jsonl-file,video-layout:stacked,web-template:minimal", string.Join(",", types.ToArray()), "one example per plugin type");
+        T.Eq("clone-renderer:outline,reader:sql-scripts,source:jsonl-file,video-layout:stacked,web-template:minimal", string.Join(",", types.ToArray()), "one example per plugin type");
     }
 
     public static void BrokenManifestsAreRefusedWithTheReason() {

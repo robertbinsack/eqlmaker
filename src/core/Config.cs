@@ -12,7 +12,7 @@ namespace EqlMaker {
 /// <summary>A project is a folder with eqlmaker.json and one sub-folder per pipeline step.</summary>
 public class Config {
     public const string FileName = "eqlmaker.json";
-    public const string Version = "0.1.0";
+    public const string Version = "0.2.0";
     public string Dir; public JO Raw = new JO();
 
     public string Source { get { return Raw.Str("source", "postgres"); } }
@@ -48,11 +48,14 @@ public class Config {
         return Path.Combine(RecordingsDir, nameOrPath);
     }
 
-    public CaptureOptions Capture() {
+    public CaptureOptions Capture() { return Capture(null); }
+    /// <summary>The capture options; roles and databases of "over" (a scenario or a tool call) replace those of the configuration.</summary>
+    public CaptureOptions Capture(JO over) {
         var o = new CaptureOptions(); o.Connection = Connection;
         var cap = Raw.Obj("capture") ?? new JO();
         o.Roles = cap.Strings("roles"); o.Databases = cap.Strings("databases");
-        o.Changes = cap.Bool("changes", true); o.LogFile = cap.Str("logFile", "");
+        if (over != null && (over.Has("roles") || over.Has("databases"))) { o.Roles = over.Strings("roles"); o.Databases = over.Strings("databases"); }
+        o.Changes = cap.Bool("changes", true); o.LogFile = cap.Str("logFile", ""); o.Decoding = cap.Str("decoding", "auto");
         o.SourceSettings = Raw.Obj(Source) ?? new JO();
         return o;
     }
@@ -119,10 +122,10 @@ public static class Share {
 }
 
 /// <summary>A plugin is a folder with plugin.json: { "type": "source" | "web-template" | "clone-renderer" |
-/// "video-layout", "name": "...", ... }. See docs/plugins.md.</summary>
+/// "video-layout" | "reader", "name": "...", ... }. See docs/plugins.md.</summary>
 public class Plugin {
     public string Type, Name, Dir; public JO Manifest;
-    public static readonly string[] Types = { "source", "web-template", "clone-renderer", "video-layout" };
+    public static readonly string[] Types = { "source", "web-template", "clone-renderer", "video-layout", "reader" };
 
     public static Plugin Load(string dir) {
         string f = Path.Combine(dir, "plugin.json");
@@ -131,7 +134,7 @@ public class Plugin {
         var p = new Plugin { Dir = Path.GetFullPath(dir), Manifest = m, Type = m.Str("type", ""), Name = m.Str("name", "") };
         if (Array.IndexOf(Types, p.Type) < 0) throw new Exception(f + ": type must be one of " + string.Join(", ", Types));
         if (p.Name == "" || p.Name.IndexOfAny(new[] { '/', '\\', ' ' }) >= 0) throw new Exception(f + ": name is missing or contains spaces or slashes");
-        if ((p.Type == "source" || p.Type == "clone-renderer") && m.Str("command", "") == "") throw new Exception(f + ": a " + p.Type + " plugin needs \"command\"");
+        if ((p.Type == "source" || p.Type == "clone-renderer" || p.Type == "reader") && m.Str("command", "") == "") throw new Exception(f + ": a " + p.Type + " plugin needs \"command\"");
         if (p.Type == "web-template" && !Directory.Exists(Path.Combine(p.Dir, m.Str("files", "files")))) throw new Exception(f + ": folder '" + m.Str("files", "files") + "' with the template files is missing");
         if (p.Type == "video-layout" && m.Str("filter", "") == "") throw new Exception(f + ": a video-layout plugin needs \"filter\"");
         return p;
