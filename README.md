@@ -8,7 +8,7 @@
   </picture>
 </h1>
 
-<p align="center"><b>Alte Software verstehen und von KI automatisch als moderne Webanwendung nachbauen lassen. Ohne Quellcode.</b></p>
+<p align="center"><b>Alte Software verstehen und mit KI als moderne Webanwendung nachbauen. Ohne Quellcode.</b></p>
 
 <p align="center">
   <img alt="Status: in Entwicklung" src="https://img.shields.io/badge/Status-in%20Entwicklung-orange">
@@ -21,7 +21,6 @@
 </p>
 
 <!-- docs/media/demo.gif : die Demo-Animation folgt mit der ersten Veröffentlichung (erzeugt von scripts/demo/make-demo.ps1) -->
-<!-- check-docs: links -1 --><!-- die Videozeile der deutschen Fassung nennt eine Adresse weniger als die englische -->
 
 EQLMaker schaut bei der Bedienung zu, misst, was dabei in der Datenbank geschieht, und liest das Handbuch. Daraus entsteht die Grundlage für einen Nachbau, der sich mit Vergleichstests belegen lässt.
 
@@ -110,7 +109,7 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 | Contoso University (Microsoft-Beispiel) | ASP.NET Core · SQL Server | 14 Min. | 32 / 32 GUI-Funktionen (100 %) |
 | Dolibarr ERP/CRM (Open Source) | PHP · PostgreSQL | 3 Std. 09 Min. | 81 / 93 GUI-Funktionen (87 %) |
 
-▶️ **Videos (Original und Nachbau nebeneinander):** [eqlserver.de/eqlmaker](https://eqlserver.de/eqlmaker/)
+▶️ **Videos (Original und Nachbau nebeneinander):** [eqlmaker.org](https://eqlmaker.org/de/)
 
 <sub>Die Anwendungen stammen von Drittherstellern oder sind quelloffen. Produkt- und Herstellernamen fremder Programme sind anonymisiert.</sub>
 

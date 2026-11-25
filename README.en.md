@@ -8,7 +8,7 @@
   </picture>
 </h1>
 
-<p align="center"><b>Understand legacy software and let AI rebuild it automatically as a modern web application. Without source code.</b></p>
+<p align="center"><b>Understand legacy software and rebuild it with AI as a modern web application. Without source code.</b></p>
 
 <p align="center">
   <img alt="Status: in development" src="https://img.shields.io/badge/Status-in%20development-orange">
@@ -109,7 +109,7 @@ All steps are also available as tools of an **MCP server**.
 | Contoso University (Microsoft sample) | ASP.NET Core · SQL Server | 14 min | 32 / 32 GUI functions (100 %) |
 | Dolibarr ERP/CRM (open source) | PHP · PostgreSQL | 3 h 09 min | 81 / 93 GUI functions (87 %) |
 
-▶️ **Videos (original and rebuild side by side):** [eqlserver.com](https://eqlserver.com) · [eqlserver.de/eqlmaker](https://eqlserver.de/eqlmaker/)
+▶️ **Videos (original and rebuild side by side):** [eqlmaker.org](https://eqlmaker.org/)
 
 <sub>The applications come from third-party vendors or are open source. Product and vendor names of third-party programs are anonymized.</sub>
 
