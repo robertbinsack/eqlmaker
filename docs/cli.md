@@ -174,7 +174,7 @@ What the two steps do is described in [voice-over](narration.md).
 | `--out <file>` | video to write (MP4 with AAC sound); never the input |
 | `--voice <id>` | voice reference registered on the Fish Speech server (default: `narration.voices.<lang>` or `narration.voice` of `eqlmaker.json`) |
 | `--music <file>` | background music (MP3 or WAV), looped or cut to the length of the video |
-| `--music-volume <percent>` | level of the music in percent of its own level (default 25) |
+| `--music-volume <percent>` | level of the music in percent of its own level (default 30) |
 | `--tts-url <url>` | address of the Fish Speech server (default `http://127.0.0.1:8080`) |
 | `--max-tempo <n>` | largest speed-up of a clip that is a little too long (default 1.1) |
 | `--no-duck` | do not lower the music further while someone speaks |

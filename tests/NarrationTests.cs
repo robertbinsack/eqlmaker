@@ -143,8 +143,8 @@ public static class NarrationTests {
     }
 
     public static void MixFilterSetsMusicVolumeDuckingAndFades() {
-        string f = Narration.MixFilter(true, 60, 25, true, 1.5, 3);
-        T.Contains(f, "volume=0.25", "music at 25 %"); T.Contains(f, "sidechaincompress", "music ducked under the speech");
+        string f = Narration.MixFilter(true, 60, 30, true, 1.5, 3);
+        T.Contains(f, "volume=0.3", "music at 30 %"); T.Contains(f, "sidechaincompress", "music ducked under the speech");
         T.Contains(f, "afade=t=out:st=57", "fade out at the end"); T.Contains(f, "atrim=0:60", "trimmed to the video");
         T.True(!Narration.MixFilter(true, 60, 40, false, 1.5, 3).Contains("sidechaincompress"), "no ducking when switched off");
         T.True(!Narration.MixFilter(false, 60, 25, true, 1.5, 3).Contains("[2:a]"), "no music input without music");
@@ -182,7 +182,7 @@ public static class NarrationTests {
             new JO("start", 4.0, "end", 6.0, "text", "Thirty characters of text, ok."),   // 2.0 s + 0.12 s margin in 2 s: tempo 1.06
             new JO("start", 6.0, "end", 7.0, "text", "Ok.") }));
         using (var srv = new FakeFishServer()) {
-            var o = new NarrateOptions { Video = video, Script = script, Out = outFile, Music = music, MusicVolume = 25 };
+            var o = new NarrateOptions { Video = video, Script = script, Out = outFile, Music = music, MusicVolume = 30 };
             var r = Narration.Run(Config.Load(dir), o, new FishSpeechTts { BaseUrl = srv.Url, ReferenceId = "test-voice" });
             T.Eq(3, srv.Bodies.Count, "one request per spoken segment");
             var body = Json.ParseObject(srv.Bodies[0]);
@@ -193,10 +193,10 @@ public static class NarrationTests {
             var rep = Json.ReadFile(r.Str("report")); var clips = rep.Arr("clips");
             T.Near(2.12 / 2.0, ((JO)clips[1]).Num("tempo", 0), 0.02, "second clip sped up");
             T.Eq(false, rep.Obj("coverage").Bool("overlaps", true), "no overlaps");
-            // music alone (after the speech, before the fade-out) at 25 % of its level: -12 dB
+            // music alone (after the speech, before the fade-out) at 30 % of its level: about -10.5 dB
             double musicAlone = MeanVolume(ffmpeg, music, 1, 2), mixed = MeanVolume(ffmpeg, outFile, 8.0, 1.0);
             T.Note("music_db_relative", Math.Round(mixed - musicAlone, 2));
-            T.Near(20 * Math.Log10(0.25), mixed - musicAlone, 1.5, "music level as set");
+            T.Near(20 * Math.Log10(0.30), mixed - musicAlone, 1.5, "music level as set");
             T.True(MeanVolume(ffmpeg, outFile, 1.0, 1.0) > mixed + 3, "speech is louder than the music");
             // again: every clip comes from the cache
             o.Force = true; var r2 = Narration.Run(Config.Load(dir), o, new FishSpeechTts { BaseUrl = srv.Url, ReferenceId = "test-voice" });

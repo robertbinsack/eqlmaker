@@ -175,7 +175,7 @@ Was die beiden Schritte tun, steht unter [Vertonung](narration.md).
 | `--out <file>` | zu schreibendes Video (MP4 mit AAC-Ton); nie die Eingabe |
 | `--voice <id>` | auf dem Fish-Speech-Server registrierte Stimmreferenz (Vorgabe: `narration.voices.<lang>` oder `narration.voice` aus `eqlmaker.json`) |
 | `--music <file>` | Hintergrundmusik (MP3 oder WAV), auf die Länge des Videos wiederholt oder gekürzt |
-| `--music-volume <percent>` | Pegel der Musik in Prozent ihres eigenen Pegels (Vorgabe 25) |
+| `--music-volume <percent>` | Pegel der Musik in Prozent ihres eigenen Pegels (Vorgabe 30) |
 | `--tts-url <url>` | Adresse des Fish-Speech-Servers (Vorgabe `http://127.0.0.1:8080`) |
 | `--max-tempo <n>` | größte Beschleunigung eines etwas zu langen Abschnitts (Vorgabe 1.1) |
 | `--no-duck` | die Musik beim Sprechen nicht zusätzlich absenken |

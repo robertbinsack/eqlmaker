@@ -31,7 +31,7 @@ public static class Program {
   eqlmaker verify db <recording A> <recording B>   compare the measured database changes of two recordings
   eqlmaker video-import <file.mp4>            read time stamps, transcript and key frames of a narrated video; findings
   eqlmaker narrate-draft <captions> [--video f] [--lang de]   narration script from the caption timeline of a video
-  eqlmaker narrate --video <f> --script <f> --voice <id> --out <f> [--music f --music-volume 25]   spoken narration (Fish Speech)
+  eqlmaker narrate --video <f> --script <f> --voice <id> --out <f> [--music f --music-volume 30]   spoken narration (Fish Speech)
   eqlmaker enrich [--finish]                  guided step: take findings over into the web application, with report
   eqlmaker import-log <file>                  turn a server log written earlier into a recording with events only
   eqlmaker clock                              clock of the database server minus the clock of this machine

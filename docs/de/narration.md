@@ -29,7 +29,7 @@ nicht erlaubt). Auch für Musik brauchen Sie die Rechte für die geplante Verwen
 ```text
 eqlmaker narrate-draft captions.srt --video demo.mp4 --lang en --chars-per-second 15
 # write the "text" of every segment in captions.narration.json
-eqlmaker narrate --video demo.mp4 --script captions.narration.json --voice my-voice --out demo_narrated.mp4 --music music.mp3 --music-volume 25
+eqlmaker narrate --video demo.mp4 --script captions.narration.json --voice my-voice --out demo_narrated.mp4 --music music.mp3 --music-volume 30
 ```
 
 1. **Untertitel-Zeitachse.** `narrate-draft` liest, was das Video bereits über seinen Ablauf
@@ -82,7 +82,7 @@ Textes wird nur dieser Abschnitt neu erzeugt.
 | Teil | Wie |
 |---|---|
 | Sprache | voller Pegel |
-| Musik | auf die Länge des Videos wiederholt oder gekürzt, mit `--music-volume` Prozent ihres eigenen Pegels (Vorgabe 25), ein- (1,5 s) und ausgeblendet (3 s) |
+| Musik | auf die Länge des Videos wiederholt oder gekürzt, mit `--music-volume` Prozent ihres eigenen Pegels (Vorgabe 30), ein- (1,5 s) und ausgeblendet (3 s) |
 | Absenken | die Musik wird während der Sprache zusätzlich komprimiert (Sidechain); `--no-duck` schaltet das ab |
 | Ausgabe | Bild kopiert, Ton AAC 192 kbit/s, gleiche Länge wie das Video |
 

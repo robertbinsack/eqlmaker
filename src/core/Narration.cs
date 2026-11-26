@@ -191,7 +191,7 @@ public class PlacedClip {
 
 public class NarrateOptions {
     public string Video, Script, Out, Voice, Language, Music, TtsUrl, WorkDir;
-    public double MusicVolume = 25, MaxTempo = 1.1, MinGap = 0.15, CharsPerSecond = 0, FadeIn = 1.5, FadeOut = 3;
+    public double MusicVolume = 30, MaxTempo = 1.1, MinGap = 0.15, CharsPerSecond = 0, FadeIn = 1.5, FadeOut = 3;
     public bool NoDuck, Force;
 }
 

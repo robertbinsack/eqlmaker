@@ -29,7 +29,7 @@ the rights for the use you have in mind as well.
 ```text
 eqlmaker narrate-draft captions.srt --video demo.mp4 --lang en --chars-per-second 15
 # write the "text" of every segment in captions.narration.json
-eqlmaker narrate --video demo.mp4 --script captions.narration.json --voice my-voice --out demo_narrated.mp4 --music music.mp3 --music-volume 25
+eqlmaker narrate --video demo.mp4 --script captions.narration.json --voice my-voice --out demo_narrated.mp4 --music music.mp3 --music-volume 30
 ```
 
 1. **Caption timeline.** `narrate-draft` reads what the video already knows about its timing: a
@@ -80,7 +80,7 @@ segment is synthesised again.
 | Part | How |
 |---|---|
 | Speech | full level |
-| Music | looped or cut to the length of the video, at `--music-volume` percent of its own level (default 25), faded in (1.5 s) and out (3 s) |
+| Music | looped or cut to the length of the video, at `--music-volume` percent of its own level (default 30), faded in (1.5 s) and out (3 s) |
 | Ducking | the music is compressed further while the speech runs (side chain); `--no-duck` switches it off |
 | Output | picture copied, sound AAC 192 kbit/s, same length as the video |
 

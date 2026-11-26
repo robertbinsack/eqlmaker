@@ -122,7 +122,7 @@ public static class Pipeline {
     }
     static NarrateOptions NarrateOptionsFrom(Args a) {
         return new NarrateOptions { Video = a.Opt.Str("video"), Script = a.Opt.Str("script"), Out = a.Opt.Str("out"), Voice = a.Opt.Str("voice"), Language = a.Opt.Str("lang"),
-            Music = a.Opt.Str("music"), MusicVolume = a.Opt.Num("music-volume", 25), TtsUrl = a.Opt.Str("tts-url"), MaxTempo = a.Opt.Num("max-tempo", 1.1),
+            Music = a.Opt.Str("music"), MusicVolume = a.Opt.Num("music-volume", 30), TtsUrl = a.Opt.Str("tts-url"), MaxTempo = a.Opt.Num("max-tempo", 1.1),
             CharsPerSecond = a.Opt.Num("chars-per-second", 0), NoDuck = a.Opt.Bool("no-duck", false), Force = a.Opt.Bool("force", false) };
     }
     static void Print(JO r, Args a) {
@@ -182,11 +182,11 @@ public static class Pipeline {
             delegate (JO a) { return Narration.DraftFile(cfg, a.Str("captions"), a.Str("video"), a.Str("language"), a.Num("chars_per_second", 0), a.Num("max_segment", 14), 2.5, a.Str("out"), a.Bool("force", false)); });
         s.Add("narrate", "Lays a spoken narration over a video: speaks every segment of the narration script with a local Fish Speech server and a registered voice reference, fits the clips into their segments (speed-up up to max_tempo), mixes optional background music (ducked under the speech) and writes a new video; the picture is copied unchanged. Fails with the segments to shorten when the speech does not fit.",
             new JO("video", S("video file"), "script", S("narration script (narrate_draft)"), "out", S("video file to write"), "voice", S("voice reference id registered on the Fish Speech server"), "language", S("language of the narration (picks narration.voices of eqlmaker.json)"),
-                "music", S("background music (mp3 or wav), looped to the length of the video"), "music_volume", N("music volume in percent (default 25)"), "tts_url", S("address of the Fish Speech server (default http://127.0.0.1:8080)"),
+                "music", S("background music (mp3 or wav), looped to the length of the video"), "music_volume", N("music volume in percent (default 30)"), "tts_url", S("address of the Fish Speech server (default http://127.0.0.1:8080)"),
                 "max_tempo", N("largest speed-up of a clip (default 1.1)"), "force", B("replace an existing output file")), new[] { "video", "script", "out" },
             delegate (JO a) {
                 return Narration.RunWithConfig(cfg, new NarrateOptions { Video = a.Str("video"), Script = a.Str("script"), Out = a.Str("out"), Voice = a.Str("voice"), Language = a.Str("language"), Music = a.Str("music"),
-                    MusicVolume = a.Num("music_volume", 25), TtsUrl = a.Str("tts_url"), MaxTempo = a.Num("max_tempo", 1.1), Force = a.Bool("force", false) });
+                    MusicVolume = a.Num("music_volume", 30), TtsUrl = a.Str("tts_url"), MaxTempo = a.Num("max_tempo", 1.1), Force = a.Bool("force", false) });
             });
         s.Add("clock_check","Measures the clock of the database server against the clock of this machine (for video_import).", null, null, delegate (JO a) { return ClockCheck(cfg); });
         s.Add("import_log", "Turns a PostgreSQL server log written earlier into a recording with events only (for correlate, spec and video_import after the fact).",
