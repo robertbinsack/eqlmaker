@@ -42,6 +42,7 @@ Viele Betriebe, Vereine und Verwaltungen arbeiten mit alter Software, deren Hers
 EQLMaker sammelt das Wissen, das in einer laufenden Anwendung steckt, ohne ihren Quellcode zu brauchen:
 
 - Jemand bedient das alte Programm wie gewohnt. EQLMaker **zeichnet auf**, was auf dem Bildschirm geschieht, und **misst** gleichzeitig, welche Daten die Anwendung in der Datenbank liest und ändert.
+- **Die KI bedient die Anwendung auch selbst.** Je nach Prompt bedient die KI die Anwendung selbst, um die Oberfläche und die Bedienung vollständig zu katalogisieren. Anwender können den Katalog anschließend selbst ergänzen.
 - Dazu kommen das **Handbuch** und auf Wunsch ein **Video mit gesprochener Erklärung**.
 - Wer die **Dateien der Anwendung** hat, kann sie lesen lassen: Der eingebaute Reader für PowerBuilder-Bibliotheken listet Menüs, Fenster, Beschriftungen und jede SQL-Anweisung, auch von Funktionen, die niemand aufgenommen hat. Reader für andere Dateiarten werden auf dieselbe Weise angeschlossen.
 - Alles landet auf einer gemeinsamen **Zeitachse**: dieser Klick, diese Maske, diese Änderung in der Datenbank, dieser Satz im Handbuch.
@@ -112,7 +113,7 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 | Contoso University (Microsoft-Beispiel) | ASP.NET Core · SQL Server | 14 Min. | 32 / 32 GUI-Funktionen (100 %) |
 | Dolibarr ERP/CRM (Open Source) | PHP · PostgreSQL | 3 Std. 09 Min. | 81 / 93 GUI-Funktionen (87 %) |
 
-▶️ **Videos (Original und Nachbau nebeneinander):** [eqlmaker.org](https://eqlmaker.org/de/)
+▶️ **Videos (Original und Nachbau nebeneinander):** [eqlmaker.org](https://eqlmaker.org/de/) – die Demo-Videos hat die KI selbständig bedient; daraus entstanden die Apps.
 
 <sub>Die Anwendungen stammen von Drittherstellern oder sind quelloffen. Produkt- und Herstellernamen fremder Programme sind anonymisiert.</sub>
 

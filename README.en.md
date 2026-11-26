@@ -42,6 +42,7 @@ Many businesses, associations and public administrations rely on old software wh
 EQLMaker captures the knowledge embedded in a running application without needing its source code:
 
 - Someone uses the old program as usual. EQLMaker **records** what happens on screen and at the same time **measures** which data the application reads and changes in the database.
+- **The AI can also operate the application itself.** Depending on the prompt, the AI operates the application on its own in order to catalogue the interface and the operation completely. Users can add to the catalogue afterwards.
 - The **manual** is added, plus – optionally – a **video with spoken explanation**.
 - Whoever has the **files of the application** can have them read: the built-in reader for PowerBuilder libraries lists menus, windows, labels and every SQL statement, also of functions that nobody recorded. Readers for other kinds of files plug in the same way.
 - Everything lands on a shared **timeline**: this click, this screen, this database change, this sentence in the manual.
@@ -112,7 +113,7 @@ All steps are also available as tools of an **MCP server**.
 | Contoso University (Microsoft sample) | ASP.NET Core · SQL Server | 14 min | 32 / 32 GUI functions (100 %) |
 | Dolibarr ERP/CRM (open source) | PHP · PostgreSQL | 3 h 09 min | 81 / 93 GUI functions (87 %) |
 
-▶️ **Videos (original and rebuild side by side):** [eqlmaker.org](https://eqlmaker.org/)
+▶️ **Videos (original and rebuild side by side):** [eqlmaker.org](https://eqlmaker.org/) – the demo videos were operated by the AI on its own; the apps came out of them.
 
 <sub>The applications come from third-party vendors or are open source. Product and vendor names of third-party programs are anonymized.</sub>
 
