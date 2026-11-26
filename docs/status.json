@@ -261,6 +261,26 @@
       "date": "2026-11-24"
     },
     {
+      "id": "narration",
+      "name": {
+        "en": "Voice-over for demo videos",
+        "de": "Vertonung von Demo-Videos"
+      },
+      "description": {
+        "en": "A spoken commentary laid over a finished video, segment by segment along its caption timeline, synthesised by a local Fish Speech server with your own voice reference; clips are measured and fitted (slight speed-up at most), optional background music with adjustable volume is lowered under the speech; the picture stays unchanged",
+        "de": "Ein gesprochener Kommentar über einem fertigen Video, Abschnitt für Abschnitt entlang seiner Untertitel-Zeitachse, erzeugt von einem lokalen Fish-Speech-Server mit eigener Stimmreferenz; Clips werden gemessen und eingepasst (höchstens leicht beschleunigt), optionale Hintergrundmusik mit einstellbarer Lautstärke wird unter der Sprache abgesenkt; das Bild bleibt unverändert"
+      },
+      "status": "available",
+      "tests": [
+        "NarrationTests.NarrateMixesSpeechAndMusicOverTheVideo",
+        "NarrationTests.NarrateRefusesSpeechThatDoesNotFit",
+        "NarrationTests.FitSpeedsUpSlightlyAndReportsWhatToCut",
+        "NarrationTests.DraftCoversTheWholeVideoAndSplitsLongCaptions"
+      ],
+      "since": "0.3.0",
+      "date": "2026-11-26"
+    },
+    {
       "id": "mcp-cli",
       "name": {
         "en": "MCP server and CLI",

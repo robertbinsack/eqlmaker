@@ -67,6 +67,9 @@ Schritte legen diese Unterordner an:
 | `verify.ignoreColumns` | Spalten, die `verify db` auslässt | keine |
 | `verify.keyColumns` | Schlüsselspalten, die `verify db` nach der Reihenfolge ihrer Entstehung vergleicht | `*.id` |
 | `verify.references` | Spalten, die einen Schlüssel einer anderen Tabelle enthalten, als `table.column=table` | keine |
+| `narration.ttsUrl` | Adresse des Fish-Speech-Servers für `narrate`. Siehe [Vertonung](narration.md). | `http://127.0.0.1:8080` |
+| `narration.voices` | Stimmreferenz je Sprache, als `{"de": "...", "en": "..."}`; `narration.voice` gilt für alle Sprachen | – |
+| `narration.charsPerSecond` | Sprechtempo je Sprache für das Zeichenbudget von `narrate-draft` | 14 |
 
 Die Optionen von `verify db` auf der Kommandozeile ersetzen die Werte von `verify`. Siehe
 [Vergleichstests](verify.md).

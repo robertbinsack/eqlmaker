@@ -16,7 +16,7 @@ that proves it. The roadmap is a plan, not a commitment.
 ## Available and tested (v0.2)
 
 <!-- status:begin summary -->
-21 of 21 features of version 0.2 are available and tested, 0 in development. The test column names the tests of the repository that prove each feature.
+22 of 22 features of version 0.2 are available and tested, 0 in development. The test column names the tests of the repository that prove each feature.
 <!-- status:end -->
 
 <!-- status:begin available -->
@@ -35,6 +35,7 @@ that proves it. The roadmap is a plan, not a commitment.
 | Take over findings from the video | Guided step: every finding is decided as adopted, rejected or open, with a report | 0.1.0 | `GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding` |
 | Comparison tests | Visual comparison and comparison of measured database changes between two recordings | 0.1.0 | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
 | Comparison video with player | Original and rebuild on one timeline | 0.1.0 | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |
+| Voice-over for demo videos | A spoken commentary laid over a finished video, segment by segment along its caption timeline, synthesised by a local Fish Speech server with your own voice reference; clips are measured and fitted (slight speed-up at most), optional background music with adjustable volume is lowered under the speech; the picture stays unchanged | 0.3.0 | `NarrationTests.NarrateMixesSpeechAndMusicOverTheVideo`<br>`NarrationTests.NarrateRefusesSpeechThatDoesNotFit`<br>`NarrationTests.FitSpeedsUpSlightlyAndReportsWhatToCut`<br>`NarrationTests.DraftCoversTheWholeVideoAndSplitsLongCaptions` |
 | MCP server and CLI | The same steps as tools for any MCP client and as commands | 0.1.0 | `McpTests.ProtocolToolsAndPrompts`<br>`PipelineTests.CommandLineReportsUnknownCommandsAndMissingArguments` |
 | Plugin interfaces | For event sources, readers, web templates, clone renderers and video layouts, documented | 0.1.0 | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason`<br>`ReaderTests.ReaderPluginWritesTheSameFormatAndIsFoundByFileExtension`<br>`ReaderTests.ReaderPluginNeedsACommandAndAValidResult` |
 | Sample application with end-to-end run | An own sample application as Windows program and in the browser; `eqlmaker sample` runs the whole pipeline on plain PostgreSQL and finds the deliberate defects | 0.1.0 | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter`<br>`examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax` |

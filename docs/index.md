@@ -29,6 +29,7 @@ with the same file name. What is available and tested is listed in the
 | [Comparison tests](verify.md) | `verify screens` and `verify db`: rules, options, reading the report |
 | [Time stamp overlay](timestamp-overlay.md) | The strip that puts the time into every video frame |
 | [Video import](video-import.md) | Matching a narrated video to the database events; measured accuracy |
+| [Voice-over](narration.md) | Laying a spoken commentary with optional background music over a finished video (local Fish Speech) |
 
 ## Reference
 

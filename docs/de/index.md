@@ -29,6 +29,7 @@ Deutsch unter demselben Dateinamen. Was verfügbar und getestet ist, steht im
 | [Vergleichstests](verify.md) | `verify screens` und `verify db`: Regeln, Optionen, den Bericht lesen |
 | [Zeitstempel-Leiste](timestamp-overlay.md) | Die Leiste, die die Uhrzeit in jedes Videobild bringt |
 | [Video-Import](video-import.md) | Ein kommentiertes Video mit den Datenbankereignissen abgleichen; gemessene Genauigkeit |
+| [Vertonung](narration.md) | Einen gesprochenen Kommentar mit optionaler Hintergrundmusik über ein fertiges Video legen (lokales Fish Speech) |
 
 ## Referenz
 

@@ -150,6 +150,37 @@ eqlmaker import-log <file> [--name <n>] [--prefix "%m [%p] "] [--utc-offset-minu
 [Video-Import](video-import.md). Die Zeitstempel-Leiste ist ein eigenes Programm mit eigenen
 Optionen, siehe [Zeitstempel-Leiste](timestamp-overlay.md).
 
+## Vertonung
+
+```text
+eqlmaker narrate-draft <captions> [--video <file>] [--lang <code>] [--chars-per-second <n>] [--max-segment <seconds>] [--out <file>] [--force]
+eqlmaker narrate --video <file> --script <file> --out <file> [--voice <id>] [--lang <code>] [--music <file>] [--music-volume <percent>] [--tts-url <url>] [--max-tempo <n>] [--no-duck] [--force]
+```
+
+Was die beiden Schritte tun, steht unter [Vertonung](narration.md).
+
+| Option von `narrate-draft` | Bedeutung |
+|---|---|
+| `<captions>` | Untertitel-Zeitachse des Videos: SRT, WebVTT, whisper-JSON oder JSON `{"segments":[{"start","end","text","notes"}]}` |
+| `--video <file>` | das Video; seine Länge schließt den letzten Abschnitt ab |
+| `--lang <code>` | Sprache der Vertonung, wird ins Skript geschrieben |
+| `--chars-per-second <n>` | Sprechtempo der Stimme, für das Zeichenbudget (Vorgabe 14) |
+| `--max-segment <seconds>` | längere Untertitel werden in gleich lange Teile geteilt (Vorgabe 14) |
+| `--out <file>` | zu schreibendes Skript (Vorgabe: `<captions>.narration.json`) |
+
+| Option von `narrate` | Bedeutung |
+|---|---|
+| `--video <file>` | das fertige Video; das Bild wird unverändert übernommen |
+| `--script <file>` | das Vertonungsskript mit den Texten |
+| `--out <file>` | zu schreibendes Video (MP4 mit AAC-Ton); nie die Eingabe |
+| `--voice <id>` | auf dem Fish-Speech-Server registrierte Stimmreferenz (Vorgabe: `narration.voices.<lang>` oder `narration.voice` aus `eqlmaker.json`) |
+| `--music <file>` | Hintergrundmusik (MP3 oder WAV), auf die Länge des Videos wiederholt oder gekürzt |
+| `--music-volume <percent>` | Pegel der Musik in Prozent ihres eigenen Pegels (Vorgabe 25) |
+| `--tts-url <url>` | Adresse des Fish-Speech-Servers (Vorgabe `http://127.0.0.1:8080`) |
+| `--max-tempo <n>` | größte Beschleunigung eines etwas zu langen Abschnitts (Vorgabe 1.1) |
+| `--no-duck` | die Musik beim Sprechen nicht zusätzlich absenken |
+| `--force` | eine vorhandene Ausgabedatei ersetzen |
+
 ## Fernbedienung
 
 | Befehl | Wirkung |

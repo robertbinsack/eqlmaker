@@ -67,6 +67,9 @@ sub-folders:
 | `verify.ignoreColumns` | columns that `verify db` leaves out | none |
 | `verify.keyColumns` | key columns that `verify db` compares by order of creation | `*.id` |
 | `verify.references` | columns that hold a key of another table, as `table.column=table` | none |
+| `narration.ttsUrl` | address of the Fish Speech server for `narrate`. See [voice-over](narration.md). | `http://127.0.0.1:8080` |
+| `narration.voices` | voice reference per language, as `{"de": "...", "en": "..."}`; `narration.voice` is the one for all languages | – |
+| `narration.charsPerSecond` | speaking rate per language for the character budget of `narrate-draft` | 14 |
 
 The options of `verify db` on the command line replace the values of `verify`. See
 [comparison tests](verify.md).

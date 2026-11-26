@@ -101,6 +101,8 @@ afterwards.
 | `verify_screens` | `verify screens` | compares pictures |
 | `web_shot` | `web-shot` | picture of a web page at a given size |
 | `video_import` | `video-import` | imports a narrated video and writes findings |
+| `narrate_draft` | `narrate-draft` | prepares a narration script from the caption timeline of a video |
+| `narrate` | `narrate` | lays a spoken narration (local Fish Speech) and optional music over a video |
 | `enrich` | `enrich` | guided step: starts taking findings over, returns the instructions |
 | `enrich_decide` | `enrich --decide` | records the decision for one finding |
 | `enrich_finish` | `enrich --finish` | writes the report |

@@ -127,7 +127,7 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 ### Version 0.2
 
 <!-- status:begin summary -->
-21 von 21 Funktionen der Version 0.2 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
+22 von 22 Funktionen der Version 0.2 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
 <!-- status:end -->
 
 <!-- status:begin features -->
@@ -146,6 +146,7 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 | Befunde aus dem Video übernehmen | Geführter Schritt: Jeder Befund wird als übernommen, abgelehnt oder offen entschieden, mit Bericht | verfügbar · getestet | `GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding` |
 | Vergleichstests | Bildvergleich und Vergleich der gemessenen Datenbankänderungen zweier Aufnahmen | verfügbar · getestet | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
 | Vergleichsvideo mit Player | Original und Nachbau auf einer Zeitachse | verfügbar · getestet | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |
+| Vertonung von Demo-Videos | Ein gesprochener Kommentar über einem fertigen Video, Abschnitt für Abschnitt entlang seiner Untertitel-Zeitachse, erzeugt von einem lokalen Fish-Speech-Server mit eigener Stimmreferenz; Clips werden gemessen und eingepasst (höchstens leicht beschleunigt), optionale Hintergrundmusik mit einstellbarer Lautstärke wird unter der Sprache abgesenkt; das Bild bleibt unverändert | verfügbar · getestet | `NarrationTests.NarrateMixesSpeechAndMusicOverTheVideo`<br>`NarrationTests.NarrateRefusesSpeechThatDoesNotFit`<br>`NarrationTests.FitSpeedsUpSlightlyAndReportsWhatToCut`<br>`NarrationTests.DraftCoversTheWholeVideoAndSplitsLongCaptions` |
 | MCP-Server und Kommandozeile | Dieselben Schritte als Werkzeuge für jeden MCP-Client und als Befehle | verfügbar · getestet | `McpTests.ProtocolToolsAndPrompts`<br>`PipelineTests.CommandLineReportsUnknownCommandsAndMissingArguments` |
 | Plugin-Schnittstellen | Für Ereignisquellen, Reader, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert | verfügbar · getestet | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason`<br>`ReaderTests.ReaderPluginWritesTheSameFormatAndIsFoundByFileExtension`<br>`ReaderTests.ReaderPluginNeedsACommandAndAValidResult` |
 | Beispielanwendung mit Ende-zu-Ende-Lauf | Eine eigene Beispielanwendung als Windows-Programm und im Browser; `eqlmaker sample` durchläuft den ganzen Ablauf auf reinem PostgreSQL und findet die absichtlichen Fehler | verfügbar · getestet | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter`<br>`examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax` |
@@ -238,6 +239,7 @@ Weitere Grenzen der Version 0.2: Sie läuft nur unter Windows. Bedienhandlungen 
 | [Ablauf](docs/de/pipeline.md) | Jeder Schritt mit Eingaben, Ausgaben und den festen Regeln |
 | [Befehlsreferenz](docs/de/cli.md) · [MCP-Server](docs/de/mcp.md) | Jeder Befehl, jede Option, jedes Werkzeug |
 | [Geführte Schritte](docs/de/guided-steps.md) · [Vergleichstests](docs/de/verify.md) | Was EQLMaker vorbereitet, was Assistent oder Mensch tun, wie geprüft wird |
+| [Vertonung](docs/de/narration.md) | Ein fertiges Demo-Video mit lokalem Fish Speech kommentieren lassen, optional mit Hintergrundmusik |
 | [Beispielanwendung](docs/de/sample-app.md) | Das Beispiel, seine verborgenen Regeln und was die Zahlen bedeuten |
 | [Anwendungen auf anderen Datenbanken](docs/de/other-databases.md) · [PowerBuilder-Bibliotheken](docs/de/powerbuilder.md) | Das Prinzip und die Schritte für SQL Server, MySQL und andere; die Bibliotheken einer PowerBuilder-Anwendung lesen |
 | [Alle Seiten](docs/de/index.md) | Übersicht der Dokumentation, auf Deutsch und Englisch |

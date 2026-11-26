@@ -102,6 +102,8 @@ beginnen.
 | `verify_screens` | `verify screens` | vergleicht Bilder |
 | `web_shot` | `web-shot` | Bild einer Webseite in vorgegebener Größe |
 | `video_import` | `video-import` | importiert ein kommentiertes Video und schreibt Befunde |
+| `narrate_draft` | `narrate-draft` | bereitet aus der Untertitel-Zeitachse eines Videos ein Vertonungsskript vor |
+| `narrate` | `narrate` | legt eine gesprochene Vertonung (lokales Fish Speech) und optionale Musik über ein Video |
 | `enrich` | `enrich` | geführter Schritt: beginnt die Übernahme der Befunde, gibt die Anleitung zurück |
 | `enrich_decide` | `enrich --decide` | hält die Entscheidung zu einem Befund fest |
 | `enrich_finish` | `enrich --finish` | schreibt den Bericht |

@@ -149,6 +149,37 @@ eqlmaker import-log <file> [--name <n>] [--prefix "%m [%p] "] [--utc-offset-minu
 [video import](video-import.md). The time stamp overlay is its own program with its own
 options, see [time stamp overlay](timestamp-overlay.md).
 
+## Voice-over
+
+```text
+eqlmaker narrate-draft <captions> [--video <file>] [--lang <code>] [--chars-per-second <n>] [--max-segment <seconds>] [--out <file>] [--force]
+eqlmaker narrate --video <file> --script <file> --out <file> [--voice <id>] [--lang <code>] [--music <file>] [--music-volume <percent>] [--tts-url <url>] [--max-tempo <n>] [--no-duck] [--force]
+```
+
+What the two steps do is described in [voice-over](narration.md).
+
+| Option of `narrate-draft` | Meaning |
+|---|---|
+| `<captions>` | caption timeline of the video: SRT, WebVTT, whisper JSON, or JSON `{"segments":[{"start","end","text","notes"}]}` |
+| `--video <file>` | the video; its length closes the last segment |
+| `--lang <code>` | language of the narration, written into the script |
+| `--chars-per-second <n>` | speaking rate of the voice, for the character budget (default 14) |
+| `--max-segment <seconds>` | longer captions are split into equal parts (default 14) |
+| `--out <file>` | script to write (default: `<captions>.narration.json`) |
+
+| Option of `narrate` | Meaning |
+|---|---|
+| `--video <file>` | the finished video; the picture is copied unchanged |
+| `--script <file>` | the narration script with the texts |
+| `--out <file>` | video to write (MP4 with AAC sound); never the input |
+| `--voice <id>` | voice reference registered on the Fish Speech server (default: `narration.voices.<lang>` or `narration.voice` of `eqlmaker.json`) |
+| `--music <file>` | background music (MP3 or WAV), looped or cut to the length of the video |
+| `--music-volume <percent>` | level of the music in percent of its own level (default 25) |
+| `--tts-url <url>` | address of the Fish Speech server (default `http://127.0.0.1:8080`) |
+| `--max-tempo <n>` | largest speed-up of a clip that is a little too long (default 1.1) |
+| `--no-duck` | do not lower the music further while someone speaks |
+| `--force` | replace an existing output file |
+
 ## Remote control
 
 | Command | Does |

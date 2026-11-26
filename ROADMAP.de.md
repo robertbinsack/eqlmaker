@@ -16,7 +16,7 @@ ein Plan, keine Zusage.
 ## Verfügbar und getestet (v0.2)
 
 <!-- status:begin summary -->
-21 von 21 Funktionen der Version 0.2 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
+22 von 22 Funktionen der Version 0.2 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
 <!-- status:end -->
 
 <!-- status:begin available -->
@@ -35,6 +35,7 @@ ein Plan, keine Zusage.
 | Befunde aus dem Video übernehmen | Geführter Schritt: Jeder Befund wird als übernommen, abgelehnt oder offen entschieden, mit Bericht | 0.1.0 | `GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding` |
 | Vergleichstests | Bildvergleich und Vergleich der gemessenen Datenbankänderungen zweier Aufnahmen | 0.1.0 | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
 | Vergleichsvideo mit Player | Original und Nachbau auf einer Zeitachse | 0.1.0 | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |
+| Vertonung von Demo-Videos | Ein gesprochener Kommentar über einem fertigen Video, Abschnitt für Abschnitt entlang seiner Untertitel-Zeitachse, erzeugt von einem lokalen Fish-Speech-Server mit eigener Stimmreferenz; Clips werden gemessen und eingepasst (höchstens leicht beschleunigt), optionale Hintergrundmusik mit einstellbarer Lautstärke wird unter der Sprache abgesenkt; das Bild bleibt unverändert | 0.3.0 | `NarrationTests.NarrateMixesSpeechAndMusicOverTheVideo`<br>`NarrationTests.NarrateRefusesSpeechThatDoesNotFit`<br>`NarrationTests.FitSpeedsUpSlightlyAndReportsWhatToCut`<br>`NarrationTests.DraftCoversTheWholeVideoAndSplitsLongCaptions` |
 | MCP-Server und Kommandozeile | Dieselben Schritte als Werkzeuge für jeden MCP-Client und als Befehle | 0.1.0 | `McpTests.ProtocolToolsAndPrompts`<br>`PipelineTests.CommandLineReportsUnknownCommandsAndMissingArguments` |
 | Plugin-Schnittstellen | Für Ereignisquellen, Reader, Web-Vorlagen, Klon-Renderer und Videolayouts, dokumentiert | 0.1.0 | `PluginTests.ExamplesAreValidAndOfEveryType`<br>`PluginTests.SourcePluginDeliversEventsThroughTheSameInterface`<br>`PluginTests.WebTemplatePluginIsUsedByGenerate`<br>`PluginTests.CloneRendererPluginIsUsedByClone`<br>`PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PluginTests.BrokenManifestsAreRefusedWithTheReason`<br>`ReaderTests.ReaderPluginWritesTheSameFormatAndIsFoundByFileExtension`<br>`ReaderTests.ReaderPluginNeedsACommandAndAValidResult` |
 | Beispielanwendung mit Ende-zu-Ende-Lauf | Eine eigene Beispielanwendung als Windows-Programm und im Browser; `eqlmaker sample` durchläuft den ganzen Ablauf auf reinem PostgreSQL und findet die absichtlichen Fehler | 0.1.0 | `PipelineTests.SampleEndToEndOnPlainPostgres`<br>`examples/sample-app/web/test/http.test.js: saving an invoice writes invoice, lines, stock movements, stock and counter`<br>`examples/sample-app/web/test/calc.test.js: the deliberate defect changes at least one rounding vector, and only the tax` |

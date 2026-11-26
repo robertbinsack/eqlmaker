@@ -109,6 +109,9 @@ public static class Pipeline {
                 if (a.Opt.Has("finish")) return Guided.EnrichFinish(cfg, a.Opt.Str("findings"), a.P(0), a.P(1));
                 return Guided.EnrichPrepare(cfg, a.Opt.Str("findings"), a.P(0), a.P(1));
             case "web-shot": { var size = (a.Opt.Str("size", "1280x800")).Split('x'); return WebShot(cfg, a.Need(0, "url"), a.Need(1, "picture file"), int.Parse(size[0]), int.Parse(size[1]), a.Opt.Int("wait", 300)); }
+            case "narrate-draft": return Narration.DraftFile(cfg, a.Need(0, "caption timeline"), a.Opt.Str("video"), a.Opt.Str("lang"), a.Opt.Num("chars-per-second", 0),
+                a.Opt.Num("max-segment", 14), a.Opt.Num("min-segment", 2.5), a.Opt.Str("out"), a.Opt.Bool("force", false));
+            case "narrate": return Narration.RunWithConfig(cfg, NarrateOptionsFrom(a));
             case "clock": return ClockCheck(cfg);
             case "import-log": return ImportLog(cfg, a.Need(0, "log file"), a.Opt.Str("name"), a.Opt.Str("prefix", "%m [%p] "), a.Opt.Int("utc-offset-minutes", (int)TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).TotalMinutes), a.Opt.Str("database"), a.Opt.Str("application"));
             case "prompt": return Guided.Prompt(cfg, a.Need(0, "generate, clone or enrich"), a.Opt.Str("findings"));
@@ -116,6 +119,11 @@ public static class Pipeline {
             case "selftest": return SampleRun.SelfTest(cfg, a.Opt.Str("audio"), a.Opt.Str("expect"), a.Opt.Bool("quick", false)) ? 0 : 2;
         }
         return null;
+    }
+    static NarrateOptions NarrateOptionsFrom(Args a) {
+        return new NarrateOptions { Video = a.Opt.Str("video"), Script = a.Opt.Str("script"), Out = a.Opt.Str("out"), Voice = a.Opt.Str("voice"), Language = a.Opt.Str("lang"),
+            Music = a.Opt.Str("music"), MusicVolume = a.Opt.Num("music-volume", 25), TtsUrl = a.Opt.Str("tts-url"), MaxTempo = a.Opt.Num("max-tempo", 1.1),
+            CharsPerSecond = a.Opt.Num("chars-per-second", 0), NoDuck = a.Opt.Bool("no-duck", false), Force = a.Opt.Bool("force", false) };
     }
     static void Print(JO r, Args a) {
         if (a.Opt.Bool("json", false)) { Console.WriteLine(Json.Pretty(r).TrimEnd()); return; }
@@ -168,7 +176,19 @@ public static class Pipeline {
         s.Add("enrich_finish", "Ends the enrich step: lists the files of the web application that changed, runs the database comparison after (name the original recording and the new recording of the changed application) and writes the report: every finding adopted, rejected or open with its reason.",
             new JO("a", S("recording of the original"), "b", S("new recording of the changed web application"), "findings", S("name of the findings")), null,
             delegate (JO a) { var r = Guided.EnrichFinish(cfg, a.Str("findings"), a.Str("a"), a.Str("b")); r["report_text"] = File.ReadAllText(r.Str("readable")); return r; });
-        s.Add("clock_check", "Measures the clock of the database server against the clock of this machine (for video_import).", null, null, delegate (JO a) { return ClockCheck(cfg); });
+        s.Add("narrate_draft", "Prepares a narration script for a finished video from its caption timeline (SRT, WebVTT, whisper JSON or JSON segments): timed segments with a hint and a character budget each. Write the spoken text of every segment into 'text' (at most budget_chars), then call narrate.",
+            new JO("captions", S("caption timeline file"), "video", S("the video (for its length)"), "language", S("language of the narration: de, en, ..."), "chars_per_second", N("speaking rate of the voice in characters per second (default 14)"),
+                "max_segment", N("longest segment in seconds (default 14)"), "out", S("script file to write (default: next to the captions)"), "force", B("replace an existing script")), new[] { "captions" },
+            delegate (JO a) { return Narration.DraftFile(cfg, a.Str("captions"), a.Str("video"), a.Str("language"), a.Num("chars_per_second", 0), a.Num("max_segment", 14), 2.5, a.Str("out"), a.Bool("force", false)); });
+        s.Add("narrate", "Lays a spoken narration over a video: speaks every segment of the narration script with a local Fish Speech server and a registered voice reference, fits the clips into their segments (speed-up up to max_tempo), mixes optional background music (ducked under the speech) and writes a new video; the picture is copied unchanged. Fails with the segments to shorten when the speech does not fit.",
+            new JO("video", S("video file"), "script", S("narration script (narrate_draft)"), "out", S("video file to write"), "voice", S("voice reference id registered on the Fish Speech server"), "language", S("language of the narration (picks narration.voices of eqlmaker.json)"),
+                "music", S("background music (mp3 or wav), looped to the length of the video"), "music_volume", N("music volume in percent (default 25)"), "tts_url", S("address of the Fish Speech server (default http://127.0.0.1:8080)"),
+                "max_tempo", N("largest speed-up of a clip (default 1.1)"), "force", B("replace an existing output file")), new[] { "video", "script", "out" },
+            delegate (JO a) {
+                return Narration.RunWithConfig(cfg, new NarrateOptions { Video = a.Str("video"), Script = a.Str("script"), Out = a.Str("out"), Voice = a.Str("voice"), Language = a.Str("language"), Music = a.Str("music"),
+                    MusicVolume = a.Num("music_volume", 25), TtsUrl = a.Str("tts_url"), MaxTempo = a.Num("max_tempo", 1.1), Force = a.Bool("force", false) });
+            });
+        s.Add("clock_check","Measures the clock of the database server against the clock of this machine (for video_import).", null, null, delegate (JO a) { return ClockCheck(cfg); });
         s.Add("import_log", "Turns a PostgreSQL server log written earlier into a recording with events only (for correlate, spec and video_import after the fact).",
             new JO("file", S("log file"), "name", S("name of the recording"), "prefix", S("log_line_prefix of the server (default '%m [%p] ')"), "utc_offset_minutes", N("UTC offset of the log times in minutes (default: this machine)")), new[] { "file" },
             delegate (JO a) { return ImportLog(cfg, a.Str("file"), a.Str("name"), a.Str("prefix", "%m [%p] "), a.Int("utc_offset_minutes", (int)TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).TotalMinutes), a.Str("database"), a.Str("application")); });
