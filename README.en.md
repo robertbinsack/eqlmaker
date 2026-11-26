@@ -8,7 +8,7 @@
   </picture>
 </h1>
 
-<p align="center"><b>Understand legacy software and rebuild it with AI as a modern web application. Without source code.</b></p>
+<p align="center"><b>Understand legacy software and rebuild it with AI: as a modern web application, as an archive clone or as a Claude app. Without source code.</b></p>
 
 <p align="center">
   <img alt="Status: in development" src="https://img.shields.io/badge/Status-in%20development-orange">
@@ -19,6 +19,11 @@
   <a href="https://github.com/robertbinsack/eqlmaker/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/robertbinsack/eqlmaker/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/robertbinsack/eqlmaker/releases"><img alt="Release" src="https://img.shields.io/github/v/release/robertbinsack/eqlmaker?label=Release"></a>
 </p>
+
+<p align="center"><a href="https://eqlmaker.org/#claude-app"><img alt="Still from the video: original in Microsoft Access, web version and Claude app side by side on the same data" src="docs/media/claude-app-en.jpg" width="720"></a><br><sub>▶️ <a href="https://eqlmaker.org/#claude-app">Video on eqlmaker.org</a>: original (Microsoft Access) | web version | Claude app – one change, three interfaces</sub></p>
+
+> [!TIP]
+> **New: Claude apps from legacy applications.** Besides the web application and the archive clone there is a third result: a Claude app that runs right inside Claude Desktop and works locally with EQLServer on the same data. Every change shows a preview first and is confirmed in Claude. So far it exists as an example for Northwind (Access template), more will follow. Like the other examples, it was made by an AI agent with the same procedure; EQLMaker 0.2.0 has no command of its own for it yet. The app is private and needs Claude Desktop; “Install as app” is a beta feature there.
 
 <!-- docs/media/demo.gif : demo animation follows with the first release (made by scripts/demo/make-demo.ps1) -->
 

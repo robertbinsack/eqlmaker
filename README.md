@@ -8,7 +8,7 @@
   </picture>
 </h1>
 
-<p align="center"><b>Alte Software verstehen und mit KI als moderne Webanwendung nachbauen. Ohne Quellcode.</b></p>
+<p align="center"><b>Alte Software verstehen und mit KI nachbauen: als moderne Webanwendung, als Archiv-Klon oder als Claude-App. Ohne Quellcode.</b></p>
 
 <p align="center">
   <img alt="Status: in Entwicklung" src="https://img.shields.io/badge/Status-in%20Entwicklung-orange">
@@ -19,6 +19,11 @@
   <a href="https://github.com/robertbinsack/eqlmaker/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/robertbinsack/eqlmaker/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/robertbinsack/eqlmaker/releases"><img alt="Release" src="https://img.shields.io/github/v/release/robertbinsack/eqlmaker?label=Release"></a>
 </p>
+
+<p align="center"><a href="https://eqlmaker.org/de/#claude-app"><img alt="Standbild aus dem Video: Original in Microsoft Access, Web-Version und Claude-App nebeneinander auf denselben Daten" src="docs/media/claude-app-de.jpg" width="720"></a><br><sub>▶️ <a href="https://eqlmaker.org/de/#claude-app">Video auf eqlmaker.org</a>: Original (Microsoft Access) | Web-Version | Claude-App – eine Änderung, drei Oberflächen</sub></p>
+
+> [!TIP]
+> **Neu: Claude-Apps aus Altanwendungen.** Neben Webanwendung und Archiv-Klon gibt es ein drittes Ergebnis: eine Claude-App, die direkt in Claude Desktop läuft und lokal mit EQLServer auf denselben Daten arbeitet. Jede Änderung zeigt vorher eine Vorschau und wird in Claude bestätigt. Bisher gibt es sie als Beispiel für Northwind (Access-Vorlage), weitere folgen. Sie entstand wie die übrigen Beispiele von einem KI-Agenten mit demselben Verfahren; EQLMaker 0.2.0 hat dafür noch keinen eigenen Befehl. Die App ist privat und braucht Claude Desktop; „Als App installieren“ ist dort eine Beta-Funktion.
 
 <!-- docs/media/demo.gif : die Demo-Animation folgt mit der ersten Veröffentlichung (erzeugt von scripts/demo/make-demo.ps1) -->
 
