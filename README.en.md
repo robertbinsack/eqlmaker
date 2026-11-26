@@ -118,7 +118,7 @@ All steps are also available as tools of an **MCP server**.
 | Contoso University (Microsoft sample) | ASP.NET Core · SQL Server | 14 min | 32 / 32 GUI functions (100 %) |
 | Dolibarr ERP/CRM (open source) | PHP · PostgreSQL | 3 h 09 min | 81 / 93 GUI functions (87 %) |
 
-▶️ **Videos (original and rebuild side by side):** [eqlmaker.org](https://eqlmaker.org/) – the demo videos were operated by the AI on its own; the apps came out of them.
+▶️ **Videos (original and rebuild side by side):** [eqlmaker.org](https://eqlmaker.org/) – the demo videos were operated by the AI on its own; the apps came out of them. On eqlserver.de they are narrated with [`eqlmaker narrate`](docs/narration.md), in German and in English.
 
 <sub>The applications come from third-party vendors or are open source. Product and vendor names of third-party programs are anonymized.</sub>
 
