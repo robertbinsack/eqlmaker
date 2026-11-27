@@ -102,6 +102,19 @@ All steps are also available as tools of an **MCP server**.
 | **Legacy app** | Can keep running in parallel | Can be switched off |
 | **For whom** | Anyone who wants to keep using and evolving their software | Anyone who must retire a legacy system but still needs access to its data |
 
+### Foundation, not a converter
+
+The result is the beginning, not the end. The original application becomes a complete, working base with screens, functions and data, on the same database as the original. From there users, developers and software vendors extend it freely: new functions, their own look, another framework.
+
+- **Any AI:** the method is not tied to one AI agent.
+- **Any language, any framework:** the examples run on Node.js; the base can just as well be built in the language and framework your team prefers.
+- **Swappable template:** the examples look alike only because they all use the same UI template. With your own template the application looks like yours.
+- **Ordinary source code:** the result is plain source code in your own repository, not a closed format.
+
+### Multilingual from a single-language original
+
+An application that exists in only one language is rebuilt as a web application or a Claude app in as many languages as you like: everything the new interface shows is generated per language. The originals of the examples have no language choice (the property management software only German, Northwind and Contoso University only English); their Claude apps run in German and in English, switchable at run time. The EQLMaker web template (`src/templates/web`) comes with language resources for German and English. The interface is translated; stored data stays as it is. More on [eqlmaker.org](https://eqlmaker.org/#modes).
+
 ## Examples: legacy application and rebuild side by side
 
 > [!IMPORTANT]

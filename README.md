@@ -102,6 +102,19 @@ Alle Schritte gibt es auch als Werkzeuge eines **MCP-Servers**.
 | **Altanwendung** | Kann währenddessen weiterlaufen | Kann abgeschaltet werden |
 | **Für wen** | Wer seine Software weiter nutzen und weiterentwickeln will | Wer ein Altsystem abschalten und seine Daten weiter einsehen muss |
 
+### Grundgerüst statt Konverter
+
+Das Ergebnis ist der Anfang, nicht das Ende. Aus der Originalanwendung entsteht eine vollständige, lauffähige Basis mit Masken, Funktionen und Daten, auf derselben Datenbank wie das Original. Von dort aus erweitern Anwender, Entwickler und Softwarehersteller sie frei: neue Funktionen, eigenes Aussehen, anderes Framework.
+
+- **KI frei wählbar:** Das Verfahren ist an keinen KI-Agenten gebunden.
+- **Sprache und Framework frei wählbar:** Die Beispiele laufen mit Node.js; die Basis entsteht ebenso in der Sprache und mit dem Framework Ihres Teams.
+- **Template austauschbar:** Die Beispiele sehen nur deshalb gleich aus, weil alle dasselbe Template für die Oberfläche nutzen. Mit Ihrem eigenen Template sieht die Anwendung aus wie Ihre.
+- **Gewöhnlicher Quellcode:** Das Ergebnis ist normaler Quellcode in Ihrem eigenen Repository, kein geschlossenes Format.
+
+### Mehrsprachig aus einsprachiger Quelle
+
+Eine Anwendung, die es nur in einer Sprache gibt, entsteht als Webanwendung oder Claude-App in beliebig vielen Sprachen: Alles, was die neue Oberfläche zeigt, wird je Sprache erzeugt. Die Originale der Beispiele haben keine Sprachwahl (die Hausverwaltung nur Deutsch, Northwind und Contoso University nur Englisch); ihre Claude-Apps laufen auf Deutsch und auf Englisch, umschaltbar im laufenden Betrieb. Die Web-Vorlage von EQLMaker (`src/templates/web`) bringt Sprachressourcen für Deutsch und Englisch mit. Übersetzt wird die Oberfläche; gespeicherte Daten bleiben, wie sie sind. Mehr auf [eqlmaker.org](https://eqlmaker.org/de/#modes).
+
 ## Beispiele: Altanwendung und Nachbau nebeneinander
 
 > [!IMPORTANT]
