@@ -87,6 +87,7 @@ Siehe [geführte Schritte](guided-steps.md).
 |---|---|---|
 | `eqlmaker generate` | `--template <name>` (Vorgabe `default`), `--force` | bereitet `web/` und `GENERATE.md` vor |
 | `eqlmaker clone` | `--renderer <name>` (Vorgabe `backdrop`), `--force` | bereitet `clone/` und `CLONE.md` vor |
+| `eqlmaker claude-app` | `--name <app>`, `--title <text>`, `--schema <s>` (Vorgabe `public`), `--entity tabelle:schlüssel,...`, `--force` | bereitet `claude-app/` (MCP-Server `eqlmaker-<app>`, Anwendungsbeschreibung, Seite, Eintrag für Claude Desktop) und `CLAUDE-APP.md` vor; siehe [Claude-Apps](claude-app.md) |
 | `eqlmaker enrich [<A> <B>]` | `--findings <name>` | bereitet `enrich/<name>/` und `ENRICH.md` vor; mit zwei Aufnahmen auch den Datenbankvergleich vorher |
 | `eqlmaker enrich --decide <finding>` | `--status adopted\|rejected\|open`, `--note "<text>"`, `--files a,b`, `--findings <name>` | hält die Entscheidung zu einem Befund fest; Status und Notiz sind erforderlich |
 | `eqlmaker enrich --finish [<A> <B>]` | `--findings <name>` | schreibt den Bericht; mit zwei Aufnahmen auch den Datenbankvergleich nachher |

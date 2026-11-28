@@ -1,0 +1,1 @@
+{"mcp":{"servers":[{"server":"host:{{SERVER_NAME}}","tools":["status","describe","query","get_record","plan_operation","run_operation","run_destructive_operation","write_outcome"]}]},"desktop":{}}

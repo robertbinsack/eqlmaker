@@ -1,0 +1,5 @@
+{
+  "name": "claude-app",
+  "description": "Claude app for Claude Desktop: a local MCP server (stdio) per application that serves an application description against one EQLServer database, and a page that runs as installed app inside Claude Desktop. Reads with query/get_record, every write as preview (plan_operation) and confirmed write (run_operation). German and English user interface.",
+  "variables": ["APP_NAME", "APP_TITLE", "SERVER_NAME"]
+}

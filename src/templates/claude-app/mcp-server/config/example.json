@@ -1,0 +1,3 @@
+{ "name": "eqlmaker-example", "app": "../apps/example.json",
+  "connection": { "host": "127.0.0.1", "port": 5432, "database": "example", "schema": "public", "user": "exampleapp", "credential_profile": "example" },
+  "audit_log": "%LOCALAPPDATA%/EQLMaker/audit/example.jsonl" }

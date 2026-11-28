@@ -1,0 +1,259 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Claude app {{APP_TITLE}}: the page that runs inside Claude Desktop ("Install as app"). It holds no data. Every read
+     and every write goes through the local MCP server host:{{SERVER_NAME}}; every write is a preview first
+     (plan_operation) and is performed only after the user confirmed that preview (run_operation /
+     run_destructive_operation). Generic starting point made by "eqlmaker claude-app": menu, lists, record forms and
+     the preview dialog come from the application description (tool "describe"). Replace views one by one with
+     screens that follow the original application. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{APP_TITLE}}</title>
+<style>
+:root { --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6675; --line: #dde1e7; --accent: #2f5bd3; --accent-text: #ffffff;
+  --danger: #b42318; --ok: #1a7f37; --warn: #9a6700; --row: #f0f3f8; --radius: 8px; font-family: system-ui, "Segoe UI", sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #14171c; --panel: #1c2027; --text: #e6e9ef; --muted: #9aa3b2; --line: #2e3440; --accent: #7aa2ff; --accent-text: #0d1117; --row: #232833; --danger: #ff7b72; --ok: #56d364; --warn: #e3b341; } }
+:root[data-theme="dark"] { --bg: #14171c; --panel: #1c2027; --text: #e6e9ef; --muted: #9aa3b2; --line: #2e3440; --accent: #7aa2ff; --accent-text: #0d1117; --row: #232833; --danger: #ff7b72; --ok: #56d364; --warn: #e3b341; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-size: 14px; }
+.shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+nav { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 12px 8px; gap: 2px; }
+nav .brand { font-weight: 600; padding: 6px 10px 12px; }
+nav button.item { all: unset; cursor: pointer; padding: 7px 10px; border-radius: 6px; color: var(--text); }
+nav button.item:hover, nav button.item.on { background: var(--row); }
+nav button.item.on { font-weight: 600; }
+nav .grow { flex: 1; }
+nav .langs { display: flex; gap: 6px; padding: 8px 10px; }
+nav .langs button { all: unset; cursor: pointer; font-size: 12px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 4px; }
+nav .langs button.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+main { padding: 20px 24px; min-width: 0; }
+h1 { font-size: 20px; margin: 0 0 14px; }
+.bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+input, textarea, select { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; }
+button.b { font: inherit; cursor: pointer; border-radius: 6px; padding: 7px 12px; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+button.b.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+button.b.danger { color: var(--danger); border-color: var(--danger); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+tbody tr.link { cursor: pointer; } tbody tr.link:hover { background: var(--row); }
+.muted { color: var(--muted); }
+.form { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.form .err { color: var(--danger); font-size: 12px; }
+.state { padding: 24px; text-align: center; }
+.state.warn { color: var(--warn); }
+dialog { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--text); max-width: min(760px, 94vw); width: 100%; }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+.diff td.old { color: var(--danger); text-decoration: line-through; } .diff td.new { color: var(--ok); }
+.toast { position: fixed; bottom: 16px; right: 16px; background: var(--text); color: var(--bg); padding: 9px 14px; border-radius: 6px; }
+@media (max-width: 720px) { .shell { grid-template-columns: 1fr; } nav { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--line); } nav .grow { display: none; } main { padding: 16px; } }
+</style>
+</head>
+<body>
+<div class="shell"><nav id="nav"></nav><main id="main"></main></div>
+<dialog id="dlg"></dialog>
+<script>
+"use strict";
+const SERVER = "host:{{SERVER_NAME}}";
+const APP_TITLE = "{{APP_TITLE}}";
+
+// ---- texts: English keys, German translation. Every text of the page goes through t(); the test checks that
+// every key used in this file has a German entry. Texts of the description (titles, labels) stay as they are.
+const DE = {
+  "Overview": "Übersicht", "Connection": "Verbindung", "Server": "Server", "Database": "Datenbank", "Login": "Anmeldung", "Tools": "Werkzeuge",
+  "connected": "verbunden", "not reachable": "nicht erreichbar", "Search": "Suchen", "New": "Neu", "Save": "Speichern", "Delete": "Löschen",
+  "Back": "Zurück", "Cancel": "Abbrechen", "Confirm": "Bestätigen", "Previous": "Zurück", "Next": "Weiter", "Page {0} of {1}, {2} rows": "Seite {0} von {1}, {2} Zeilen",
+  "No rows.": "Keine Zeilen.", "Nothing changed.": "Nichts geändert.", "Saved.": "Gespeichert.", "Deleted.": "Gelöscht.",
+  "Check the change": "Änderung prüfen", "Delete this record?": "Diesen Datensatz löschen?",
+  "This is a preview. Nothing has been written yet. Confirm to write it in one transaction.": "Das ist eine Vorschau. Noch ist nichts geschrieben. Mit Bestätigen wird die Änderung in einer Transaktion geschrieben.",
+  "Table": "Tabelle", "Action": "Aktion", "Field": "Feld", "Before": "Vorher", "After": "Nachher",
+  "Server not reachable": "Server nicht erreichbar",
+  "This app works with EQLServer on your computer. Please open it in the installed app in Claude Desktop.": "Diese App arbeitet mit EQLServer auf Ihrem Rechner. Bitte in der installierten App in Claude Desktop öffnen.",
+  "The record was changed in the meantime. Nothing was written.": "Der Datensatz wurde inzwischen geändert. Es wurde nichts geschrieben.",
+  "The outcome is not known yet. Check the data before you save again.": "Der Ausgang ist noch nicht bekannt. Bitte zuerst den Stand prüfen, nicht noch einmal speichern.",
+  "No permission": "Keine Berechtigung", "Try again": "Erneut versuchen", "Message from the server": "Meldung vom Server",
+  "No queries in the application description yet.": "Die Anwendungsbeschreibung enthält noch keine Abfragen.", "Language": "Sprache",
+};
+let LANG = (() => { try { return localStorage.getItem("lang") || ""; } catch { return ""; } })() || ((navigator.language || "en").toLowerCase().startsWith("de") ? "de" : "en");
+const t = (k, ...a) => (LANG === "de" && DE[k] ? DE[k] : k).replace(/\{(\d)\}/g, (_, i) => a[+i] ?? "");
+
+// ---- tiny DOM helper
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) { if (v == null || v === false) continue; if (k.startsWith("on")) el.addEventListener(k.slice(2), v); else if (k === "class") el.className = v; else el.setAttribute(k, v === true ? "" : v); }
+  for (const c of kids.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+}
+const toast = (m) => { const el = h("div", { class: "toast", role: "status" }, m); document.body.append(el); setTimeout(() => el.remove(), 2500); };
+
+// ---- host adapter (contract of the artifact runtime: window.claude.use("mcp").callTool(server, tool, input, opts))
+let MCP = null;
+class AppError extends Error { constructor(kind, message, more) { super(message || kind); Object.assign(this, { kind }, more); } }
+function mapError(e, write) {
+  const body = e?.result?.structuredContent?.error || (() => { try { return JSON.parse(e?.result?.content?.[0]?.text || "").error; } catch { return null; } })();
+  if (e?.code === "tool_error") return new AppError(body?.code || "tool", body?.message || e.message, { fields: body?.fields, current: body?.current });
+  if (["server_not_connected", "server_not_found", "capability_disabled", "needs_reauth"].includes(e?.code)) return new AppError("offline", e.message);
+  if (["not_in_manifest", "blocked_by_policy", "not_granted", "approval_required", "consent_required"].includes(e?.code)) return new AppError("forbidden", e.message);
+  if (e?.code === "cancelled") return new AppError("declined", e.message);
+  return new AppError(write ? "unclear" : "tool", e?.message, { code: e?.code });
+}
+async function read(tool, input) {
+  if (!MCP) throw new AppError("offline", "no host");
+  try { return (await MCP.callTool(SERVER, tool, input ?? null)).payload; } catch (e) { throw mapError(e); }
+}
+async function write(tool, input) {
+  if (!MCP) throw new AppError("offline", "no host");
+  const request_id = crypto.randomUUID();
+  try { const r = (await MCP.callTool(SERVER, tool, { ...input, request_id }, { cache: false })).payload; await MCP.invalidate?.(SERVER)?.catch?.(() => {}); return r; }
+  catch (e) {
+    const x = mapError(e, true); if (x.kind !== "unclear") throw x;
+    // the answer got lost: ask the server whether this request was committed (never write twice)
+    try { const o = await read("write_outcome", { request_id }); if (o?.state === "committed") return o.result; } catch {}
+    throw x;
+  }
+}
+
+// ---- state and navigation
+let DESC = null; let VIEW = { name: "overview" };
+const entityOf = (name) => (DESC?.entities || []).find((e) => e.name === name);
+const main = () => document.getElementById("main");
+function go(v) { VIEW = v; renderNav(); render(); }
+
+function renderNav() {
+  const nav = document.getElementById("nav");
+  const item = (label, v) => h("button", { class: "item" + (VIEW.name === v.name && VIEW.query === v.query ? " on" : ""), onclick: () => go(v) }, label);
+  nav.replaceChildren(
+    h("div", { class: "brand" }, APP_TITLE),
+    item(t("Overview"), { name: "overview" }),
+    ...(DESC?.queries || []).filter((q) => q.kind === "list" || q.kind === "object").map((q) => item(q.title || q.name, { name: "list", query: q.name })),
+    item(t("Connection"), { name: "status" }),
+    h("div", { class: "grow" }),
+    h("div", { class: "langs", role: "group", "aria-label": t("Language") }, ["de", "en"].map((l) => h("button", { class: LANG === l ? "on" : "", "aria-pressed": String(LANG === l), onclick: () => { LANG = l; try { localStorage.setItem("lang", l); } catch {} document.documentElement.lang = l; renderNav(); render(); } }, l.toUpperCase()))));
+}
+
+function stateView(e, retry) {
+  const offline = e.kind === "offline";
+  return h("div", { class: "card state" + (offline ? " warn" : "") },
+    h("h2", {}, offline ? t("Server not reachable") : e.kind === "forbidden" ? t("No permission") : t("Message from the server")),
+    h("p", {}, offline ? t("This app works with EQLServer on your computer. Please open it in the installed app in Claude Desktop.") : e.message),
+    retry && h("button", { class: "b", onclick: retry }, t("Try again")));
+}
+
+async function render() {
+  const m = main();
+  try {
+    if (!DESC) DESC = await read("describe");
+    if (VIEW.name === "overview") return renderOverview(m);
+    if (VIEW.name === "status") return renderStatus(m);
+    if (VIEW.name === "list") return renderList(m);
+    if (VIEW.name === "record") return renderRecord(m);
+  } catch (e) { m.replaceChildren(stateView(e, () => render())); }
+}
+
+function renderOverview(m) {
+  const qs = (DESC.queries || []);
+  m.replaceChildren(h("h1", {}, APP_TITLE), qs.length ? h("div", { class: "form" }, qs.map((q) => h("button", { class: "b", onclick: () => go({ name: "list", query: q.name }) }, q.title || q.name))) : h("p", { class: "muted" }, t("No queries in the application description yet.")));
+}
+
+async function renderStatus(m) {
+  const s = await read("status");
+  m.replaceChildren(h("h1", {}, t("Connection")), h("div", { class: "card" }, h("table", {}, h("tbody", {},
+    [[t("Server"), s.ok ? t("connected") : t("not reachable") + (s.message ? " · " + s.message : "")], ["EQLServer", s.eqlserver || ""], ["", `${s.host}:${s.port}`],
+     [t("Database"), [s.database, s.schema].filter(Boolean).join(" · ")], [t("Login"), s.login || s.user || ""], [t("Tools"), (s.tools || []).join(", ")]].map(([k, v]) => h("tr", {}, h("th", {}, k), h("td", {}, v)))))));
+}
+
+const cell = (v) => v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
+function grid(rows, onRow) {
+  if (!rows?.length) return h("p", { class: "muted" }, t("No rows."));
+  const cols = Object.keys(rows[0]).slice(0, 10);
+  return h("table", {}, h("thead", {}, h("tr", {}, cols.map((c) => h("th", { scope: "col" }, c)))),
+    h("tbody", {}, rows.map((r) => h("tr", { class: onRow ? "link" : "", tabindex: onRow ? "0" : null, onclick: onRow ? () => onRow(r) : null, onkeydown: onRow ? (ev) => ev.key === "Enter" && onRow(r) : null }, cols.map((c) => h("td", { title: cell(r[c]) }, cell(r[c])))))));
+}
+
+async function renderList(m) {
+  const q = (DESC.queries || []).find((x) => x.name === VIEW.query); const ent = entityOf(VIEW.query);
+  const st = VIEW.st ||= { q: "", page: 1 };
+  const data = await read("query", { name: q.name, page: st.page, size: 25, ...(q.search && st.q ? { q: st.q } : {}) });
+  const head = h("div", { class: "bar" },
+    q.search && h("input", { type: "search", placeholder: t("Search"), "aria-label": t("Search"), value: st.q, onchange: (ev) => { st.q = ev.target.value; st.page = 1; render(); } }),
+    ent?.ops.includes("create") && h("button", { class: "b primary", onclick: () => go({ name: "record", entity: ent.name, id: null, back: VIEW }) }, t("New")));
+  if (q.kind === "object") return m.replaceChildren(h("h1", {}, q.title || q.name), ...Object.entries(data).map(([k, v]) => h("div", { class: "card", style: "margin-bottom:12px" }, h("h2", {}, k), grid([].concat(v ?? [])))));
+  const key = ent && [].concat(ent.key)[0];
+  m.replaceChildren(h("h1", {}, q.title || q.name), head,
+    h("div", { class: "card" }, grid(data.rows, ent && !Array.isArray(ent.key) ? (r) => go({ name: "record", entity: ent.name, id: r[key], back: VIEW }) : null)),
+    h("div", { class: "bar", style: "margin-top:10px" },
+      h("button", { class: "b", disabled: data.page <= 1, onclick: () => { st.page--; render(); } }, t("Previous")),
+      h("span", { class: "muted" }, t("Page {0} of {1}, {2} rows", data.page, data.pages, data.total)),
+      h("button", { class: "b", disabled: data.page >= data.pages, onclick: () => { st.page++; render(); } }, t("Next"))));
+}
+
+async function renderRecord(m) {
+  const e = entityOf(VIEW.entity); const isNew = VIEW.id == null;
+  const rec = isNew ? { row: {} } : await read("get_record", { entity: e.name, id: VIEW.id });
+  const fields = e.fields.filter((f) => f.c !== e.key || !isNew);
+  const inputs = {}; const errs = {};
+  const form = h("div", { class: "form" }, fields.map((f) => {
+    const v = rec.row[f.c];
+    const inp = f.t === "memo" ? h("textarea", { rows: "3" }, cell(v)) : h("input", { value: cell(v), type: f.t === "date" ? "date" : "text", maxlength: f.len || null });
+    if (f.ro || f.c === e.key) inp.disabled = true;
+    if (f.t === "date" && v) inp.value = String(v).slice(0, 10);
+    inputs[f.c] = inp; errs[f.c] = h("span", { class: "err" });
+    return h("label", {}, (f.l || f.c) + (f.req ? " *" : ""), inp, errs[f.c]);
+  }));
+  const changed = () => Object.fromEntries(Object.entries(inputs).filter(([c, i]) => !i.disabled && i.value !== (e.fields.find((f) => f.c === c).t === "date" ? String(rec.row[c] ?? "").slice(0, 10) : cell(rec.row[c]))).map(([c, i]) => [c, i.value === "" ? null : i.value]));
+  const save = async () => {
+    const values = changed(); if (!Object.keys(values).length) return toast(t("Nothing changed."));
+    const expected = isNew ? null : Object.fromEntries(Object.keys(values).map((c) => [c, rec.row[c] ?? null]));
+    await change(isNew ? `${e.name}.create` : `${e.name}.update`, isNew ? { values } : { id: VIEW.id, values }, expected, errs, (r) => { toast(t("Saved.")); go(VIEW.back || { name: "overview" }); });
+  };
+  const del = () => change(`${e.name}.delete`, { id: VIEW.id }, null, errs, () => { toast(t("Deleted.")); go(VIEW.back || { name: "overview" }); });
+  m.replaceChildren(h("h1", {}, (e.single || e.name) + (isNew ? "" : " " + VIEW.id)),
+    h("div", { class: "bar" }, h("button", { class: "b", onclick: () => go(VIEW.back || { name: "overview" }) }, t("Back")),
+      h("button", { class: "b primary", onclick: save }, t("Save")), !isNew && e.ops.includes("delete") && h("button", { class: "b danger", onclick: del }, t("Delete"))),
+    h("div", { class: "card" }, form));
+}
+
+// ---- every write: preview (plan_operation, rolled back on the server) -> dialog -> confirmed write with the token
+async function change(operation, params, expected, errs, done) {
+  for (const s of Object.values(errs)) s.textContent = "";
+  let plan;
+  try { plan = await read("plan_operation", { operation, params, expected, nonce: crypto.randomUUID() }); }
+  catch (e) {
+    if (e.kind === "validation" && e.fields) { for (const [k, msg] of Object.entries(e.fields)) { const c = k.replace(/^values\./, ""); if (errs[c]) errs[c].textContent = msg; } return; }
+    if (e.kind === "conflict") return toast(t("The record was changed in the meantime. Nothing was written."));
+    return main().prepend(stateView(e));
+  }
+  if (!(await confirmPlan(plan))) return;
+  try { const r = await write(plan.tool, { token: plan.token }); done(r); }
+  catch (e) { toast(e.kind === "conflict" ? t("The record was changed in the meantime. Nothing was written.") : e.kind === "unclear" ? t("The outcome is not known yet. Check the data before you save again.") : e.message); }
+}
+
+function confirmPlan(plan) {
+  const dlg = document.getElementById("dlg");
+  const rows = [];
+  for (const ch of plan.changes || []) {
+    const keys = [...new Set([...Object.keys(ch.before || {}), ...Object.keys(ch.after || {})])].filter((k) => cell(ch.before?.[k]) !== cell(ch.after?.[k]));
+    for (const k of keys) rows.push(h("tr", {}, h("td", {}, ch.table), h("td", {}, ch.action), h("td", {}, k), h("td", { class: "old" }, cell(ch.before?.[k])), h("td", { class: "new" }, cell(ch.after?.[k]))));
+  }
+  return new Promise((resolve) => {
+    const close = (v) => { dlg.close(); resolve(v); };
+    dlg.replaceChildren(h("h2", {}, plan.destructive ? t("Delete this record?") : t("Check the change")), h("p", {}, plan.title || plan.operation, " · ", plan.summary),
+      h("p", { class: "muted" }, t("This is a preview. Nothing has been written yet. Confirm to write it in one transaction.")),
+      h("div", { class: "card diff" }, h("table", {}, h("thead", {}, h("tr", {}, [t("Table"), t("Action"), t("Field"), t("Before"), t("After")].map((x) => h("th", { scope: "col" }, x)))), h("tbody", {}, rows))),
+      h("div", { class: "bar", style: "justify-content:flex-end;margin-top:12px" }, h("button", { class: "b", onclick: () => close(false) }, t("Cancel")), h("button", { class: plan.destructive ? "b danger" : "b primary", onclick: () => close(true) }, plan.destructive ? t("Delete") : t("Confirm"))));
+    dlg.oncancel = () => resolve(false);
+    dlg.showModal();
+  });
+}
+
+(async () => {
+  document.documentElement.lang = LANG;
+  try { MCP = window.claude?.use ? await window.claude.use("mcp").catch(() => null) : null; } catch { MCP = null; }
+  renderNav(); await render(); renderNav();
+})();
+</script>
+</body>
+</html>

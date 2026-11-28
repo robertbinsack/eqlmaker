@@ -26,6 +26,7 @@ public static class Program {
   eqlmaker manual <file>                      take over a manual (PDF, HTML, DOCX, TXT, Markdown) as project context
   eqlmaker generate [--template name]         guided step: workspace and instructions for the new web application
   eqlmaker clone [--renderer name]            guided step: workspace and instructions for the read-only 1:1 clone
+  eqlmaker claude-app [--name app] [--schema s] [--entity table:key,...]   guided step: Claude app for Claude Desktop (own MCP server, page, preview before every write)
   eqlmaker video <recording A> <recording B>  two recordings side by side on one time axis, with player page
   eqlmaker verify screens <A> <B>             compare pictures (folders or files)
   eqlmaker verify db <recording A> <recording B>   compare the measured database changes of two recordings

@@ -26,6 +26,7 @@ with the same file name. What is available and tested is listed in the
 | [Manual](manual.md) | Taking over the manual of the original: formats, what is extracted, limits of the PDF reader |
 | [PowerBuilder libraries](powerbuilder.md) | Reading the libraries of a PowerBuilder application: menus, windows, labels, SQL |
 | [Guided steps](guided-steps.md) | `generate`, `clone`, `enrich`: what EQLMaker prepares, who does the work, how it is checked |
+| [Build Claude apps](claude-app.md) | `claude-app`: from a legacy application to a Claude app in Claude Desktop with its own MCP server; step by step, block for a coding agent, troubleshooting, examples |
 | [Comparison tests](verify.md) | `verify screens` and `verify db`: rules, options, reading the report |
 | [Time stamp overlay](timestamp-overlay.md) | The strip that puts the time into every video frame |
 | [Video import](video-import.md) | Matching a narrated video to the database events; measured accuracy |

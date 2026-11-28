@@ -26,6 +26,7 @@ Deutsch unter demselben Dateinamen. Was verfügbar und getestet ist, steht im
 | [Handbuch](manual.md) | Das Handbuch des Originals übernehmen: Formate, was herausgelesen wird, Grenzen des PDF-Lesers |
 | [PowerBuilder-Bibliotheken](powerbuilder.md) | Die Bibliotheken einer PowerBuilder-Anwendung lesen: Menüs, Fenster, Beschriftungen, SQL |
 | [Geführte Schritte](guided-steps.md) | `generate`, `clone`, `enrich`: was EQLMaker vorbereitet, wer die Arbeit macht, wie geprüft wird |
+| [Claude-Apps bauen](claude-app.md) | `claude-app`: von der Altanwendung zur Claude-App in Claude Desktop mit eigenem MCP-Server; Schritt für Schritt, Block für einen KI-Agenten, Fehlersuche, Beispiele |
 | [Vergleichstests](verify.md) | `verify screens` und `verify db`: Regeln, Optionen, den Bericht lesen |
 | [Zeitstempel-Leiste](timestamp-overlay.md) | Die Leiste, die die Uhrzeit in jedes Videobild bringt |
 | [Video-Import](video-import.md) | Ein kommentiertes Video mit den Datenbankereignissen abgleichen; gemessene Genauigkeit |

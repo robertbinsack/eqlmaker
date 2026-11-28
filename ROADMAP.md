@@ -16,7 +16,7 @@ that proves it. The roadmap is a plan, not a commitment.
 ## Available and tested (v0.2)
 
 <!-- status:begin summary -->
-22 of 22 features of version 0.2 are available and tested, 0 in development. The test column names the tests of the repository that prove each feature.
+23 of 23 features of version 0.2 are available and tested, 0 in development. The test column names the tests of the repository that prove each feature.
 <!-- status:end -->
 
 <!-- status:begin available -->
@@ -32,6 +32,7 @@ that proves it. The roadmap is a plan, not a commitment.
 | Timeline and specification | Click, screen, statement and transaction on one timeline; screens, queries and tables derived from it by fixed rules | 0.1.0 | `TimelineTests.EventsGoToTheActionBeforeThem`<br>`TimelineTests.TransactionIdsGiveExactTies`<br>`TimelineTests.TransactionsAreTiedByTimeAndTableWithoutIds`<br>`TimelineTests.SameInputGivesSameOutput`<br>`SpecTests.StepsMasksQueriesTablesAndManualLinks` |
 | Rebuild as web app | Guided step with web template and instructions for a connected AI assistant | 0.1.0 | `GuidedTests.GenerateIsAWorkspaceAndInstructionsNotAnApplication`<br>`src/templates/web/test/template.test.js: server: API and files through HTTP with a stand-in pool` |
 | Read-only archive clone | Guided step with reference images per screen | 0.1.0 | `GuidedTests.CloneScaffoldShowsTheReferenceAndGreysOutWritingControls` |
+| Claude app for Claude Desktop | Guided step: own local MCP server and own database per application, page as installed app in Claude Desktop, preview and confirmation before every write, German and English | 0.3.0 | `GuidedTests.ClaudeAppIsOneServerPerAppWithoutPasswordAndPreviewBeforeWrite`<br>`src/templates/claude-app/mcp-server/test/template.test.mjs: database: preview writes nothing, the confirmed token writes once, deleting needs the destructive tool` |
 | Take over findings from the video | Guided step: every finding is decided as adopted, rejected or open, with a report | 0.1.0 | `GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding` |
 | Comparison tests | Visual comparison and comparison of measured database changes between two recordings | 0.1.0 | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
 | Comparison video with player | Original and rebuild on one timeline | 0.1.0 | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |

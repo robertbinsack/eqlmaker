@@ -1,0 +1,22 @@
+{
+  "app": "example",
+  "title": "Example",
+  "version": "0.1.0",
+  "source": "Example description of the template: one table items(id, name, price, note). eqlmaker claude-app writes apps/<app>.json next to it.",
+  "entities": {
+    "items": {
+      "table": "items", "key": "id", "identity": true, "single": "Item",
+      "fields": [
+        { "c": "name", "l": "Name", "t": "text", "req": true, "len": 80 },
+        { "c": "price", "l": "Price", "t": "money", "min": 0 },
+        { "c": "note", "l": "Note", "t": "memo" }
+      ]
+    }
+  },
+  "queries": {
+    "items": {
+      "title": "Items", "sql": "SELECT id, name, price FROM items",
+      "search": { "like": ["name"] }, "sort": { "name": "name", "price": "price" }, "default_sort": "name", "tiebreak": "id"
+    }
+  }
+}

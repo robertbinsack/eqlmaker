@@ -12,6 +12,7 @@ MCP-Client angeschlossen ist, oder ein Mensch, der derselben Anleitung folgt.
 |---|---|---|---|
 | `generate` | Ordner `web/` aus einer Web-Vorlage, die Spezifikation daneben, `GENERATE.md` | baut die Webanwendung | `verify db` |
 | `clone` | Ordner `clone/` mit Referenzbild und Gerüstseite je Maske, ein nur lesender Server, `CLONE.md` | füllt die Seiten mit Live-Daten | `verify screens` |
+| `claude-app` | Ordner `claude-app/` mit eigenem MCP-Server, Anwendungsbeschreibung, funktionierender Seite, Eintrag für Claude Desktop, `CLAUDE-APP.md`; siehe [Claude-Apps](claude-app.md) | vervollständigt Beschreibung und Masken, installiert die App | `verify db`, die Tests in `claude-app/mcp-server` |
 | `enrich` | Ordner `enrich/<name>/` mit dem Stand vorher und `ENRICH.md` mit jedem Befund | entscheidet jeden Befund und ändert die Webanwendung | den Bericht von `enrich --finish`, `verify db` |
 
 Die Anleitung ist derselbe Text an drei Stellen: die Datei im Arbeitsordner, der MCP-Prompt

@@ -16,7 +16,7 @@ ein Plan, keine Zusage.
 ## Verfügbar und getestet (v0.2)
 
 <!-- status:begin summary -->
-22 von 22 Funktionen der Version 0.2 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
+23 von 23 Funktionen der Version 0.2 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
 <!-- status:end -->
 
 <!-- status:begin available -->
@@ -32,6 +32,7 @@ ein Plan, keine Zusage.
 | Zeitachse und Spezifikation | Klick, Maske, Anweisung und Transaktion auf einer Zeitachse; daraus Masken, Abfragen und Tabellen nach festen Regeln | 0.1.0 | `TimelineTests.EventsGoToTheActionBeforeThem`<br>`TimelineTests.TransactionIdsGiveExactTies`<br>`TimelineTests.TransactionsAreTiedByTimeAndTableWithoutIds`<br>`TimelineTests.SameInputGivesSameOutput`<br>`SpecTests.StepsMasksQueriesTablesAndManualLinks` |
 | Nachbau als Webanwendung | Geführter Schritt mit Web-Vorlage und Anleitung für einen angeschlossenen KI-Assistenten | 0.1.0 | `GuidedTests.GenerateIsAWorkspaceAndInstructionsNotAnApplication`<br>`src/templates/web/test/template.test.js: server: API and files through HTTP with a stand-in pool` |
 | Archiv-Klon, nur lesend | Geführter Schritt mit Referenzbildern je Maske | 0.1.0 | `GuidedTests.CloneScaffoldShowsTheReferenceAndGreysOutWritingControls` |
+| Claude-App für Claude Desktop | Geführter Schritt: eigener lokaler MCP-Server und eigene Datenbank je Anwendung, Seite als installierte App in Claude Desktop, Vorschau und Bestätigung vor jedem Schreiben, Deutsch und Englisch | 0.3.0 | `GuidedTests.ClaudeAppIsOneServerPerAppWithoutPasswordAndPreviewBeforeWrite`<br>`src/templates/claude-app/mcp-server/test/template.test.mjs: database: preview writes nothing, the confirmed token writes once, deleting needs the destructive tool` |
 | Befunde aus dem Video übernehmen | Geführter Schritt: Jeder Befund wird als übernommen, abgelehnt oder offen entschieden, mit Bericht | 0.1.0 | `GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding` |
 | Vergleichstests | Bildvergleich und Vergleich der gemessenen Datenbankänderungen zweier Aufnahmen | 0.1.0 | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
 | Vergleichsvideo mit Player | Original und Nachbau auf einer Zeitachse | 0.1.0 | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |

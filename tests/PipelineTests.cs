@@ -139,6 +139,37 @@ public static class GuidedTests {
         T.Throws(delegate { Guided.Generate(Config.Load(dir2), null, false); }, "run 'eqlmaker spec' first", "without a specification");
     }
 
+    public static void ClaudeAppIsOneServerPerAppWithoutPasswordAndPreviewBeforeWrite() {
+        var cfg = Fixture.Project("guided-claude-app", false);
+        cfg.Raw["connection"] = "host=127.0.0.1 port=54398 user=shopapp dbname=shop password='s3cret' passfile='C:\\\\pw.txt'";
+        var r = Guided.ClaudeApp(cfg, "Shop Demo", null, "shop_dbo", "invoice:id", false);
+        T.Eq("shop-demo", r.Str("app"), "app name as slug"); T.Eq("eqlmaker-shop-demo", r.Str("server"), "one MCP server per app");
+        T.True(File.Exists(cfg.Sub("claude-app", "mcp-server", "src", "engine.mjs")) && File.Exists(cfg.Sub("claude-app", "mcp-server", "bin", "set-password.mjs")) && File.Exists(cfg.Sub("claude-app", "mcp-server", "package-lock.json")), "generic server copied");
+        string page = File.ReadAllText(r.Str("page"));
+        T.Contains(page, "const SERVER = \"host:eqlmaker-shop-demo\"", "the page addresses only its own server"); T.True(!page.Contains("{{"), "placeholders of the page replaced");
+        T.Contains(File.ReadAllText(r.Str("capabilities")), "\"server\":\"host:eqlmaker-shop-demo\"", "capabilities name the server");
+        string conf = File.ReadAllText(r.Str("config"));
+        T.True(!conf.Contains("s3cret") && !conf.Contains("passfile") && !conf.Contains("pw.txt"), "no password and no passfile in the configuration");
+        var c = Json.ReadFile(r.Str("config"));
+        T.Eq(54398, c.Obj("connection").Int("port", 0), "port from the project connection"); T.Eq("shop_dbo", c.Obj("connection").Str("schema"), "schema"); T.Eq("shop", c.Obj("connection").Str("database"), "database");
+        T.Eq("shop-demo", c.Obj("connection").Str("credential_profile"), "own password profile");
+        var d = Json.ReadFile(r.Str("description"));
+        T.Eq("id", d.Obj("entities").Obj("invoice").Str("key"), "entity from --entity");
+        T.True(d.Obj("queries").Has("invoice") && d.Obj("queries").Obj("invoice").Str("sql") == "SELECT * FROM invoice", "list query per table");
+        T.True(r.Int("tables", 0) >= 1, "tables of the specification");
+        string desk = File.ReadAllText(r.Str("desktop_config"));
+        T.Contains(desk, "eqlmaker-shop-demo", "Claude Desktop entry"); T.Contains(desk, "/mcp-server/config/shop-demo.json", "entry points at the own configuration");
+        string guide = File.ReadAllText(r.Str("instructions"));
+        T.Contains(guide, "plan_operation", "the preview rule is part of the instructions"); T.Contains(guide, "verify db", "the proof is named"); T.True(!guide.Contains("{{"), "no placeholder left in the instructions");
+        T.Throws(delegate { Guided.ClaudeApp(cfg, "Shop Demo", null, null, null, false); }, "exists already", "second call without --force");
+        File.WriteAllText(r.Str("description"), "{\"app\":\"mine\"}");
+        var r2 = Guided.ClaudeApp(cfg, "Shop Demo", null, null, null, true);
+        T.True(r2.Bool("description_kept", false) && File.ReadAllText(r.Str("description")).Contains("mine"), "--force keeps the edited description");
+        T.Throws(delegate { Guided.ClaudeApp(cfg, "x", null, null, "invoice", true); }, "table:key", "bad --entity");
+        var u = Guided.ParseConnection("postgresql://u1@db.local:5433/appdb");
+        T.Eq("db.local", u.Str("host"), "URI host"); T.Eq(5433, u.Int("port", 0), "URI port"); T.Eq("appdb", u.Str("database"), "URI database"); T.Eq("u1", u.Str("user"), "URI user");
+    }
+
     public static void CloneScaffoldShowsTheReferenceAndGreysOutWritingControls() {
         var cfg = Fixture.Project("guided-clone", false);
         var r = Guided.Clone(cfg, null, false);

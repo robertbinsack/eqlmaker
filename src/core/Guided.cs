@@ -85,6 +85,120 @@ public static class Guided {
             "next", "build the application as GENERATE.md says (MCP prompt 'generate'), record the same steps in it, then: eqlmaker verify db <original> <web>");
     }
 
+    // ---------------------------------------------------------------- claude-app
+    static readonly System.Text.RegularExpressions.Regex Ident = new System.Text.RegularExpressions.Regex("^[A-Za-z_][A-Za-z0-9_]*$");
+
+    /// <summary>libpq connection string (keywords or postgres:// URI) -> host, port, database, user. The password
+    /// and the passfile are never taken over: the Claude app keeps its password in DPAPI (set-password).</summary>
+    public static JO ParseConnection(string c) {
+        var o = new JO("host", "127.0.0.1", "port", 5432, "database", "", "user", "");
+        c = (c ?? "").Trim();
+        if (c.StartsWith("postgres://") || c.StartsWith("postgresql://")) {
+            var u = new Uri(c);
+            if (u.Host != "") o["host"] = u.Host; if (u.Port > 0) o["port"] = u.Port;
+            o["database"] = Uri.UnescapeDataString(u.AbsolutePath.Trim('/'));
+            if (u.UserInfo != "") o["user"] = Uri.UnescapeDataString(u.UserInfo.Split(':')[0]);
+            return o;
+        }
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(c, @"(\w+)\s*=\s*('(?:[^'\\]|\\.)*'|\S+)")) {
+            string k = m.Groups[1].Value, v = m.Groups[2].Value;
+            if (v.StartsWith("'")) v = System.Text.RegularExpressions.Regex.Replace(v.Substring(1, v.Length - 2), @"\\(.)", "$1");
+            if (k == "host" || k == "hostaddr") o["host"] = v; else if (k == "port") { int p; if (int.TryParse(v, out p)) o["port"] = p; }
+            else if (k == "dbname") o["database"] = v; else if (k == "user") o["user"] = v;
+        }
+        return o;
+    }
+
+    /// <summary>Guided step for a Claude app: copies the template (generic local MCP server + page for Claude Desktop),
+    /// writes the application description (one list query per table of the specification, one entity with
+    /// create/update/delete per --entity table:key), the server configuration without password, the Claude Desktop
+    /// entry and the instructions. One application = one database = one MCP server eqlmaker-&lt;app&gt;.</summary>
+    public static JO ClaudeApp(Config cfg, string name, string title, string schema, string entities, bool force) {
+        string app = Spec.Slug(string.IsNullOrEmpty(name) ? Path.GetFileName(cfg.Dir) : name);
+        string server = "eqlmaker-" + app;
+        string ttl = string.IsNullOrEmpty(title) ? (string.IsNullOrEmpty(name) ? Path.GetFileName(cfg.Dir) : name) : title;
+        string dir = cfg.Sub("claude-app");
+        if (Directory.Exists(dir) && Directory.GetFileSystemEntries(dir).Length > 0 && !force) throw new Exception("the folder 'claude-app' exists already; use --force to copy the template over it (your files with other names, the description and the configuration stay)");
+        CopyTemplate(Share.File("templates", "claude-app"), dir, new JO("APP_NAME", app, "APP_TITLE", ttl.Replace("\"", "'"), "SERVER_NAME", server));
+
+        // tables: the specification knows which tables the original read and wrote, and the columns it wrote
+        JO spec = File.Exists(cfg.Sub("spec", "spec.json")) ? Json.ReadFile(cfg.Sub("spec", "spec.json")) : null;
+        var tables = new List<JO>();
+        if (spec != null) foreach (JO t in spec.Arr("tables")) { string n = t.Str("name", ""); int dot = n.LastIndexOf('.'); if (dot >= 0) n = n.Substring(dot + 1); if (Ident.IsMatch(n) && !tables.Exists(delegate (JO x) { return x.Str("name") == n; })) tables.Add(new JO("name", n, "columns", t["columns_seen"] ?? new List<object>(), "written", t.Arr("written_by").Count > 0)); }
+        var keys = new JO();
+        foreach (var part in (entities ?? "").Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)) {
+            var tk = part.Split(':');
+            if (tk.Length != 2 || !Ident.IsMatch(tk[0]) || !Ident.IsMatch(tk[1])) throw new Exception("--entity expects table:key, for example customer:customer_id (got '" + part + "')");
+            keys[tk[0]] = tk[1];
+            if (!tables.Exists(delegate (JO x) { return x.Str("name") == tk[0]; })) tables.Add(new JO("name", tk[0], "columns", new List<object>(), "written", true));
+        }
+        // columns of the entity tables from the database itself (types, required, length), when it is reachable
+        var dbCols = new JO(); string dbNote = "";
+        if (keys.Count > 0 && cfg.Raw.Str("connection", "") != "") {
+            try {
+                using (var pc = new PgClient(PgConnInfo.Parse(cfg.Connection).WithApplication(PostgresSource.AppName))) {
+                    foreach (var kv in keys) {
+                        var res = pc.Query("SELECT column_name, data_type, is_nullable, column_default IS NOT NULL OR is_identity = 'YES' AS has_default, character_maximum_length FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2 ORDER BY ordinal_position", string.IsNullOrEmpty(schema) ? "public" : schema, kv.Key);
+                        var list = new List<object>();
+                        foreach (var row in res.Rows) {
+                            if (row[0] == Convert.ToString(kv.Value) || !Ident.IsMatch(row[0])) continue;
+                            string dt = row[1], ty = dt.Contains("int") ? "int" : dt == "numeric" || dt == "money" || dt.Contains("double") || dt == "real" ? "number" : dt.Contains("date") || dt.Contains("timestamp") ? "date" : dt == "boolean" ? "bool" : dt == "text" ? "memo" : "text";
+                            var fo = new JO("c", row[0], "l", row[0], "t", ty);
+                            if (row[2] == "NO" && row[3] != "t") fo["req"] = true;
+                            int len; if (int.TryParse(row[4], out len) && len > 0) fo["len"] = len;
+                            list.Add(fo);
+                        }
+                        if (list.Count > 0) dbCols[kv.Key] = list;
+                    }
+                }
+                dbNote = "columns of the entities read from the database";
+            } catch (Exception e) { dbNote = "database not reachable (" + e.Message + "): fields from the specification only"; }
+        }
+        var queries = new JO(); var ents = new JO();
+        foreach (var t in tables) {
+            string n = t.Str("name");
+            queries[n] = new JO("title", n, "sql", "SELECT * FROM " + n);
+            if (keys.Has(n)) {
+                var fields = new List<object>();
+                if (dbCols.Has(n)) fields = dbCols.Arr(n);
+                else foreach (var c in t.Strings("columns")) if (Ident.IsMatch(c) && c != keys.Str(n)) fields.Add(new JO("c", c, "l", c, "t", "text"));
+                ents[n] = new JO("table", n, "key", keys.Str(n), "identity", true, "single", n, "fields", fields);
+                ((JO)queries[n])["tiebreak"] = keys.Str(n);
+            }
+        }
+        string descFile = Path.Combine(dir, "mcp-server", "apps", app + ".json"), cfgFile = Path.Combine(dir, "mcp-server", "config", app + ".json");
+        bool keptDesc = File.Exists(descFile), keptCfg = File.Exists(cfgFile);
+        if (!keptDesc) Json.WriteFile(descFile, new JO("app", app, "title", ttl, "version", "0.1.0",
+            "source", "written by eqlmaker claude-app from " + (spec != null ? "spec/spec.json" : "the command line") + "; complete fields (types t, labels l, req, len), queries and operations as the instructions say",
+            "entities", ents, "queries", queries));
+        var conn = ParseConnection(cfg.Raw.Str("connection", ""));
+        if (!keptCfg) Json.WriteFile(cfgFile, new JO("name", server, "app", "../apps/" + app + ".json",
+            "connection", new JO("host", conn["host"], "port", conn["port"], "database", conn.Str("database"), "schema", string.IsNullOrEmpty(schema) ? "public" : schema,
+                "user", conn.Str("user"), "credential_profile", app),
+            "audit_log", "%LOCALAPPDATA%/EQLMaker/audit/" + app + ".jsonl"));
+        string fwd = dir.Replace('\\', '/');
+        string desktop = Path.Combine(dir, "claude_desktop_config.json");
+        Json.WriteFile(desktop, new JO("mcpServers", new JO(server, new JO("command", "node", "args", new List<object> { fwd + "/mcp-server/bin/eqlmaker-mcp.mjs", "--config", fwd + "/mcp-server/config/" + app + ".json" }))));
+        if (spec != null) {
+            Directory.CreateDirectory(Path.Combine(dir, "spec"));
+            File.Copy(cfg.Sub("spec", "spec.json"), Path.Combine(dir, "spec", "spec.json"), true);
+            if (File.Exists(cfg.Sub("spec", "spec.md"))) File.Copy(cfg.Sub("spec", "spec.md"), Path.Combine(dir, "spec", "spec.md"), true);
+        }
+        var tl = new StringBuilder();
+        foreach (var t in tables) tl.Append("- `" + t.Str("name") + "`: " + (keys.Has(t.Str("name")) ? "entity with key `" + keys.Str(t.Str("name")) + "` and list query" : "list query only" + (t.Bool("written", false) ? " (the original writes this table: add `--entity " + t.Str("name") + ":<key>` or write the entity by hand)" : "")) + (t.Strings("columns").Count > 0 ? "; columns seen: " + string.Join(", ", t.Strings("columns").ToArray()) : "") + "\n");
+        string text = File.ReadAllText(Share.File("prompts", "claude-app.md"), Encoding.UTF8);
+        foreach (var kv in new JO("APP_NAME", app, "APP_TITLE", ttl, "SERVER_NAME", server, "WORKSPACE", fwd, "PROJECT_DIR", cfg.Dir, "SCHEMA", string.IsNullOrEmpty(schema) ? "public" : schema,
+            "TABLES", tables.Count == 0 ? "(none yet: no specification and no --entity; describe the tables by hand)\n" : tl.ToString(),
+            "SPEC", spec != null ? "`spec/spec.json` and `spec/spec.md` (copied from the project)" : "no specification yet (run `eqlmaker record` and `eqlmaker spec` first, or describe the screens by hand)"))
+            text = text.Replace("{{" + kv.Key + "}}", Convert.ToString(kv.Value));
+        string guide = Path.Combine(dir, "CLAUDE-APP.md");
+        File.WriteAllText(guide, text, new UTF8Encoding(false));
+        return new JO("workspace", dir, "app", app, "server", server, "page", Path.Combine(dir, "app", "app.html"), "capabilities", Path.Combine(dir, "app", "capabilities.json"),
+            "description", descFile, "description_kept", keptDesc, "config", cfgFile, "config_kept", keptCfg, "desktop_config", desktop, "instructions", guide,
+            "tables", tables.Count, "entities", ents.Count, "columns", dbNote,
+            "next", "cd claude-app/mcp-server; npm ci; node bin/set-password.mjs --profile " + app + "; complete the description as CLAUDE-APP.md says; add claude_desktop_config.json to Claude Desktop, restart it; publish app/app.html with app/capabilities.json and choose Install as app");
+    }
+
     // ---------------------------------------------------------------- clone
     public static JO Clone(Config cfg, string renderer, bool force) {
         var spec = NeedSpec(cfg);

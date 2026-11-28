@@ -23,7 +23,8 @@
 <p align="center"><a href="https://eqlmaker.org/#claude-app"><img alt="Still from the video: original in Microsoft Access, web version and Claude app side by side on the same data" src="docs/media/claude-app-en.jpg" width="720"></a><br><sub>▶️ <a href="https://eqlmaker.org/#claude-app">Video on eqlmaker.org</a>: original (Microsoft Access) | web version | Claude app – one change, three interfaces</sub></p>
 
 > [!TIP]
-> **New: Claude apps from legacy applications.** Besides the web application and the archive clone there is a third result: a Claude app that runs right inside Claude Desktop and works locally with EQLServer on the same data. Every change shows a preview first and is confirmed in Claude. So far it exists as an example for Northwind (Access template), more will follow. Like the other examples, it was made by an AI agent with the same procedure; EQLMaker 0.2.0 has no command of its own for it yet. The app is private and needs Claude Desktop; “Install as app” is a beta feature there.
+> **New: Claude apps from legacy applications.** Besides the web application and the archive clone there is a third result: a Claude app that runs right inside Claude Desktop and works locally with EQLServer on the same data. Every change shows a preview first and is confirmed in Claude. Six examples exist so far, from Microsoft Access to PowerBuilder. The new command `eqlmaker claude-app` prepares one (from 0.3.0, on the `main` branch until then). The app is private and needs Claude Desktop; "Install as app" is a beta feature there.
+
 
 <!-- docs/media/demo.gif : demo animation follows with the first release (made by scripts/demo/make-demo.ps1) -->
 
@@ -37,6 +38,19 @@ The rebuild steps are guided, not fully automatic: an AI assistant builds, EQLMa
 <!-- status:end -->
 
 ---
+
+## Build Claude apps
+
+Turn a legacy application **without source code** into a **Claude app** that runs in **Claude Desktop** as an installed app: with a local **MCP server** of its own per application, on the same data as the unchanged original in EQLServer, with a preview and a confirmation before every write, in German and English.
+
+```
+eqlmaker spec                                         # specification from the recordings
+eqlmaker claude-app --name shop --schema shop --entity customers:id,orders:id
+cd claude-app/mcp-server && npm ci && node bin/set-password.mjs --profile shop
+```
+
+A coding agent then completes the app following `claude-app/CLAUDE-APP.md`; merge `claude-app/claude_desktop_config.json` into Claude Desktop, publish `app/app.html` as a private artifact and choose "Install as app"; check it against the original with `eqlmaker verify db`. **Guide:** [Build Claude apps from legacy applications](docs/claude-app.md) · **Examples:** [Northwind](https://eqlserver.de/poc-northwind-claude-app/en.html), [Contoso University](https://eqlserver.de/poc-contoso-claude-app/en.html), [InvoicePlane](https://eqlserver.de/poc-invoiceplane-claude-app/en.html), [TurboCASH](https://eqlserver.de/poc-turbocash-claude-app/en.html), [property management](https://eqlserver.de/poc-hausverwaltung-claude-app/en.html), [invoicing](https://eqlserver.de/poc-fakturierung-claude-app/en.html)
+
 
 ## The problem
 
@@ -140,7 +154,7 @@ An application that exists in only one language is rebuilt as a web application 
 ### Version 0.2
 
 <!-- status:begin summary -->
-22 of 22 features of version 0.2 are available and tested, 0 in development. The test column names the tests of the repository that prove each feature.
+23 of 23 features of version 0.2 are available and tested, 0 in development. The test column names the tests of the repository that prove each feature.
 <!-- status:end -->
 
 <!-- status:begin features -->
@@ -156,6 +170,7 @@ An application that exists in only one language is rebuilt as a web application 
 | Timeline and specification | Click, screen, statement and transaction on one timeline; screens, queries and tables derived from it by fixed rules | available · tested | `TimelineTests.EventsGoToTheActionBeforeThem`<br>`TimelineTests.TransactionIdsGiveExactTies`<br>`TimelineTests.TransactionsAreTiedByTimeAndTableWithoutIds`<br>`TimelineTests.SameInputGivesSameOutput`<br>`SpecTests.StepsMasksQueriesTablesAndManualLinks` |
 | Rebuild as web app | Guided step with web template and instructions for a connected AI assistant | available · tested | `GuidedTests.GenerateIsAWorkspaceAndInstructionsNotAnApplication`<br>`src/templates/web/test/template.test.js: server: API and files through HTTP with a stand-in pool` |
 | Read-only archive clone | Guided step with reference images per screen | available · tested | `GuidedTests.CloneScaffoldShowsTheReferenceAndGreysOutWritingControls` |
+| Claude app for Claude Desktop | Guided step: own local MCP server and own database per application, page as installed app in Claude Desktop, preview and confirmation before every write, German and English | available · tested | `GuidedTests.ClaudeAppIsOneServerPerAppWithoutPasswordAndPreviewBeforeWrite`<br>`src/templates/claude-app/mcp-server/test/template.test.mjs: database: preview writes nothing, the confirmed token writes once, deleting needs the destructive tool` |
 | Take over findings from the video | Guided step: every finding is decided as adopted, rejected or open, with a report | available · tested | `GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding` |
 | Comparison tests | Visual comparison and comparison of measured database changes between two recordings | available · tested | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
 | Comparison video with player | Original and rebuild on one timeline | available · tested | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |
@@ -252,6 +267,7 @@ More limits of version 0.2: it runs on Windows only. User actions are recorded w
 | [Pipeline](docs/pipeline.md) | Every step with inputs, outputs and the fixed rules |
 | [Command reference](docs/cli.md) · [MCP server](docs/mcp.md) | Every command, option and tool |
 | [Guided steps](docs/guided-steps.md) · [Comparison tests](docs/verify.md) | What EQLMaker prepares, what the assistant or person does, how it is checked |
+| [Build Claude apps](docs/claude-app.md) | From a legacy application to a Claude app for Claude Desktop: own MCP server, preview before every write, step by step with examples |
 | [Voice-over](docs/narration.md) | Let a local Fish Speech installation narrate a finished demo video, optionally with background music |
 | [Sample application](docs/sample-app.md) | The sample, its hidden rules and what the numbers mean |
 | [Applications on other databases](docs/other-databases.md) · [PowerBuilder libraries](docs/powerbuilder.md) | The principle and the steps for SQL Server, MySQL and others; reading the libraries of a PowerBuilder application |

@@ -12,6 +12,7 @@ or by a person who follows the same instructions.
 |---|---|---|---|
 | `generate` | folder `web/` from a web template, the specification next to it, `GENERATE.md` | builds the web application | `verify db` |
 | `clone` | folder `clone/` with a reference picture and a scaffold page per mask, a read-only server, `CLONE.md` | fills the pages with live data | `verify screens` |
+| `claude-app` | folder `claude-app/` with an MCP server of its own, the application description, a working page, the Claude Desktop entry, `CLAUDE-APP.md`; see [Claude apps](claude-app.md) | completes the description and the screens, installs the app | `verify db`, the tests in `claude-app/mcp-server` |
 | `enrich` | folder `enrich/<name>/` with the state before and `ENRICH.md` listing every finding | decides every finding and changes the web application | the report of `enrich --finish`, `verify db` |
 
 The instructions are the same text in three places: the file in the workspace, the MCP prompt

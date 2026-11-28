@@ -87,6 +87,7 @@ public static class Pipeline {
             case "manual": return ManualImport.Run(cfg, a.Need(0, "file"), a.Opt.Str("name"));
             case "generate": return Guided.Generate(cfg, a.Opt.Str("template"), a.Opt.Bool("force", false));
             case "clone": return Guided.Clone(cfg, a.Opt.Str("renderer"), a.Opt.Bool("force", false));
+            case "claude-app": return Guided.ClaudeApp(cfg, a.Opt.Str("name"), a.Opt.Str("title"), a.Opt.Str("schema"), a.Opt.Str("entity"), a.Opt.Bool("force", false));
             case "video": return VideoPair.Run(cfg, a.Need(0, "recording A"), a.Need(1, "recording B"), a.Opt.Str("layout"), a.Opt.Str("name"), a.Opt.Bool("no-video-file", false));
             case "verify": {
                 string what = a.Need(0, "screens or db"); JO r;
@@ -148,6 +149,8 @@ public static class Pipeline {
             new JO("template", S("web template (default: 'default'; others are plugins)"), "force", B("copy the template over an existing folder")), null, delegate (JO a) { var r = Guided.Generate(cfg, a.Str("template"), a.Bool("force", false)); r["instructions_text"] = File.ReadAllText(r.Str("instructions")); return r; });
         s.Add("clone", "Pipeline step 5, a guided step: prepares the folder 'clone' for the read-only 1:1 archive: reference picture and scaffold page per mask, read-only server, instructions. You fill the pages; verify_screens checks them. Not an automatic generator.",
             new JO("renderer", S("clone renderer (default: 'backdrop'; others are plugins)"), "force", B("prepare again over an existing folder")), null, delegate (JO a) { var r = Guided.Clone(cfg, a.Str("renderer"), a.Bool("force", false)); r["instructions_text"] = File.ReadAllText(r.Str("instructions")); return r; });
+        s.Add("claude_app", "Guided step: prepares the folder 'claude-app' for a Claude app that runs inside Claude Desktop: a local MCP server of its own (eqlmaker-<app>, one database), the application description from the specification, a page with lists, record forms and a preview before every write, German and English texts, the Claude Desktop entry and the instructions. You complete the app; verify_db checks it. Not an automatic generator.",
+            new JO("name", S("name of the app (default: project folder); the server is eqlmaker-<name>"), "title", S("title shown in the app"), "schema", S("database schema of the app (default: public)"), "entity", S("entities with create/update/delete as table:key, comma separated"), "force", B("copy the template over an existing folder")), null, delegate (JO a) { var r = Guided.ClaudeApp(cfg, a.Str("name"), a.Str("title"), a.Str("schema"), a.Str("entity"), a.Bool("force", false)); r["instructions_text"] = File.ReadAllText(r.Str("instructions")); return r; });
         s.Add("video", "Pipeline step 6. Puts two recordings of the same steps (same chapter captions) on one time axis: player page and, with FFmpeg, one combined video.",
             new JO("a", S("recording of the original"), "b", S("recording of the rebuilt application"), "layout", S("side-by-side (default) or a video-layout plugin"), "no_video_file", B("only the player page")), new[] { "a", "b" },
             delegate (JO a) { return VideoPair.Run(cfg, a.Str("a"), a.Str("b"), a.Str("layout"), a.Str("name"), a.Bool("no_video_file", false)); });

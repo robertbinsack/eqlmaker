@@ -23,7 +23,8 @@
 <p align="center"><a href="https://eqlmaker.org/de/#claude-app"><img alt="Standbild aus dem Video: Original in Microsoft Access, Web-Version und Claude-App nebeneinander auf denselben Daten" src="docs/media/claude-app-de.jpg" width="720"></a><br><sub>▶️ <a href="https://eqlmaker.org/de/#claude-app">Video auf eqlmaker.org</a>: Original (Microsoft Access) | Web-Version | Claude-App – eine Änderung, drei Oberflächen</sub></p>
 
 > [!TIP]
-> **Neu: Claude-Apps aus Altanwendungen.** Neben Webanwendung und Archiv-Klon gibt es ein drittes Ergebnis: eine Claude-App, die direkt in Claude Desktop läuft und lokal mit EQLServer auf denselben Daten arbeitet. Jede Änderung zeigt vorher eine Vorschau und wird in Claude bestätigt. Bisher gibt es sie als Beispiel für Northwind (Access-Vorlage), weitere folgen. Sie entstand wie die übrigen Beispiele von einem KI-Agenten mit demselben Verfahren; EQLMaker 0.2.0 hat dafür noch keinen eigenen Befehl. Die App ist privat und braucht Claude Desktop; „Als App installieren“ ist dort eine Beta-Funktion.
+> **Neu: Claude-Apps aus Altanwendungen.** Neben Webanwendung und Archiv-Klon gibt es ein drittes Ergebnis: eine Claude-App, die direkt in Claude Desktop läuft und lokal mit EQLServer auf denselben Daten arbeitet. Jede Änderung zeigt vorher eine Vorschau und wird in Claude bestätigt. Sechs Beispiele gibt es bisher, von Microsoft Access bis PowerBuilder. Der neue Befehl `eqlmaker claude-app` bereitet sie vor (ab 0.3.0, bis dahin im Zweig `main`). Die App ist privat und braucht Claude Desktop; „Als App installieren“ ist dort eine Beta-Funktion.
+
 
 <!-- docs/media/demo.gif : die Demo-Animation folgt mit der ersten Veröffentlichung (erzeugt von scripts/demo/make-demo.ps1) -->
 
@@ -37,6 +38,19 @@ Die Nachbau-Schritte sind geführt, nicht vollautomatisch: Ein KI-Assistent baut
 <!-- status:end -->
 
 ---
+
+## Claude-Apps bauen
+
+Aus einer Altanwendung **ohne Quellcode** eine **Claude-App** machen, die in **Claude Desktop** als installierte App läuft: mit einem eigenen lokalen **MCP-Server** je Anwendung, auf denselben Daten wie das unveränderte Original in EQLServer, mit Vorschau und Bestätigung vor jedem Schreiben, auf Deutsch und Englisch.
+
+```
+eqlmaker spec                                         # specification from the recordings
+eqlmaker claude-app --name shop --schema shop --entity customers:id,orders:id
+cd claude-app/mcp-server && npm ci && node bin/set-password.mjs --profile shop
+```
+
+Danach vervollständigt ein KI-Agent die App nach `claude-app/CLAUDE-APP.md`; den Eintrag aus `claude-app/claude_desktop_config.json` in Claude Desktop übernehmen, `app/app.html` als privates Artefakt veröffentlichen und „Als App installieren“ wählen; mit `eqlmaker verify db` gegen das Original prüfen. **Anleitung:** [Claude-Apps aus Altanwendungen bauen](docs/de/claude-app.md) · **Beispiele:** [Northwind](https://eqlserver.de/poc-northwind-claude-app/), [Contoso University](https://eqlserver.de/poc-contoso-claude-app/), [InvoicePlane](https://eqlserver.de/poc-invoiceplane-claude-app/), [TurboCASH](https://eqlserver.de/poc-turbocash-claude-app/), [Hausverwaltung](https://eqlserver.de/poc-hausverwaltung-claude-app/), [Fakturierung](https://eqlserver.de/poc-fakturierung-claude-app/)
+
 
 ## Das Problem
 
@@ -140,7 +154,7 @@ Eine Anwendung, die es nur in einer Sprache gibt, entsteht als Webanwendung oder
 ### Version 0.2
 
 <!-- status:begin summary -->
-22 von 22 Funktionen der Version 0.2 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
+23 von 23 Funktionen der Version 0.2 sind verfügbar und getestet, 0 in Entwicklung. Die Spalte „Test“ nennt die Tests des Repositorys, die jede Funktion belegen.
 <!-- status:end -->
 
 <!-- status:begin features -->
@@ -156,6 +170,7 @@ Eine Anwendung, die es nur in einer Sprache gibt, entsteht als Webanwendung oder
 | Zeitachse und Spezifikation | Klick, Maske, Anweisung und Transaktion auf einer Zeitachse; daraus Masken, Abfragen und Tabellen nach festen Regeln | verfügbar · getestet | `TimelineTests.EventsGoToTheActionBeforeThem`<br>`TimelineTests.TransactionIdsGiveExactTies`<br>`TimelineTests.TransactionsAreTiedByTimeAndTableWithoutIds`<br>`TimelineTests.SameInputGivesSameOutput`<br>`SpecTests.StepsMasksQueriesTablesAndManualLinks` |
 | Nachbau als Webanwendung | Geführter Schritt mit Web-Vorlage und Anleitung für einen angeschlossenen KI-Assistenten | verfügbar · getestet | `GuidedTests.GenerateIsAWorkspaceAndInstructionsNotAnApplication`<br>`src/templates/web/test/template.test.js: server: API and files through HTTP with a stand-in pool` |
 | Archiv-Klon, nur lesend | Geführter Schritt mit Referenzbildern je Maske | verfügbar · getestet | `GuidedTests.CloneScaffoldShowsTheReferenceAndGreysOutWritingControls` |
+| Claude-App für Claude Desktop | Geführter Schritt: eigener lokaler MCP-Server und eigene Datenbank je Anwendung, Seite als installierte App in Claude Desktop, Vorschau und Bestätigung vor jedem Schreiben, Deutsch und Englisch | verfügbar · getestet | `GuidedTests.ClaudeAppIsOneServerPerAppWithoutPasswordAndPreviewBeforeWrite`<br>`src/templates/claude-app/mcp-server/test/template.test.mjs: database: preview writes nothing, the confirmed token writes once, deleting needs the destructive tool` |
 | Befunde aus dem Video übernehmen | Geführter Schritt: Jeder Befund wird als übernommen, abgelehnt oder offen entschieden, mit Bericht | verfügbar · getestet | `GuidedTests.EnrichRecordsDecisionsAndReportsEveryFinding` |
 | Vergleichstests | Bildvergleich und Vergleich der gemessenen Datenbankänderungen zweier Aufnahmen | verfügbar · getestet | `VerifyScreensTests.EqualDifferentToleranceIgnoreAndSize`<br>`VerifyScreensTests.FoldersArePairedByName`<br>`VerifyDbTests.SameChangesWithOtherGeneratedKeysAreEqual`<br>`VerifyDbTests.DeliberateDifferencesAreFound`<br>`VerifyDbTests.MissingStepAndEmptyRecordingsAreNotEqual`<br>`VerifyDbTests.AWrongReferenceIsNotHiddenByTheKeyRule` |
 | Vergleichsvideo mit Player | Original und Nachbau auf einer Zeitachse | verfügbar · getestet | `PluginTests.VideoLayoutPluginIsUsedByVideo`<br>`PipelineTests.SampleEndToEndOnPlainPostgres` |
@@ -252,6 +267,7 @@ Weitere Grenzen der Version 0.2: Sie läuft nur unter Windows. Bedienhandlungen 
 | [Ablauf](docs/de/pipeline.md) | Jeder Schritt mit Eingaben, Ausgaben und den festen Regeln |
 | [Befehlsreferenz](docs/de/cli.md) · [MCP-Server](docs/de/mcp.md) | Jeder Befehl, jede Option, jedes Werkzeug |
 | [Geführte Schritte](docs/de/guided-steps.md) · [Vergleichstests](docs/de/verify.md) | Was EQLMaker vorbereitet, was Assistent oder Mensch tun, wie geprüft wird |
+| [Claude-Apps bauen](docs/de/claude-app.md) | Aus einer Altanwendung eine Claude-App für Claude Desktop: eigener MCP-Server, Vorschau vor jedem Schreiben, Schritt für Schritt mit Beispielen |
 | [Vertonung](docs/de/narration.md) | Ein fertiges Demo-Video mit lokalem Fish Speech kommentieren lassen, optional mit Hintergrundmusik |
 | [Beispielanwendung](docs/de/sample-app.md) | Das Beispiel, seine verborgenen Regeln und was die Zahlen bedeuten |
 | [Anwendungen auf anderen Datenbanken](docs/de/other-databases.md) · [PowerBuilder-Bibliotheken](docs/de/powerbuilder.md) | Das Prinzip und die Schritte für SQL Server, MySQL und andere; die Bibliotheken einer PowerBuilder-Anwendung lesen |

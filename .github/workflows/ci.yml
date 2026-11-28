@@ -60,6 +60,11 @@ jobs:
           if ($LASTEXITCODE) { Get-Content (Join-Path $env:RUNNER_TEMP 'pg-start.log'); exit 1 }
           "EQLMAKER_TEST_PG=host=127.0.0.1 port=54329 user=postgres dbname=postgres password='$pw'" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
 
+      - name: Claude app template (Node tests, with the plain PostgreSQL)
+        shell: pwsh
+        run: |
+          Push-Location src/templates/claude-app/mcp-server; npm ci --no-audit --no-fund; if ($LASTEXITCODE) { exit 1 }; node --test --test-concurrency=1 test/template.test.mjs; if ($LASTEXITCODE) { exit 1 }; Pop-Location
+
       - name: FFmpeg for the video tests
         shell: pwsh
         run: |

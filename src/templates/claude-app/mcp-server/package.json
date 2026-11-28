@@ -1,0 +1,12 @@
+{
+  "name": "eqlmaker-claude-app-server",
+  "version": "0.1.0",
+  "description": "Local MCP server (stdio) of the Claude app {{APP_NAME}}: serves one application description against one EQLServer database over the PostgreSQL port",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "private": true,
+  "bin": { "eqlmaker-mcp": "bin/eqlmaker-mcp.mjs" },
+  "scripts": { "test": "node --test --test-concurrency=1" },
+  "dependencies": { "pg": "8.23.1" },
+  "engines": { "node": ">=20" }
+}

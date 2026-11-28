@@ -204,6 +204,24 @@
       "date": "2026-11-24"
     },
     {
+      "id": "claude-app",
+      "name": {
+        "en": "Claude app for Claude Desktop",
+        "de": "Claude-App für Claude Desktop"
+      },
+      "description": {
+        "en": "Guided step: own local MCP server and own database per application, page as installed app in Claude Desktop, preview and confirmation before every write, German and English",
+        "de": "Geführter Schritt: eigener lokaler MCP-Server und eigene Datenbank je Anwendung, Seite als installierte App in Claude Desktop, Vorschau und Bestätigung vor jedem Schreiben, Deutsch und Englisch"
+      },
+      "status": "available",
+      "tests": [
+        "GuidedTests.ClaudeAppIsOneServerPerAppWithoutPasswordAndPreviewBeforeWrite",
+        "src/templates/claude-app/mcp-server/test/template.test.mjs: database: preview writes nothing, the confirmed token writes once, deleting needs the destructive tool"
+      ],
+      "since": "0.3.0",
+      "date": "2026-11-28"
+    },
+    {
       "id": "enrich",
       "name": {
         "en": "Take over findings from the video",
